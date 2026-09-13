@@ -75,12 +75,27 @@ Deploy the entire `dist/` directory to any static host, including Cloudflare Pag
 
 Fonts, music, illustrations, and effects are served locally; gameplay makes no external requests.
 
-## Separation between site and games
+## Site, narrative and games
+
+These are independent React modules, not Web Components or separate applications. The existing URLs and save schemas are unchanged.
+
+- **Site:** `AdventureSite` owns the persistent shell, music and sound controls. `AdventureHome` renders chapter selection without importing the narrative renderer or animated games.
+- **Narrative:** `useAdventureController` owns campaign state, persistence, scene transitions and the transient rereading cursor. `NarrativeView` renders authored scenes and adapts their configuration to game props. Pure chapter data and save validation remain available on the homepage so Continue and unlocks are correct immediately.
+- **Games:** `BuildActivity` accepts robot/completion configuration, operations and assembly state, plus earn/place/complete callbacks. `PipePuzzle` accepts a layout, theme, rotations and rotate/continue callbacks. Neither imports chapter definitions, campaign storage or navigation. The host validates updates and decides the next scene. Shared maths widgets remain independent.
+- **Shared services:** existing save stores and audio modules keep their contracts; `useSoundPreference` isolates the site's preference persistence from the campaign.
+
+Setup and `NarrativeView` are dynamically imported on use. Construction (including Motion) and connections have separate lazy boundaries inside the narrative renderer. Static `RobotPortrait` uses the same geometry as the animated factory robot without importing Motion, including on the practice selection page. Loading/error UI keeps navigation mounted. During rereading, the live activity stays mounted, hidden and inert; Home still discards unsaved answer drafts.
+
+`tests/e2e/loading.spec.ts` checks actual production requests: home/reading must not fetch game renderers, each resumed game loads independently, and slow/failed downloads must preserve navigation and saves.
 
 ```text
 index.html                          Home HTML entry
 src/main.tsx                        Home JavaScript entry
-src/App.tsx                         Mounts the adventure with its home view
+src/App.tsx                         Mounts AdventureSite with its home view
+src/site/AdventureSite.tsx          Persistent shell and lazy screen boundaries
+src/site/AdventureHome.tsx          Home actions and chapter selection
+src/site/ChapterMenu.tsx            Chapter cards and unlock presentation
+src/services/useSoundPreference.ts Shared sound preference adapter
 practice.html                       Maths selection HTML entry
 src/practice-main.tsx               Practice JavaScript entry
 src/Practice.tsx                    Existing levels and saved collection
@@ -89,13 +104,15 @@ src/styles/landing.css               Maths selection styles
 
 games/adventure.html                Adventure HTML entry
 src/adventure/main.tsx              Adventure JavaScript entry
-src/adventure/Adventure.tsx          Scene engine, home and resume UI
+src/adventure/useAdventureController.ts Campaign state, saves and navigation
+src/adventure/NarrativeView.tsx      Scene rendering and game adapters
 src/adventure/AdventureSetupDialog.tsx Two-step name/character popup
-src/adventure/Activities.tsx         Reading, sequencing and construction
-src/adventure/PipePuzzle.tsx         Shared cable/water rotation interaction
+src/adventure/DialogueActions.tsx    Reading choices, comprehension and sequencing
 src/adventure/chapters/interludes.ts Radio repair and reserved water interlude
-src/adventure/pipes.ts               Authored layout, connectivity and hints
-src/adventure/pipes.css              Scoped pipe-console and board styles
+src/adventure/activity-layout.css   Narrative framing around games
+src/games/connections/PipePuzzle.tsx Standalone cable/water rotation interaction
+src/games/connections/pipes.ts       Layout, connectivity and hints
+src/games/connections/pipes.css      Self-scoped board styles
 src/adventure/types.ts              Scene types and graph validation
 src/adventure/chapters/chispa.ts     First chapter content
 src/adventure/progress.ts           Validated, separate adventure saves
@@ -109,7 +126,9 @@ games/robot-lab.html                 Factory HTML entry
 src/games/robot-lab/main.tsx         Factory JavaScript entry
 src/games/robot-lab/RobotLab.tsx     Round state and rewards
 src/games/robot-lab/Factory.tsx      Falling parts and placement targets
-src/games/robot-lab/Robot.tsx        SVG illustrations
+src/games/robot-lab/BuildActivity.tsx Standalone six-piece assembly activity
+src/games/robot-lab/Robot.tsx        Animated assembly illustration
+src/games/robot-lab/RobotArtwork.tsx Shared SVG geometry and static portraits
 src/games/robot-lab/robot-lab.css    Scoped factory styles
 src/games/robot-lab/robot.css        Scoped robot illustration styles
 
@@ -123,7 +142,7 @@ src/components/BackgroundMusic.tsx  Opt-in local soundtrack
 src/sound.ts                        Synthesized sound effects
 ```
 
-To add a different game, create its own HTML and TypeScript entry, register the HTML in `vite.config.ts` under `build.rollupOptions.input`, and link it from the landing page. Give it a separate root CSS scope. The shared maths widget is optional. Add levels as data rather than duplicating HTML.
+To add a story activity, put its component, pure rules and self-scoped CSS under `src/games/`. Pass configuration/state in and report actions through callbacks; do not read campaign storage or navigate from the game. Add its scene type/validation and a lazy adapter in `NarrativeView`. A standalone practice route can optionally get its own HTML/TypeScript entry registered in `vite.config.ts` under `build.rollupOptions.input`. The shared maths widget is optional. Add levels as data rather than duplicating HTML.
 
 ## Persistence
 

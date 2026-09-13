@@ -5,7 +5,7 @@ import { destinations, type Chapter, type Character } from './types';
 import { normalizePlayerName, playerNameMaxLength } from './personalization';
 import { chispaV1Chapter, chispaV2Chapter, chispaV3Chapter, chispaV5Chapter, migrateChispaV1, migrateChispaV2, migrateChispaV3, migrateChispaV4, migrateChispaV5 } from './chapters/chispa-migration';
 import { chispaV4Chapter } from './chapters/chispa-v4';
-import { pipeFlow, validRotations } from './pipes';
+import { pipeFlow, validRotations } from '../games/connections/pipes';
 
 export const adventureStorageKey = 'matefaciles:adventure:v1';
 export type AdventureProgress = {

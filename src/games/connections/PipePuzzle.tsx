@@ -1,8 +1,7 @@
 import { useRef, useState, type CSSProperties } from 'react';
 import { ArrowRight, Battery, Check, Droplet, Lightbulb, Radio, RotateCw } from 'lucide-react';
-import type { ConnectionTheme } from './types';
-import { playSound } from '../sound';
-import { openings, pipeFlow, pipeHint, type PipeEndpoint, type PipeLayout } from './pipes';
+import { playSound } from '../../sound';
+import { openings, pipeFlow, pipeHint, type ConnectionTheme, type PipeEndpoint, type PipeLayout } from './pipes';
 import './pipes.css';
 
 const directionNames = ['arriba', 'derecha', 'abajo', 'izquierda'];

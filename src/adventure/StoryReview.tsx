@@ -2,9 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { RobotIntroduction } from './RobotIntroduction';
 import { personalize } from './personalization';
-import type { Chapter, Scene } from './types';
-
-export type ReadingScene = Exclude<Scene, { type: 'build' | 'pipes' }>;
+import type { Chapter, ReadingScene } from './types';
 
 /** Reread visited text without rewinding the saved run or repeating activities. */
 export function StoryReview({ chapter, scene, playerName, assetPrefix, onNext }: {

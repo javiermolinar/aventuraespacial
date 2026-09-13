@@ -1,7 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
-import { parts } from '../game';
-import { Robot } from '../games/robot-lab/Robot';
+import { RobotPortrait } from '../games/robot-lab/RobotArtwork';
 import { personalize } from './personalization';
 import type { Chapter, RobotIntroduction as Introduction } from './types';
 import './robot-introduction.css';
@@ -30,7 +29,7 @@ export function RobotIntroduction({ robot, introduction, playerName, assetPrefix
     </div>
     {failed && <p className="art-warning" role="status">La ilustración no se ha podido cargar. Puedes seguir leyendo.</p>}
     <div className={`robot-introduction-portrait ${showArtwork ? 'has-artwork' : ''}`}>
-      {!showArtwork && <Robot placed={parts.map(part => part.id)} color={robot.color} design={robot.design} complete miniature />}
+      {!showArtwork && <RobotPortrait color={robot.color} design={robot.design} />}
     </div>
     <article className="dialogue-dock robot-introduction" aria-labelledby={titleId}>
       <p className="robot-introduction-earned"><Check size={20} aria-hidden="true" />¡Has construido a {robot.name}!<span className="sr-only" role="progressbar" aria-label="Piezas colocadas" aria-valuenow={6} aria-valuemin={0} aria-valuemax={6}>6 / 6</span></p>

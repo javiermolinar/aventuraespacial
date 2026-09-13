@@ -1,3 +1,4 @@
+export type ConnectionTheme = 'water' | 'radio';
 export type Direction = 0 | 1 | 2 | 3; // north, east, south, west
 export type PipeKind = 'straight' | 'elbow';
 export type PipeEndpoint = { index: number; side: Direction };

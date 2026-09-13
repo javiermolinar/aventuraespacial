@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { PipePuzzle } from './PipePuzzle';
-import { radioInterlude, waterInterlude } from './chapters/interludes';
-import { chispaChapter } from './chapters/chispa';
+import { radioInterlude, waterInterlude } from '../../adventure/chapters/interludes';
+import { chispaChapter } from '../../adventure/chapters/chispa';
 
 afterEach(cleanup);
 

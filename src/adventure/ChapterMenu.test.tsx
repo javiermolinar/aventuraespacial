@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import Adventure from './Adventure';
-import { ChapterMenu } from './ChapterMenu';
+import Adventure from '../site/AdventureSite';
+import { ChapterMenu } from '../site/ChapterMenu';
 import { chapterCatalog, playableChapter } from './chapters/catalog';
 import { chispaChapter as chapter } from './chapters/chispa';
 import { campaignStorageKey, completeChapter, newCampaign, recordChapter, saveCampaign } from './campaign';
@@ -60,16 +60,16 @@ it('reveals only Brote after explicit completion, and keeps its unwritten chapte
   for (const entry of chapterCatalog.slice(2)) expect(container.innerHTML).not.toContain(entry.robot.name);
 });
 
-it('does not complete a chapter through Home; finishing and replaying preserve the unlock after reload', () => {
+it('does not complete a chapter through Home; finishing and replaying preserve the unlock after reload', async () => {
   saveAdventure(ending());
   render(<Adventure />);
   fireEvent.click(screen.getByRole('button', { name: 'Volver al inicio' }));
   expect(screen.queryByText('Brote')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Continuar aventura' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Terminar capítulo' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Terminar capítulo' }));
   expect(screen.getByText('Brote')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Repetir capítulo' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Cancelar' }));
   expect(screen.getByText('Brote')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Repetir capítulo' }));
   fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
@@ -82,7 +82,7 @@ it('does not complete a chapter through Home; finishing and replaying preserve t
   expect(screen.getByText('Brote')).toBeTruthy();
 });
 
-it('selects another released chapter without discarding the first chapter replay or its pending reward', () => {
+it('selects another released chapter without discarding the first chapter replay or its pending reward', async () => {
   const second = { ...chapter, id: 'brote', title: 'El jardín de Brote', robot: chapterCatalog[1].robot };
   const catalog = [playableChapter(chapter), playableChapter(second), chapterCatalog[2]];
   let campaign = recordChapter(newCampaign(catalog), catalog, ending());
@@ -94,7 +94,7 @@ it('selects another released chapter without discarding the first chapter replay
   saveCampaign(campaign);
   render(<Adventure catalog={catalog} entry="home" />);
   fireEvent.click(screen.getByRole('button', { name: /Capítulo 2\. Brote/ }));
-  expect((screen.getByRole('textbox', { name: 'Tu nombre' }) as HTMLInputElement).value).toBe('Lucía');
+  expect((await screen.findByRole('textbox', { name: 'Tu nombre' }) as HTMLInputElement).value).toBe('Lucía');
   fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
   expect(JSON.parse(localStorage.getItem(campaignStorageKey)!)).toEqual(campaign);
   fireEvent.click(screen.getByRole('button', { name: /Capítulo 2\. Brote/ }));
@@ -105,7 +105,7 @@ it('selects another released chapter without discarding the first chapter replay
   expect(saved.chapters.brote).toMatchObject({ chapterId: 'brote', sceneId: 'message', character: 'girl', playerName: 'Lucía', mathsLevel: 3 });
   fireEvent.click(screen.getByRole('button', { name: 'Volver al inicio' }));
   fireEvent.click(within(screen.getByRole('region', { name: 'Elige un capítulo' })).getByRole('button', { name: /Capítulo 1\. Chispa/ }));
-  expect(screen.getByRole('button', { name: 'Arrastrar la cabeza' })).toBeTruthy();
+  expect(await screen.findByRole('button', { name: 'Arrastrar la cabeza' })).toBeTruthy();
   saved = JSON.parse(localStorage.getItem(campaignStorageKey)!);
   expect(saved.activeChapterId).toBe(chapter.id);
   expect(saved.chapters.brote.sceneId).toBe('message');

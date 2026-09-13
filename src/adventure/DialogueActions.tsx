@@ -1,12 +1,7 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, Check, Hand, RotateCcw } from 'lucide-react';
-import { parts, operationLabel, resultOf } from '../game';
-import { Factory } from '../games/robot-lab/Factory';
-import { MathPuzzle } from '../components/maths/MathPuzzle';
-import type { AdventureProgress } from './progress';
+import { ArrowRight, Check, RotateCcw } from 'lucide-react';
 import { personalize } from './personalization';
-import type { BuildScene, Chapter, ComprehensionScene, Scene, SequenceScene } from './types';
-import '../games/robot-lab/robot-lab.css';
+import type { BuildScene, ComprehensionScene, Scene, SequenceScene } from './types';
 
 function shake(element: HTMLElement) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -75,22 +70,4 @@ export function DialogueActions({ scene, playerName, onNext, onComplete }: {
     <button className="primary" onClick={onComplete}>Terminar capítulo<ArrowRight size={21} /></button>
   </section>;
   return null;
-}
-
-export function BuildActivity({ chapter, scene, progress, sound, onEarn, onPlace, onNext }: {
-  chapter: Chapter; scene: BuildScene; progress: AdventureProgress; sound: boolean;
-  onEarn: () => void; onPlace: () => void; onNext: () => void;
-}) {
-  const reached = progress.placedCount >= scene.targetPlacedParts;
-  const selected = parts[Math.min(progress.placedCount, parts.length - 1)];
-  const operation = progress.operations[Math.min(progress.placedCount, parts.length - 1)];
-  return <div className={`robot-lab adventure-build ${progress.ready ? 'piece-ready' : ''}`}>
-    <div className="workshop-grid">
-      <Factory placed={parts.slice(0, progress.placedCount).map(part => part.id)} selected={selected.id} ready={progress.ready} color={chapter.robot.color} design={chapter.robot.design} complete={progress.placedCount === 6} activeParts={parts} onPlace={onPlace} />
-      <section className="activity-panel" aria-label="Construye a tu compañera">
-        {reached ? <div className="completion-panel"><span className="celebration-icon"><Check size={42} /></span><h2>{`¡Has construido a ${chapter.robot.name}!`}</h2><p>{personalize(scene.completion, progress.playerName)}</p><button className="primary" onClick={onNext}>Seguir la historia<ArrowRight size={21} /></button></div> : progress.ready ? <div className="earned-panel"><span className="success-label"><Check size={22} />{operationLabel(operation)} = {resultOf(operation)}</span><Hand className="drag-instruction-icon" size={62} /><h2>Coloca {selected.name}</h2><p>Arrastra la pieza o tócala y después toca su silueta.</p></div> : <MathPuzzle key={progress.placedCount} operation={operation} partName={selected.name} sound={sound} onSolved={onEarn} />}
-      </section>
-    </div>
-    <span className="sr-only" role="status">{reached ? 'Has terminado el robot. Puedes seguir la historia.' : progress.ready ? `Has conseguido ${selected.name}. Colócala en su silueta.` : ''}</span>
-  </div>;
 }

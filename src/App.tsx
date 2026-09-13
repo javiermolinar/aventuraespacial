@@ -1,6 +1,6 @@
-import Adventure from './adventure/Adventure';
+import AdventureSite from './site/AdventureSite';
 
 /** The adventure is the site. Maths practice remains a separate, secondary route. */
 export default function App() {
-  return <Adventure entry="home" />;
+  return <AdventureSite entry="home" />;
 }

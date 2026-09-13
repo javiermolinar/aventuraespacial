@@ -1,5 +1,5 @@
 import type { PipeScene } from '../types';
-import { waterTankPuzzle } from '../pipes';
+import { waterTankPuzzle } from '../../games/connections/pipes';
 
 /** Reserved for a later chapter. Supply its next scene when adding it to a graph. */
 export const waterInterlude: Omit<PipeScene, 'next'> = {

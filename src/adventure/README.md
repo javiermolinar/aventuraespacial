@@ -1,6 +1,6 @@
 # Authoring adventure chapters
 
-Chapter content lives in `chapters/chispa.ts`. Author a `ChapterScript` and pass it to `defineChapter` from `chapter-script.ts`. The compiler generates and validates the `Chapter` consumed by `Adventure`; authors do not write scene links.
+Chapter content lives in `chapters/chispa.ts`. Author a `ChapterScript` and pass it to `defineChapter` from `chapter-script.ts`. The compiler generates and validates the `Chapter` consumed by `useAdventureController` and `NarrativeView`; authors do not write scene links.
 
 ## Six phases
 
@@ -62,11 +62,11 @@ Keep page IDs unique across the chapter and question IDs unique within a page. C
 
 `defineChapter` rejects empty phases, duplicate IDs, empty passages, invalid answers/orderings, and invalid game layouts. It creates the same runtime scene types described below; do not edit generated scenes as chapter source.
 
-`App` mounts `Adventure` with `entry="home"`, so home, character choice and story share `/index.html`. The direct `games/adventure.html` entry is retained. `chapters/catalog.ts` lists seven robot chapters in story order, independent of practice levels. Only Chispa currently supplies a playable `chapter`; other entries contain robot metadata only. Add a compiled chapter to its existing entry when ready, using the same stable ID. A future story title is optional until authored; revealed upcoming cards use the robot name.
+`App` mounts `src/site/AdventureSite` with `entry="home"`, so home, character choice and story share `/index.html`. The direct `games/adventure.html` entry is retained. `chapters/catalog.ts` lists seven robot chapters in story order, independent of practice levels. Only Chispa currently supplies a playable `chapter`; other entries contain robot metadata only. Add a compiled chapter to its existing entry when ready, using the same stable ID. A future story title is optional until authored; revealed upcoming cards use the robot name.
 
 ## Chapter menu and campaign saves
 
-`ChapterMenu.tsx` renders the home-screen chapter list. Initially only Chispa is enabled. Locked entries show only a chapter number and padlock: no future title, robot illustration or identifying accessible label is rendered. Completing the previous chapter reveals the next; if its content is missing, it shows **Próximamente** and remains disabled. Completed chapters show a completion mark and can be replayed.
+`src/site/ChapterMenu.tsx` renders the home-screen chapter list. Initially only Chispa is enabled. Locked entries show only a chapter number and padlock: no future title, robot illustration or identifying accessible label is rendered. Completing the previous chapter reveals the next; if its content is missing, it shows **Próximamente** and remains disabled. Completed chapters show a completion mark and can be replayed.
 
 The final reading action is **Terminar capítulo**. It records completion and returns home. The general **Volver al inicio** control does not complete a chapter, even when used on the ending screen. Finishing construction or skipping the optional game does not complete the chapter either. **Repetir capítulo** / **Reiniciar capítulo** opens the two-step name/character popup; only the final **Empezar** replaces that chapter's run. Cancelling preserves progress. Replays never remove completion marks or later unlocks; an unfinished replay can be continued.
 
@@ -74,7 +74,7 @@ The final reading action is **Terminar capítulo**. It records completion and re
 
 Validation rejects unknown/unreleased/locked active chapters and records, non-prefix completion lists, malformed profiles and invalid chapter saves. Catalogue IDs and ordering are part of the save contract: append entries or supply content under existing IDs; reordering/removing entries requires an explicit migration. Storage errors preserve in-memory progress and unlocks. Practice collection and sound preferences retain their independent storage.
 
-`Adventure` accepts a `catalog` for multiple playable chapters; its optional `chapter` override provides a single-entry catalogue for isolated chapter tests.
+`AdventureSite` accepts a `catalog` for multiple playable chapters; its optional `chapter` override provides a single-entry catalogue for isolated chapter tests. `useAdventureController` owns state, saves and transitions independently of rendering. `NarrativeView` adapts scenes to standalone games under `src/games/`; it and its construction/connection activities load on demand. Games receive only configuration/state and callbacks, never the campaign or scene destinations. Static menu/introduction portraits share the factory SVG geometry without loading Motion. See the root README for module boundaries.
 
 ## Runtime scenes (generated or legacy)
 
@@ -113,9 +113,9 @@ Use a 16:9 landscape and a separately composed 9:16 portrait image of the same r
 
 The radio passage introduces cables and connectors, explains a circuit as a complete outward-and-return path, and names the electric current. Chispa disconnects the battery before the child works and reconnects it on completion. Copper cables, end connectors, battery and radio icons replace the water graphics. A fixed return cable is shown outside the board (the radio layout uses a left-edge source and right-edge goal). An incomplete connected prefix is only a wiring guide, explicitly labelled **sin corriente**; current highlighting and the radio light appear only after the circuit is complete. The following scene continues the repair rather than introducing another loose-cable problem. There are no flashing sparks or live-wire repair instructions.
 
-`PipePuzzle.tsx` renders an SVG cable/pipe in each native button. Dragging right/down previews clockwise rotation; left/up previews counterclockwise rotation. Pointer capture keeps drags active outside the tile. Release snaps to quarter turns (40 CSS pixels per turn, with a 10-pixel drag threshold); pointer cancellation discards the preview. The generated click after a drag is suppressed. Tap/click and Enter/Space turn clockwise. The board disables touch scrolling during gestures, while the surrounding page remains scrollable.
+`src/games/connections/PipePuzzle.tsx` renders an SVG cable/pipe in each native button. Dragging right/down previews clockwise rotation; left/up previews counterclockwise rotation. Pointer capture keeps drags active outside the tile. Release snaps to quarter turns (40 CSS pixels per turn, with a 10-pixel drag threshold); pointer cancellation discards the preview. The generated click after a drag is suppressed. Tap/click and Enter/Space turn clockwise. The board disables touch scrolling during gestures, while the surrounding page remains scrollable.
 
-`pipes.ts` defines `PipeLayout`: a square `size` (3–5), row-major straight/elbow `tiles`, `initial` rotations, a known `solution`, and fixed `source`/`goal` endpoints. Directions and clockwise quarter-turn rotations are numbered north=0, east=1, south=2, west=3. An unrotated straight pipe opens north/south; an elbow opens north/east. Endpoints name an edge tile and an outward-facing side. The shipped 4 × 4 layout has a nine-tile route and seven misaligned route tiles. Spare pipes need not connect.
+`src/games/connections/pipes.ts` defines `PipeLayout`: a square `size` (3–5), row-major straight/elbow `tiles`, `initial` rotations, a known `solution`, and fixed `source`/`goal` endpoints. Directions and clockwise quarter-turn rotations are numbered north=0, east=1, south=2, west=3. An unrotated straight pipe opens north/south; an elbow opens north/east. Endpoints name an edge tile and an outward-facing side. The shipped 4 × 4 layout has a nine-tile route and seven misaligned route tiles. Spare pipes need not connect.
 
 Connectivity follows only reciprocal openings from the source. The authored solution validates solvability and supplies hints; winning is based on actual connectivity, not matching the solution array. **Ayuda** highlights and focuses one mismatched route tile without rotating it. In the water theme, water updates on committed turns and completion fills the reservoir. In the radio theme, only a complete circuit is powered. Both wait for **Continuar**. Reduced motion removes fill/light transitions. Sources and destinations use distinct shapes, and tile labels expose row, column, connections and water/current state to assistive technology. Theme-specific hints and labels never call radio cables pipes or water.
 
@@ -209,6 +209,8 @@ npm test
 npm run build
 TEST_PRODUCTION=1 npm run test:e2e
 ```
+
+`tests/e2e/loading.spec.ts` enforces production lazy-loading boundaries and preserves navigation/saves during slow or failed module downloads. Component tests await lazy screens before interacting.
 
 `campaign.test.ts`, `ChapterMenu.test.tsx` and `tests/e2e/chapters.spec.ts` test hidden locked content, explicit completion, upcoming chapters, independent chapter runs, replay confirmation, migration and storage failures. Menu screenshots are saved as `artifacts/chapters-*.png`.
 

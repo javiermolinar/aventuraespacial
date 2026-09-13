@@ -1,5 +1,5 @@
 import type { RobotDesign } from '../games/robot-lab/design';
-import { validPipeLayout, type PipeLayout } from './pipes';
+import { validPipeLayout, type PipeLayout, type ConnectionTheme } from '../games/connections/pipes';
 
 export type Character = 'boy' | 'girl';
 export type Illustration = 'ship' | 'workshop' | 'radio';
@@ -38,10 +38,10 @@ export type SequenceScene = Reading & {
   correctOrder: string[];
   next: string;
 };
-export type ConnectionTheme = 'water' | 'radio';
 export type PipeScene = Reading & { type: 'pipes'; theme?: ConnectionTheme; layout: PipeLayout; next: string };
 export type EndingScene = Reading & { type: 'ending'; prompt: string };
 export type Scene = StoryScene | ComprehensionScene | BuildScene | SequenceScene | PipeScene | EndingScene;
+export type ReadingScene = Exclude<Scene, { type: 'build' | 'pipes' }>;
 export type Chapter = {
   id: string; version: number; title: string; subtitle: string;
   intro: { title: string; description: string };

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { chispaChapter as chapter } from '../../src/adventure/chapters/chispa';
 import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart } from '../../src/adventure/progress';
-import { pipeFlow, waterTankPuzzle as layout } from '../../src/adventure/pipes';
+import { pipeFlow, waterTankPuzzle as layout } from '../../src/games/connections/pipes';
 import { readAdventure, seedLegacyAdventure } from './adventure-saves';
 
 async function openPipes(page: Page) {

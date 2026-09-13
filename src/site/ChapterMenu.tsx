@@ -1,9 +1,8 @@
 import { Fragment } from 'react';
 import { ArrowRight, Calculator, Check, Clock3, LockKeyhole, RotateCcw } from 'lucide-react';
-import { parts } from '../game';
-import { Robot } from '../games/robot-lab/Robot';
-import { chapterStatus, type CampaignProgress } from './campaign';
-import type { ChapterEntry } from './chapters/catalog';
+import { RobotPortrait } from '../games/robot-lab/RobotArtwork';
+import { chapterStatus, type CampaignProgress } from '../adventure/campaign';
+import type { ChapterEntry } from '../adventure/chapters/catalog';
 import './chapter-menu.css';
 
 export function ChapterMenu({ catalog, campaign, onSelect, practiceHref = '../practice.html' }: {
@@ -25,7 +24,7 @@ export function ChapterMenu({ catalog, campaign, onSelect, practiceHref = '../pr
             <span className="chapter-lock" aria-hidden="true"><LockKeyhole size={28} /></span>
             <span className="chapter-locked-label">Bloqueado</span>
           </> : <>
-            <span className="chapter-robot" aria-hidden="true"><Robot placed={parts.map(part => part.id)} color={entry.robot.color} design={entry.robot.design} complete miniature /></span>
+            <span className="chapter-robot" aria-hidden="true"><RobotPortrait color={entry.robot.color} design={entry.robot.design} /></span>
             <span className="chapter-name">{entry.robot.name}</span>
             {title !== entry.robot.name && <span className="chapter-title">{title}</span>}
             <span className="chapter-card-action">{status === 'completed' ? <><Check size={16} aria-hidden="true" />Completado<RotateCcw size={16} aria-hidden="true" /></> : <>{action}{status === 'upcoming' ? <Clock3 size={16} aria-hidden="true" /> : <ArrowRight size={16} aria-hidden="true" />}</>}</span>

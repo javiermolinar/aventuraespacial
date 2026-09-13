@@ -1,16 +1,7 @@
-.adventure-experience.is-piping { display: flex; flex-direction: column; min-height: 100dvh; }
-.adventure-experience.is-piping .adventure-chrome { flex-shrink: 0; }
-.adventure-experience.is-piping .cinematic-backdrop::after { background: #071122c9; }
-.adventure-experience {
-  .pipe-stage { display: flex; flex: 1; }
-  .pipe-console { width: 100%; display: grid; flex: 1; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.2fr); align-items: center; gap: clamp(24px, 4vw, 76px); padding: clamp(20px, 3vw, 48px); background: #101f32f2; }
-  .pipe-story { width: min(100%, 48ch); justify-self: center; }
-  .pipe-story > svg { color: #81e2e5; margin-bottom: 20px; }
-  .pipe-story h1 { font-size: clamp(28px, 3vw, 38px); font-weight: 900; line-height: 1.15; margin-bottom: 18px; }
-  .pipe-story p { color: #d6e2e9; font-size: 20px; line-height: 1.5; }
-  .pipe-story p + p { margin-top: 14px; }
-  .pipe-puzzle { min-width: 0; width: min(100%, max(340px, calc(100dvh - 400px))); max-width: 880px; justify-self: center; }
-  .pipe-puzzle h2 { color: #fff1d7; font-size: 20px; font-weight: 800; line-height: 1.4; }
+/* Standalone activity styles: no narrative or site-shell ancestor required. */
+.pipe-puzzle {
+  min-width: 0; width: min(100%, max(340px, calc(100dvh - 400px))); max-width: 880px; justify-self: center;
+  h2 { color: #fff1d7; font-size: 20px; font-weight: 800; line-height: 1.4; }
   .pipe-gesture { color: #afc5d3; font-size: 14px; margin-top: 8px; }
   .pipe-legend { display: flex; justify-content: space-between; gap: 12px; color: #c7e7e9; font-size: 14px; font-weight: 800; margin-top: 22px; }
   .pipe-legend span { display: inline-flex; align-items: center; gap: 7px; }
@@ -33,16 +24,14 @@
   .pipe-endpoint { position: absolute; width: 28px; height: 40px; transform: translate(-50%, -50%); overflow: visible; pointer-events: none; }
   .pipe-tank-water { transition: y .6s ease, height .6s ease; }
   .pipe-status { display: flex; align-items: center; gap: 10px; min-height: 48px; color: #c3d6df; font-size: 15px; line-height: 1.4; }
-  .is-solved .pipe-status { color: #a9f0ce; font-size: 21px; font-weight: 900; }
+  &.is-solved .pipe-status { color: #a9f0ce; font-size: 21px; font-weight: 900; }
   .pipe-actions { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 12px; min-height: 52px; }
   .pipe-help { display: inline-flex; justify-content: center; align-items: center; gap: 9px; min-height: 48px; padding: 10px 17px; border-radius: 12px; border: 1px solid #79909f; background: #263b50; color: #fff0d7; font-weight: 800; }
   .pipe-help:hover { background: #36536a; }
   .pipe-actions .text-button { font-size: 16px; }
   .pipe-actions .primary { width: 100%; background: #f0cd8e; border-color: #ffdda1; color: #202737; box-shadow: 0 3px 0 #aa834d; }
   .pipe-actions .primary:hover { background: #ffdfa4; }
-  .pipe-console.theme-radio { background: #102723f5; }
-  .theme-radio {
-    .pipe-story > svg { color: #edc47f; }
+  &.theme-radio {
     .pipe-legend { color: #e8d6aa; }
     .pipe-board-frame { padding-bottom: max(42px, 9%); }
     .pipe-board { background: #0a1d18; border-color: #687e69; }
@@ -66,16 +55,10 @@
     .pipe-help:hover { background: #405e4a; }
   }
   @media (max-width: 799px) {
-    .pipe-console { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 20px 16px 24px; }
-    .pipe-story { width: min(100%, 620px); }
-    .pipe-puzzle { width: min(100%, 620px); }
-    .pipe-story > svg { display: none; }
-    .pipe-story h1 { font-size: 28px; margin-bottom: 10px; }
-    .pipe-story p { font-size: 17px; }
-    .pipe-puzzle h2 { font-size: 18px; }
+    width: min(100%, 620px);
+    h2 { font-size: 18px; }
   }
   @media (max-width: 400px) {
-    .pipe-console { padding: 18px 12px; gap: 18px; }
     .pipe-board-frame { padding: 20px max(26px, 8%); }
     .pipe-endpoint { width: 24px; }
     .pipe-legend { margin-top: 16px; }
