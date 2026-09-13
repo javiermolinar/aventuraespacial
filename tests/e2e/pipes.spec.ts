@@ -117,19 +117,34 @@ test('real finger drags, tap rotation, and cancelled gestures work without scrol
     for (let step = 1; step <= 8; step++) await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: start.x, y: start.y - step * 5, id: 1 }] });
     await session.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] });
   }
-  await drag(true);
-  await expect(tile).toHaveAttribute('data-rotation', '3');
-  await expect(tile.locator('g[transform]')).toHaveAttribute('transform', 'rotate(270 50 50)');
-  await drag(false);
-  await expect(tile).toHaveAttribute('data-rotation', '2');
-  expect(await page.evaluate(() => scrollY)).toBe(scroll);
-  await tile.tap();
-  await expect(tile).toHaveAttribute('data-rotation', '3');
-  await page.getByRole('button', { name: 'Ayuda', exact: true }).tap();
-  await screenshot(page, 'hint-mobile');
-  await solvePipes(page);
-  await screenshot(page, 'complete-mobile');
-  await context.close();
+  const events = await tile.evaluateHandle(element => {
+    const recorded: Record<string, string | number | boolean>[] = [];
+    for (const type of ['pointerdown', 'pointerup', 'pointercancel', 'lostpointercapture', 'click']) {
+      element.addEventListener(type, event => {
+        const pointer = event as PointerEvent;
+        recorded.push({ type, time: performance.now(), pointerId: pointer.pointerId, isPrimary: pointer.isPrimary,
+          button: pointer.button, detail: pointer.detail, x: pointer.clientX, y: pointer.clientY });
+      });
+    }
+    return recorded;
+  });
+  try {
+    await drag(true);
+    await expect(tile).toHaveAttribute('data-rotation', '3');
+    await expect(tile.locator('g[transform]')).toHaveAttribute('transform', 'rotate(270 50 50)');
+    await drag(false);
+    await expect(tile).toHaveAttribute('data-rotation', '2');
+    expect(await page.evaluate(() => scrollY)).toBe(scroll);
+    await tile.tap();
+    await expect(tile).toHaveAttribute('data-rotation', '3');
+    await page.getByRole('button', { name: 'Ayuda', exact: true }).tap();
+    await screenshot(page, 'hint-mobile');
+    await solvePipes(page);
+    await screenshot(page, 'complete-mobile');
+  } finally {
+    await test.info().attach('pipe-pointer-events', { body: JSON.stringify(await events.jsonValue(), null, 2), contentType: 'application/json' });
+    await context.close();
+  }
 });
 
 test('board fits desktop, phones, tablet and short landscape with large touch targets', async ({ page }) => {
