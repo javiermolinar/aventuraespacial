@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate chapters and artwork
+        run: npm run chapter:check
+
       - name: Run unit and component tests
         run: npm test
 
@@ -42,6 +45,9 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Test isolated chapter preview
+        run: npm run test:e2e -- tests/e2e/chapter-preview.spec.ts
 
       - name: Test production build
         run: npm run test:e2e

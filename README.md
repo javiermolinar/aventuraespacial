@@ -20,6 +20,14 @@ Open the URL printed by Vite, normally `http://localhost:5173`.
 
 The first chapter is **Una voz entre las estrellas**: build Chispa and repair the radio to talk to your parents.
 
+## Chapter authoring
+
+- `npm run chapter:check` — type-check and validate registered chapters, drafts, catalogue consistency and local artwork files. Runs in CI.
+- `npm run chapter:new -- brote` — create a typed, unpublished draft for an existing catalogue entry; never overwrite or register it automatically.
+- `npm run dev`, then open `/?chapter-preview=chispa-radio&scene=radio-cables` — jump to a scene with isolated test progress. The preview never touches real saves or preferences and is excluded from production.
+
+See the [authoring guide](src/adventure/README.md#authoring-tools) for preview controls and the explicit publishing workflow. Validation does not replace content review or save-migration decisions.
+
 ## Reading adventure
 
 The chapter combines short Spanish passages with one uninterrupted robot-building exercise. All six maths operations and piece placements must be completed before the story resumes; there are no reading interruptions after the head/body or arms. It includes a comprehension question, six maths operations, a short cable-rotation radio repair, and a three-event sequencing activity. The current story is linear and authored through the chapter-script compiler. Each scene shows its complete passage over full-screen artwork, with all choices underneath. There are no paragraph-by-paragraph transitions or rereading dialogs. Wrong reading answers turn red and briefly shake; correct answers turn green with a checkmark. Neither shows hint or explanation panels. Reduced-motion preferences disable shaking, and screen readers receive concise answer-status announcements. An optional final prompt invites the child to retell the story aloud or on paper; the game does not assess handwriting or oral fluency.
@@ -68,7 +76,7 @@ Deploy the entire `dist/` directory to any static host, including Cloudflare Pag
 - Site: https://javiermolinar.github.io/aventuraespacial/
 - Pages source: **GitHub Actions** in **Settings → Pages**.
 - `.github/workflows/pages.yml` runs on pushes and pull requests to `main`, and can be started manually.
-- The workflow uses Node.js 22, installs with `npm ci`, runs unit/component tests, builds the site, and runs Chromium tests against the production build. CI retries browser tests twice and retains failure diagnostics for seven days.
+- The workflow uses Node.js 22, installs with `npm ci`, validates chapters/artwork, runs unit/component tests, builds the site, and runs Chromium tests for the development-only preview and production build. CI retries browser tests twice and retains failure diagnostics for seven days.
 - `tests/e2e/pages.spec.ts` also serves the built site under `/aventuraespacial/` to check all four entry pages, navigation, illustrations and music without a root-path fallback.
 - Only a successful `main` build is uploaded and deployed to the `github-pages` environment. Pull requests run checks without deployment permissions. Actions are pinned to commit SHAs.
 - The generated `dist/` directory is uploaded as a Pages artifact; no `gh-pages` branch, custom server, personal access token or repository secret is needed.
@@ -175,6 +183,8 @@ npm run test:e2e
 Unit tests cover place value, carrying, regrouping, generated operation constraints, chapter graph validity, every story branch, full-robot completion guards, and persistence validation. Component tests cover fixed teaching examples such as `8 + 3`, `15 + 15`, `36 + 25`, `28 + 16`, and `23 − 7`, plus numeric carry amounts above one ten. They verify that an accepted units sum commits its units digit and proceeds directly to the tens after carrying. Browser tests solve the actual randomly generated operations across all seven stages, including correct and incorrect drops, actual touch dragging, keyboard placement, numeric carrying (including cancellation and incorrect finger drops), music, distinct silhouettes, mobile layouts, and unavailable storage.
 
 Adventure browser tests play the entire chapter, retry reading activities, resume characters/scenes and earned pieces, confirm restarts, verify the uninterrupted home/start/continue flow, complete passages, name entry/persistence, modal focus, red/green answer states and reduced-motion handling, check storage/image failures, and inspect desktop/mobile/tablet and rotated layouts. Unit tests cover migration from pre-cinematic saves, version 1/2/3 chapter branches, water-to-radio save migration, both visual themes, pipe-layout validity, connectivity, hint progression and rotation persistence. Cable browser tests exercise real mouse/finger drags, gesture cancellation, tap and keyboard rotation, hints, solve/skip, reload and blocked storage, plus desktop, phone, tablet, short landscape and enlarged-text screenshots. Post-build introduction tests cover completion gating, personalised text, focused titles, reload/home/continue, desktop/phone/tablet/short-landscape layouts, large text, both artwork URL prefixes and image-failure fallback. Existing practice tests now enter through `/practice.html`.
+
+Authoring tests cover draft generation/refusal, chapter metadata and artwork checks, and legal scene seeding. `tests/e2e/chapter-preview.spec.ts` checks save isolation, editable preview settings, draft discovery, phone layout, invalid links and production exclusion. Run its development cases with `npm run test:e2e -- tests/e2e/chapter-preview.spec.ts`.
 
 Browser screenshots are written to `artifacts/` (ignored by Git). To run against the static production build: `npm run build && TEST_PRODUCTION=1 npm run test:e2e`.
 

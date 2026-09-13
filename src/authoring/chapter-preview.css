@@ -1,0 +1,13 @@
+.chapter-preview-controls { position: relative; z-index: 2; padding: 18px 24px; background: #fff8e8; color: #34364b; border-bottom: 3px solid #b58628; }
+.chapter-preview-controls h1 { font-size: 22px; }
+.chapter-preview-controls > p { margin-top: 8px; line-height: 1.5; }
+.preview-fields { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-top: 16px; }
+.preview-fields label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; font-weight: 800; min-width: 130px; max-width: 100%; }
+.preview-fields input, .preview-fields select { max-width: 100%; min-height: 44px; padding: 8px; border: 1px solid #978b71; border-radius: 6px; background: white; color: #34364b; font: inherit; }
+.preview-fields a { padding: 12px 0; color: #634298; }
+.chapter-preview-controls details { margin-top: 12px; }
+.chapter-preview-controls [role="alert"] { color: #8a263b; overflow-wrap: anywhere; }
+/* Anchor artwork to the preview canvas, not behind the authoring toolbar. */
+.chapter-preview-screen .cinematic-backdrop { position: absolute; top: 0; bottom: auto; height: 100svh; }
+.preview-position { font-size: 14px; }
+@media (max-width: 600px) { .chapter-preview-controls { padding: 16px; } .preview-fields label { width: 100%; } }

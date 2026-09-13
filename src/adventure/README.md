@@ -2,6 +2,59 @@
 
 Chapter content lives in `chapters/chispa.ts`. Author a `ChapterScript` and pass it to `defineChapter` from `chapter-script.ts`. The compiler generates and validates the `Chapter` consumed by `useAdventureController` and `NarrativeView`; authors do not write scene links.
 
+## Authoring tools
+
+```sh
+npm run chapter:check
+npm run chapter:new -- brote
+npm run dev
+# Open /?chapter-preview=brote on the development server.
+```
+
+### Validate
+
+`chapter:check` type-checks the project, validates every registered playable chapter and every default-exported draft script in `src/adventure/drafts/*.ts`, and checks catalogue consistency. It reports invalid scene graphs, answers, build/game configurations, empty text, invalid versions, mismatched robot metadata and missing artwork. Image paths must be local `../` URLs into `public/`; both characters and portrait/landscape compositions are checked, including robot-introduction artwork. Files must exist with exact letter case, be nonempty, and not resolve outside `public/` through a symlink. Scene artwork can still intentionally fall back to `artwork.ship`.
+
+Draft `TODO` text produces warnings; the same text in a published chapter fails validation. Other draft errors fail the command. Published chapters must form the playable prefix of the catalogue; later work stays in drafts. Legacy migration fixtures are not treated as published content. Test/declaration files in the draft folder are ignored. The command never modifies content, versions or saves, and exits nonzero on errors. CI runs it before tests.
+
+This is structural validation, not a review of story quality or save compatibility. Stable IDs alone do not make a changed scene graph compatible. Review existing-save migrations whenever editing a published chapter.
+
+### Preview without changing real saves
+
+The development homepage accepts `?chapter-preview=<chapter-id>`. For example:
+
+```text
+/?chapter-preview=chispa-radio&scene=radio-cables&character=girl&name=Lucía&level=3
+```
+
+`scene` is any compiled scene ID, including generated question IDs. Omit it to start at the beginning. `character` is `boy` or `girl`; `name` defaults to Lucía; `level` is the zero-based maths level (0–6, displayed as 1–7 in the controls). The toolbar lists published chapters and unpublished drafts. Select a scene, name, character and level, then press **Aplicar y reiniciar**. Editing a field does not interrupt the current game; changing chapters starts that chapter immediately. The URL records the applied starting configuration so it can be bookmarked.
+
+The preview seeds a legal history and completes prerequisite construction without requiring you to play earlier scenes. For legacy branches it chooses the first path reaching the requested scene. A selected construction scene starts with zero parts; a selected connection puzzle starts at its authored rotations. You can then play forward using the real narrative and game components. Restart, reload, or applying a new configuration discards only this in-memory test run and generates fresh maths operations. Invalid chapter/scene links show errors without falling back to a real saved game.
+
+The preview host does not read or write campaign, legacy adventure, practice collection, unlocks or sound-preference stores. Its sound toggle is also in-memory. **Salir de la vista previa** deliberately returns to the normal site. The preview import tree and draft modules are excluded from production; preview query parameters have no special meaning in `npm run preview` or on the deployed site. This is not a fifth deployed route.
+
+### Create and publish a draft
+
+`chapter:new -- brote` writes only `src/adventure/drafts/brote.ts`. It requires an existing, non-playable catalogue ID, refuses path traversal and unknown IDs, and never overwrites a draft or an existing `chapters/brote.ts`. The template uses the existing `ChapterScript` format, the catalogue robot metadata, explicit `TODO` text, prototype SVG artwork and a valid water-connection configuration. It does not invent a finished story, change the catalogue, publish anything, or bump an existing version.
+
+To publish after writing and reviewing the chapter:
+
+1. Replace the TODOs and placeholder artwork. Add questions and optional middle dialogue as needed.
+2. Run `npm run chapter:check`, preview every phase, and review desktop/phone layouts and text.
+3. Move `src/adventure/drafts/brote.ts` to `src/adventure/chapters/brote.ts`. Its relative imports remain valid.
+4. In `chapters/catalog.ts`, import the default script and `defineChapter`, then replace the existing Brote placeholder **in place**:
+
+   ```ts
+   import { defineChapter } from '../chapter-script';
+   import broteScript from './brote';
+   // Replace only the existing { id: 'brote', robot: ... } entry:
+   playableChapter(defineChapter(broteScript)),
+   ```
+
+5. Update tests that intentionally describe release availability, run validation and the full test suite, and review save compatibility. Never reorder catalogue IDs or automatically mark the new chapter complete.
+
+A published chapter and a draft cannot share the same ID. No sample draft is shipped by default.
+
 ## Six phases
 
 Scripts follow this fixed order; `middle` can be omitted:
