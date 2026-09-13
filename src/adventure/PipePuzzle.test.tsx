@@ -8,6 +8,33 @@ import { chispaChapter } from './chapters/chispa';
 afterEach(cleanup);
 
 describe('connection puzzle themes', () => {
+  it('handles touch taps without compatibility clicks, suppresses duplicate clicks, and keeps keyboard activation', () => {
+    const onRotate = vi.fn();
+    render(<PipePuzzle layout={radioInterlude.layout} rotations={radioInterlude.layout.initial} sound={false} onRotate={onRotate} onNext={vi.fn()} />);
+    const tile = screen.getByRole('button', { name: /^Tubo, fila 1, columna 1:/ });
+    tile.setPointerCapture = vi.fn();
+    tile.hasPointerCapture = () => false;
+    const pointer = (type: string, id: number) => {
+      const event = new MouseEvent(type, { bubbles: true, button: 0, clientX: 50, clientY: 50 });
+      Object.defineProperties(event, { pointerId: { value: id }, pointerType: { value: 'touch' }, isPrimary: { value: true } });
+      fireEvent(tile, event);
+    };
+    pointer('pointerdown', 1);
+    pointer('pointercancel', 1);
+    expect(onRotate).not.toHaveBeenCalled();
+    pointer('pointerdown', 2);
+    pointer('pointerup', 2);
+    expect(onRotate).toHaveBeenCalledExactlyOnceWith(0, 1);
+    // No compatibility click for this tap; the next tap must still work.
+    pointer('pointerdown', 3);
+    pointer('pointerup', 3);
+    expect(onRotate).toHaveBeenCalledTimes(2);
+    fireEvent.click(tile, { detail: 1 });
+    expect(onRotate).toHaveBeenCalledTimes(2);
+    fireEvent.click(tile, { detail: 0 });
+    expect(onRotate).toHaveBeenCalledTimes(3);
+  });
+
   it('keeps the water puzzle reusable without including it in this chapter', () => {
     expect(Object.values(chispaChapter.scenes).filter(scene => scene.type === 'pipes').map(scene => scene.theme)).toEqual(['radio']);
     const onRotate = vi.fn(), onNext = vi.fn();

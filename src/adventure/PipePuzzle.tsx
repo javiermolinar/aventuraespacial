@@ -79,6 +79,11 @@ export function PipePuzzle({ layout, rotations, sound, theme = 'water', onRotate
               if (active.moved || Math.abs(distance) >= 10) {
                 suppressClick.current = index;
                 if (Math.abs(distance) >= 10) turn(index, Math.sign(distance) * Math.max(1, Math.round(Math.abs(distance) / 40)));
+              } else if (event.pointerType === 'touch') {
+                // Browsers can omit the compatibility click after a cancelled gesture.
+                // Handle the tap here, and suppress that click if it does arrive.
+                suppressClick.current = index;
+                turn(index, 1);
               }
               if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
             }}
