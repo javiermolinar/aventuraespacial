@@ -6,11 +6,11 @@ import { soundtracks } from '../music';
 import { useSoundPreference } from '../services/useSoundPreference';
 import { SceneArt } from '../adventure/SceneArt';
 import { adventureMusic } from '../adventure/music';
+import { NarrativeScreen } from './NarrativeScreen';
 import { useAdventureController, type AdventureOptions } from '../adventure/useAdventureController';
 import { AdventureHome } from './AdventureHome';
 import '../adventure/adventure.css';
 
-const NarrativeView = lazy(() => import('../adventure/NarrativeView'));
 const AdventureSetupDialog = lazy(() => import('../adventure/AdventureSetupDialog').then(module => ({ default: module.AdventureSetupDialog })));
 
 /** Site shell stays mounted while narrative and game screens load on demand. */
@@ -38,7 +38,7 @@ export default function AdventureSite(options: AdventureOptions) {
       {view === 'home' ? <AdventureHome catalog={story.catalog} campaign={campaign} hasProgress={Boolean(progress)} finishedRun={story.finishedRun}
         reset={story.reset} setupOpen={Boolean(setupChapterId)} practiceHref={`${assetPrefix}practice.html`}
         onContinue={() => story.chooseChapter(chapter.id)} onRestart={() => story.prepare()} onSelect={story.chooseChapter} /> : scene && progress && <DeferredContent key={chapter.id}>
-        <NarrativeView chapter={chapter} progress={progress} scene={scene} introduction={introduction} reviewId={story.reviewId} reviewScene={reviewScene}
+        <NarrativeScreen chapter={chapter} progress={progress} scene={scene} introduction={introduction} reviewId={story.reviewId} reviewScene={reviewScene}
           assetPrefix={assetPrefix} sound={sound.enabled} onNext={story.next} onComplete={story.finish} onReviewNext={story.reviewNext}
           onEarn={story.earn} onPlace={story.place} onRotate={story.rotate} />
       </DeferredContent>}

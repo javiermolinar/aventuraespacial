@@ -92,15 +92,21 @@ These are independent React modules, not Web Components or separate applications
 - **Games:** `BuildActivity` accepts robot/completion configuration, operations and assembly state, plus earn/place/complete callbacks. `PipePuzzle` accepts a layout, theme, rotations and rotate/continue callbacks. Neither imports chapter definitions, campaign storage or navigation. The host validates updates and decides the next scene. Shared maths widgets remain independent.
 - **Shared services:** existing save stores and audio modules keep their contracts; `useSoundPreference` isolates the site's preference persistence from the campaign.
 
-Setup and `NarrativeView` are dynamically imported on use. Construction (including Motion) and connections have separate lazy boundaries inside the narrative renderer. Static `RobotPortrait` uses the same geometry as the animated factory robot without importing Motion, including on the practice selection page. Loading/error UI keeps navigation mounted. During rereading, the live activity stays mounted, hidden and inert; Home still discards unsaved answer drafts.
+Setup loads when opened, then prefetches `NarrativeView` while the player enters their name. A fulfilled prefetch renders directly without a loading fallback; cold or still-pending loads retain the existing boundary. Failed speculation does not interrupt setup or change saves. `NarrativeScreen` keeps its chosen component type stable throughout play so later renders cannot reset an answer. Construction (including Motion) and connections still load only when entered, not during setup. Static `RobotPortrait` uses the same geometry as the animated factory robot without importing Motion, including on the practice selection page. Loading/error UI keeps navigation mounted. During rereading, the live activity stays mounted, hidden and inert; Home still discards unsaved answer drafts.
 
-`tests/e2e/loading.spec.ts` checks actual production requests: home/reading must not fetch game renderers, each resumed game loads independently, and slow/failed downloads must preserve navigation and saves.
+The homepage also has a small independent async artwork entry, injected by `scripts/home-artwork-preload.ts`. It uses the existing campaign validation/migration code to choose the active chapter and saved character before React is ready, then adds orientation-specific image preload hints. Only the matching composition downloads, and the eventual `<picture>` reuses that request. Its data modules are shared with the app rather than duplicated. Hints are root-page-only, preserve subdirectory paths, never write saves, and are disabled in the development chapter preview.
+
+`tests/e2e/loading.spec.ts` checks actual production requests: correct artwork must preload before a blocked React entry without duplicate image downloads; home/reading/setup must not fetch game renderers; warmed stories must avoid a loading flash; and slow/failed downloads must preserve navigation and saves.
 
 ```text
 index.html                          Home HTML entry
 src/main.tsx                        Home JavaScript entry
 src/App.tsx                         Mounts AdventureSite with its home view
 src/site/AdventureSite.tsx          Persistent shell and lazy screen boundaries
+src/site/preload-home.ts            Independent early homepage artwork entry
+src/site/home-artwork.ts            Validated character/orientation preload hints
+src/site/NarrativeScreen.tsx        Stable warm/cold narrative rendering
+src/adventure/narrative-loader.ts   Shared story prefetch and module cache
 src/site/AdventureHome.tsx          Home actions and chapter selection
 src/site/ChapterMenu.tsx            Chapter cards and unlock presentation
 src/services/useSoundPreference.ts Shared sound preference adapter

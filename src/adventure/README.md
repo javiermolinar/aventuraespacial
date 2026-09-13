@@ -127,7 +127,7 @@ The final reading action is **Terminar capítulo**. It records completion and re
 
 Validation rejects unknown/unreleased/locked active chapters and records, non-prefix completion lists, malformed profiles and invalid chapter saves. Catalogue IDs and ordering are part of the save contract: append entries or supply content under existing IDs; reordering/removing entries requires an explicit migration. Storage errors preserve in-memory progress and unlocks. Practice collection and sound preferences retain their independent storage.
 
-`AdventureSite` accepts a `catalog` for multiple playable chapters; its optional `chapter` override provides a single-entry catalogue for isolated chapter tests. `useAdventureController` owns state, saves and transitions independently of rendering. `NarrativeView` adapts scenes to standalone games under `src/games/`; it and its construction/connection activities load on demand. Games receive only configuration/state and callbacks, never the campaign or scene destinations. Static menu/introduction portraits share the factory SVG geometry without loading Motion. See the root README for module boundaries.
+`AdventureSite` accepts a `catalog` for multiple playable chapters; its optional `chapter` override provides a single-entry catalogue for isolated chapter tests. `useAdventureController` owns state, saves and transitions independently of rendering. `NarrativeView` adapts scenes to standalone games under `src/games/`. Setup prefetches the narrative renderer during name entry, but construction and connection activities load only when entered. Warm narrative starts bypass the loading fallback; cold starts and failed downloads retain it. Games receive only configuration/state and callbacks, never the campaign or scene destinations. Static menu/introduction portraits share the factory SVG geometry without loading Motion. See the root README for module boundaries.
 
 ## Runtime scenes (generated or legacy)
 
@@ -263,7 +263,7 @@ npm run build
 TEST_PRODUCTION=1 npm run test:e2e
 ```
 
-`tests/e2e/loading.spec.ts` enforces production lazy-loading boundaries and preserves navigation/saves during slow or failed module downloads. Component tests await lazy screens before interacting.
+`tests/e2e/loading.spec.ts` enforces production lazy-loading boundaries, checks early character/orientation-aware artwork preloading, verifies warm starts without a loading flash, and preserves navigation/saves during slow or failed downloads. Homepage preload hints use the same validated campaign and legacy-save resolution as rendering; no chapter-specific URLs or separate save heuristics need to be maintained. Component tests await lazy screens before interacting.
 
 `campaign.test.ts`, `ChapterMenu.test.tsx` and `tests/e2e/chapters.spec.ts` test hidden locked content, explicit completion, upcoming chapters, independent chapter runs, replay confirmation, migration and storage failures. Menu screenshots are saved as `artifacts/chapters-*.png`.
 

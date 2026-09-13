@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 import type { Character } from './types';
 import { normalizePlayerName, playerNameMaxLength } from './personalization';
+import { prefetchNarrativeView } from './narrative-loader';
 import '../components/text-entry-dialog.css';
 import './adventure-setup-dialog.css';
 
@@ -23,6 +24,8 @@ export function AdventureSetupDialog({ initialName, initialCharacter, replacing,
     const dialog = dialogRef.current!;
     const opener = document.activeElement;
     dialog.showModal();
+    // Warm the next screen once setup is visible, not in competition with its own download.
+    prefetchNarrativeView();
     return () => {
       dialog.close();
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true });
