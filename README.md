@@ -60,7 +60,18 @@ npm run build
 npm run preview
 ```
 
-Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All four HTML pages are built explicitly. No SPA rewrite is required; relative links and assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
+Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All four HTML pages are built explicitly. No SPA rewrite is required; Vite's `base: './'` and relative navigation/assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
+
+### GitHub Pages
+
+- Repository: https://github.com/javiermolinar/aventuraespacial
+- Site: https://javiermolinar.github.io/aventuraespacial/
+- Pages source: **GitHub Actions** in **Settings → Pages**.
+- `.github/workflows/pages.yml` runs on pushes and pull requests to `main`, and can be started manually.
+- The workflow uses Node.js 22, installs with `npm ci`, runs unit/component tests, builds the site, and runs Chromium tests against the production build. CI retries browser tests twice and retains failure diagnostics for seven days.
+- `tests/e2e/pages.spec.ts` also serves the built site under `/aventuraespacial/` to check all four entry pages, navigation, illustrations and music without a root-path fallback.
+- Only a successful `main` build is uploaded and deployed to the `github-pages` environment. Pull requests run checks without deployment permissions. Actions are pinned to commit SHAs.
+- The generated `dist/` directory is uploaded as a Pages artifact; no `gh-pages` branch, custom server, personal access token or repository secret is needed.
 
 Fonts, music, illustrations, and effects are served locally; gameplay makes no external requests.
 
