@@ -1,0 +1,32 @@
+.adventure-experience {
+  .chapter-menu { margin-top: 30px; }
+  .chapter-menu-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 14px; }
+  .chapter-menu-heading h2 { font-size: 23px; font-weight: 900; }
+  .chapter-menu-heading p { color: #bdcbd6; font-size: 15px; }
+  .chapter-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .chapter-list li { display: flex; min-width: 0; }
+  .chapter-card { display: flex; flex: 1; flex-direction: column; align-items: center; min-width: 0; min-height: 180px; padding: 16px 12px; border: 1px solid #dfc99d77; border-radius: 16px; color: #fff4df; background: #14253aeb; text-align: center; }
+  .chapter-card:hover:not(:disabled) { background: #263b50; border-color: #f4d39a; transform: translateY(-2px); }
+  .chapter-number { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #c2d1dc; }
+  .chapter-robot { display: grid; place-items: center; width: 80px; height: 78px; margin: 8px 0; }
+  .chapter-robot > svg { display: block; width: 76px; height: 78px; }
+  .chapter-name { font-size: 21px; font-weight: 900; }
+  .chapter-title { font-size: 13px; line-height: 1.4; color: #d1dce3; margin: 4px 0 8px; }
+  .chapter-card-action { display: flex; align-items: center; justify-content: center; gap: 8px; padding-top: 12px; margin-top: auto; font-size: 14px; font-weight: 800; color: #f4d39a; }
+  .chapter-card.is-completed { border-color: #91c9a7; }
+  .chapter-card.is-completed .chapter-card-action { color: #b1e6c4; }
+  .chapter-card.is-locked { background: #101e30d9; border-color: #8b9eae40; color: #b4c1cd; }
+  .chapter-lock { display: grid; place-items: center; flex: 1; min-height: 86px; color: #a2b7c8; }
+  .chapter-locked-label { font-size: 14px; }
+  .chapter-card.is-upcoming { border-style: dashed; }
+  &.is-home .cinematic-stage { padding-top: 12svh; }
+  .home-dock .practice-link { margin-top: 22px; }
+  @media (max-width: 900px) { .chapter-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 600px) {
+    .chapter-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .chapter-menu-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+    .chapter-card { padding: 14px 10px; }
+    .chapter-name { font-size: 19px; }
+    .chapter-menu-heading h2 { font-size: 21px; }
+  }
+}

@@ -1,0 +1,108 @@
+/* One continuous illustrated experience: home, character choice, then the story. */
+.adventure-experience {
+  --starlight: #f4d39a;
+  position: relative; isolation: isolate; min-height: 100svh; overflow-x: clip;
+  background: #0a1120; color: #fff6e7;
+  .cinematic-backdrop { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #101b30; pointer-events: none; }
+  .cinematic-backdrop picture, .cinematic-backdrop img { display: block; width: 100%; height: 100%; }
+  .cinematic-backdrop img { object-fit: cover; object-position: 50% 40%; }
+  .cinematic-backdrop::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #060d2070 0%, transparent 22%, transparent 38%, #070e20b3 65%, #070d1cf5 89%, #070d1c 100%); }
+  .adventure-chrome { min-height: 78px; display: flex; align-items: center; justify-content: space-between; padding: max(16px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-right)) 12px max(28px, env(safe-area-inset-left)); }
+  .chrome-button { border: 1px solid #f4d39a40; background: #10192db8; color: #ffefd5; min-width: 44px; min-height: 44px; padding: 9px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+  .chrome-button:hover { background: #303a50; border-color: #f4d39a99; }
+  &.is-home .adventure-chrome { position: absolute; top: 0; right: 0; z-index: 1; justify-content: flex-end; }
+  button:focus-visible, a:focus-visible, summary:focus-visible, select:focus-visible { outline: 3px solid #f4d39a; outline-offset: 4px; }
+  h1:focus { outline: none; }
+  .cinematic-stage { min-height: calc(100svh - 78px); display: flex; flex-direction: column; justify-content: flex-end; padding-top: 28svh; }
+  .dialogue-dock { position: relative; isolation: isolate; width: min(1120px, calc(100% - 96px)); margin: 0 auto; padding: 24px 0 max(32px, env(safe-area-inset-bottom)); animation: dialogue-arrive .3s ease-out; }
+  /* Follow the text when large type makes it taller, rather than darkening a fixed area. */
+  .dialogue-dock::before { content: ''; position: absolute; z-index: -1; pointer-events: none; left: 50%; width: 100vw; transform: translateX(-50%); top: -60px; bottom: 0; background: linear-gradient(180deg, #080f2000, #080f20c9 80px, #080f20e6); }
+  .home-dock h1 { font-size: clamp(36px, 4.5vw, 61px); font-weight: 900; line-height: 1.12; letter-spacing: -1.3px; margin-bottom: 28px; }
+  .home-actions { display: flex; gap: 25px; align-items: center; flex-wrap: wrap; }
+  .practice-link { display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 18px; margin-top: 45px; border: 1px solid #e2cfaa66; border-radius: 12px; background: #1b263bdd; color: #fff4df; font-size: 19px; font-weight: 800; text-decoration: none; }
+  .practice-link:hover { background: #35425a; border-color: #f4d39a; }
+  .setup-dock h1 { font-size: 34px; font-weight: 900; margin-bottom: 24px; }
+  .name-picker { display: flex; align-items: center; justify-content: space-between; gap: 18px; width: min(100%, 360px); min-height: 56px; margin-bottom: 18px; padding: 12px 17px; border: 1px solid #d6c7af80; border-radius: 12px; background: #19263ac9; color: #fff4df; font-size: 20px; font-weight: 800; text-align: left; }
+  .name-picker span { overflow-wrap: anywhere; }
+  .name-picker svg { flex-shrink: 0; }
+  .name-picker:hover { border-color: #f4d39a; background: #303a50; }
+  .character-picker { margin: 0; padding: 0; border: 0; display: flex; gap: 10px; }
+  .character-option { display: inline-flex; gap: 9px; align-items: center; justify-content: center; position: relative; min-height: 52px; min-width: 120px; padding: 12px 19px; background: #192237cc; color: #f0ebdf; border: 1px solid #aebcd05c; border-radius: 12px; cursor: pointer; font-weight: 800; }
+  .character-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .character-option:has(input:focus-visible) { outline: 3px solid #f4d39a; outline-offset: 4px; }
+  .character-option.selected { background: #e4bc7526; color: #ffe3ab; border-color: #e4bc75; }
+  .maths-choice { max-width: 430px; margin: 13px 0 24px; font-size: 14px; color: #c9ced8; }
+  .maths-choice summary { cursor: pointer; min-height: 44px; align-content: center; }
+  .maths-choice select { width: 100%; font: inherit; padding: 12px; border: 1px solid #a9957499; border-radius: 10px; color: #fff3df; background: #223048; margin-top: 5px; }
+  .inline-notice { border-left: 3px solid #f4d39a; background: #1b2539ed; padding: 10px 15px; margin-bottom: 17px; max-width: 680px; font-size: 15px; line-height: 1.5; }
+  .experience-notices, .art-warning { position: relative; margin: 8px 28px; padding: 10px 16px; border-radius: 9px; color: #ffe8b9; background: #382d20f5; font-size: 14px; line-height: 1.5; }
+  .art-warning { padding-top: 16px; margin-top: 0; }
+  .story-passage { max-width: 1000px; font-size: clamp(20px, 1.6vw, 23px); line-height: 1.55; font-weight: 650; text-shadow: 0 2px 12px #050b1a; }
+  .story-passage p + p { margin-top: 9px; }
+  .text-button { color: #d8dbe4; font-size: 13px; font-weight: 750; min-height: 44px; padding: 8px 0; border-radius: 6px; gap: 7px; }
+  .text-button:hover { background: #ffffff0d; color: #fff6e7; }
+  .text-button:disabled { opacity: .45; }
+  .reading-activity { margin-top: 19px; }
+  .reading-activity h2 { font-size: 20px; line-height: 1.4; margin-bottom: 16px; color: #ffefce; font-weight: 850; }
+  .story-options { display: flex; gap: 12px; }
+  .story-option { flex: 1; min-width: 0; min-height: 60px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; border: 1px solid #e2cfaa66; border-radius: 12px; background: #1b263bdd; color: #fff4df; font-size: 18px; font-weight: 800; line-height: 1.35; box-shadow: 0 4px 16px #0002; backdrop-filter: blur(10px); }
+  .story-option:hover:not(:disabled) { background: #35425a; border-color: #f4d39a; transform: translateY(-2px); }
+  .story-option.is-selected { border-color: #f4d39a; background: #6a542b66; }
+  .story-option:disabled:not(.is-selected) { opacity: .5; }
+  .story-option.is-incorrect, .story-option.is-incorrect:hover:not(:disabled) { background: #542c35; border-color: #f1a6a4; box-shadow: inset 0 0 0 1px #f1a6a4; }
+  .story-option.is-correct, .story-option.is-correct:hover:not(:disabled) { background: #21493e; border-color: #a4dfba; box-shadow: inset 0 0 0 1px #a4dfba; }
+  .reading-activity > .primary { margin-top: 16px; }
+  .scene-actions { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .dialogue-dock .primary { color: #202737; background: #f0cd8e; border: 1px solid #ffdda1; border-radius: 12px; box-shadow: 0 3px 0 #aa834d; font-size: 17px; font-weight: 900; min-height: 52px; padding: 12px 22px; }
+  .dialogue-dock .primary:hover:not(:disabled) { background: #ffdfa4; }
+  .dialogue-dock .primary:disabled { background: #4c4a47; color: #b9b9b7; border-color: #747371; box-shadow: none; }
+  .sequence-number { display: grid; place-items: center; border-radius: 50%; background: #fff3d81a; color: #ffe4b1; height: 28px; width: 28px; flex-shrink: 0; }
+  .sequence-option { justify-content: flex-start; }
+  .sequence-result { font-size: 15px; line-height: 1.6; margin: 14px 0; padding-left: 22px; }
+  .sequence-result li { padding-left: 4px; }
+  .reading-activity > .scene-actions { margin-top: 16px; }
+  .retell-prompt { color: #d8dbe4; font-size: 17px; line-height: 1.6; margin: 18px 0 24px; }
+  &.is-building { display: flex; flex-direction: column; min-height: 100dvh; }
+  &.is-building .adventure-chrome { flex-shrink: 0; }
+  .construction-stage { display: flex; flex: 1; padding: 12px clamp(16px, 2.4vw, 46px) 24px; }
+  .construction-console { width: 100%; display: flex; flex: 1; flex-direction: column; }
+  .construction-console > h1 { font-size: 30px; line-height: 1.25; font-weight: 900; }
+  .build-instruction { font-size: 18px; line-height: 1.5; margin: 13px 0 22px; }
+  .adventure-build { padding: 0; color: #34364b; }
+  .adventure-build .factory { background: #bdcec6; border-color: #6d8d87; }
+  .adventure-build .activity-panel { background: #fff9eefa; border-color: #d2bc94; }
+  .adventure-build .completion-panel p { margin-bottom: 23px; font-size: 17px; line-height: 1.5; }
+  .adventure-build .completion-panel h2 { margin-bottom: 15px; }
+  .adventure-build .earned-panel p { font-size: 15px; line-height: 1.5; margin-top: 16px; max-width: 280px; }
+  @media (orientation: portrait) { .cinematic-backdrop img { object-position: 50% 25%; } }
+  @media (max-width: 700px) {
+    .adventure-chrome { min-height: 64px; padding: max(10px, env(safe-area-inset-top)) 14px 10px; }
+    .cinematic-stage { min-height: calc(100svh - 64px); padding-top: 32svh; }
+    .dialogue-dock { width: calc(100% - 36px); padding-top: 20px; padding-bottom: max(22px, env(safe-area-inset-bottom)); }
+    .home-dock h1 { font-size: 37px; letter-spacing: -.8px; margin-bottom: 25px; }
+    .home-actions { gap: 10px 22px; }
+    .practice-link { margin-top: 30px; }
+    .setup-dock h1 { font-size: 30px; }
+    .story-passage { font-size: 19px; line-height: 1.5; }
+    .story-options { flex-direction: column; gap: 9px; }
+    .story-option { font-size: 17px; min-height: 52px; padding: 12px 15px; }
+    .reading-activity h2 { font-size: 19px; }
+    .experience-notices, .art-warning { margin-inline: 14px; font-size: 12px; }
+    .construction-stage { padding: 17px 16px 24px; }
+    .construction-console > h1 { font-size: 25px; }
+    .build-instruction { font-size: 16px; margin: 11px 0 17px; }
+    .adventure-build.piece-ready .activity-panel { background: #fff9ee; color: #34364b; padding: 14px; border-radius: 16px; }
+  }
+  @media (max-width: 370px) { .home-dock h1 { font-size: 32px; } .story-passage { font-size: 19px; } }
+  @media (max-height: 550px) and (orientation: landscape) {
+    .adventure-chrome { min-height: 58px; padding-block: 7px; }
+    .cinematic-stage { min-height: calc(100svh - 58px); padding-top: 12svh; }
+    .dialogue-dock { padding-bottom: 20px; }
+  }
+}
+.adventure-experience.is-home .cinematic-stage { min-height: 100svh; }
+.adventure-experience.is-reading .cinematic-stage { padding-top: 18svh; }
+@media (max-height: 550px) and (orientation: landscape) { .adventure-experience.is-reading .cinematic-stage { padding-top: 0; } }
+.adventure-experience.is-building .cinematic-backdrop::after { background: #071122d9; }
+@keyframes dialogue-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .adventure-experience .dialogue-dock { animation: none; } }

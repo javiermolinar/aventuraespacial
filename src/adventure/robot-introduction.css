@@ -1,0 +1,25 @@
+/* Only the post-build introduction; the maths factory and practice stay unchanged. */
+.adventure-experience.is-introducing {
+  .cinematic-stage { padding-top: 0; }
+  .robot-introduction-backdrop { background: radial-gradient(ellipse at 50% 28%, #4c426b, #182239 55%, #0a1120); }
+  .robot-introduction-backdrop img[hidden] { display: none; }
+  .robot-introduction-portrait { display: grid; place-items: center; flex: 1; min-height: 250px; position: relative; }
+  .robot-introduction-portrait > svg { display: block; width: auto; height: clamp(250px, 35svh, 380px); max-width: 90%; filter: drop-shadow(0 10px 30px #b5a3e830); }
+  .robot-introduction-portrait.has-artwork { min-height: 35svh; }
+  .robot-introduction { max-width: 1000px; }
+  .robot-introduction-earned { display: flex; gap: 8px; align-items: center; color: #c8e6cd; font-size: 16px; font-weight: 800; margin-bottom: 12px; }
+  .robot-introduction-earned > svg { flex-shrink: 0; }
+  .robot-introduction h1 { font-size: clamp(36px, 4vw, 48px); line-height: 1.1; font-weight: 900; margin-bottom: 20px; }
+  .robot-introduction h1 span { display: block; color: #e0d2ff; font-size: 21px; line-height: 1.4; margin-top: 6px; }
+  .robot-introduction > .primary { margin-top: 24px; }
+  @media (max-width: 700px) {
+    .robot-introduction-portrait { min-height: 230px; }
+    .robot-introduction-portrait > svg { height: 250px; }
+    .robot-introduction h1 { margin-bottom: 16px; }
+    .robot-introduction-earned { font-size: 14px; }
+  }
+  @media (max-height: 550px) and (orientation: landscape) {
+    .robot-introduction-portrait { min-height: 220px; }
+    .robot-introduction-portrait > svg { height: 220px; }
+  }
+}

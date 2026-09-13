@@ -1,0 +1,6 @@
+/* The robot illustration is also used on the game's level and collection cards. */
+.robot-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.robot-svg .robot-outline { transition: fill .25s, stroke .25s; }
+.robot-svg .robot-outline.selected { filter: drop-shadow(0 0 7px #9b83cb12); }
+.robot-svg .robot-outline.ready { cursor: pointer; animation: robot-ready 1.8s ease-in-out infinite; }
+@keyframes robot-ready { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }

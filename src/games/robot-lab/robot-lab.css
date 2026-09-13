@@ -1,0 +1,115 @@
+/* Robot factory only. No styles escape this game's root. */
+.robot-lab {
+  width: 100%; margin: 0; padding: 8px clamp(20px, 2.4vw, 46px) 26px; display: flex; flex: 1; flex-direction: column;
+  .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 8px 0 22px; }
+  h1 { font-size: 34px; font-weight: 900; letter-spacing: -.9px; }
+  .level-label { font-size: 14px; color: #8c809c; font-weight: 750; white-space: nowrap; flex-shrink: 0; }
+  .workshop-grid { display: grid; flex: 1; grid-template-columns: minmax(0, 1.15fr) minmax(340px, 1fr); gap: clamp(18px, 2vw, 36px); align-items: stretch; }
+  .factory { background: #eaf0e6; border: 2px solid #dee6d8; border-radius: 25px; min-width: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; scroll-margin-top: 10px; }
+  .factory-stage { min-height: 510px; flex: 1; position: relative; background-image: linear-gradient(#dce6d544 1px, transparent 1px), linear-gradient(90deg, #dce6d544 1px, transparent 1px); background-size: 34px 34px; }
+  .factory-rail { position: absolute; top: 21px; left: 0; right: 0; height: 18px; border-block: 3px solid #a7b6a2; background: #c3cebd; display: flex; justify-content: space-around; align-items: center; }
+  .factory-rail i { width: 5px; height: 5px; background: #8b9b87; border-radius: 50%; }
+  .factory-chute { position: absolute; top: 0; left: 30px; width: 92px; height: 91px; background: #b2beb0; border: 3px solid #889985; border-top: 0; border-radius: 0 0 10px 10px; z-index: 2; }
+  .factory-chute > span { display: block; height: 46px; margin: 0 10px; border-inline: 3px solid #99aa96; background: #cbd4c5; }
+  .factory-chute > i { display: block; margin: 8px 6px 0; height: 16px; border: 3px solid #7f907c; border-radius: 5px; background: repeating-linear-gradient(120deg, #eacb79 0 10px, #7c8772 10px 20px); }
+  .factory-chute.open > i { background: #4e5c4d; border-color: #83967b; }
+  .factory-light { position: absolute; right: 19px; top: 58px; border: 2px solid #b7c3ad; border-radius: 20px; padding: 7px; background: #dce4d5; display: flex; gap: 7px; }
+  .factory-light i { width: 11px; height: 11px; border-radius: 50%; background: #b1bc9e; border: 1px solid #96a780; }
+  .factory-light i.lit { background: #9ccf7a; box-shadow: 0 0 12px #a0d37d; }
+  .robot-container { width: min(84%, calc(70dvh - 175px), 850px); position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); }
+  .part-target { position: absolute; background: transparent; border: 0; border-radius: 15px; padding: 0; z-index: 3; touch-action: manipulation; }
+  .part-target:focus-visible { outline: 4px solid #8c60d0; outline-offset: 3px; }
+  .piece-selected .part-target { outline: 3px dashed #9a7bcc; outline-offset: 5px; background: #c3a7e615; }
+  .conveyor { position: absolute; bottom: 28px; left: 15px; right: 15px; height: 58px; background: #aebbac; border: 3px solid #81957e; border-radius: 18px; box-shadow: 0 5px 0 #d6dfce; }
+  .belt { position: absolute; top: -6px; left: 7px; right: 7px; height: 12px; border: 3px solid #75886e; border-radius: 7px; background: repeating-linear-gradient(90deg, #b1bc9f 0 18px, #8c9c7d 18px 22px); }
+  .rollers { height: 100%; display: flex; align-items: center; justify-content: space-around; padding: 8px; overflow: hidden; }
+  .rollers > i { height: 28px; width: 28px; flex-shrink: 0; border: 3px solid #85987f; background: #d3ddc9; border-radius: 50%; position: relative; }
+  .rollers > i::after { content: ''; position: absolute; inset: 7px; background: #8b9e83; border-radius: 50%; }
+  .running .belt { animation: factory-belt .8s linear 2; }
+  .conveyor-leg { position: absolute; top: 52px; width: 17px; height: 28px; background: #a4b399; border-inline: 3px solid #839579; }
+  .conveyor-leg.leg-left { left: 35px; }
+  .conveyor-leg.leg-right { right: 35px; }
+  .falling-piece { position: absolute; left: 21px; bottom: 90px; width: 110px; height: 110px; z-index: 5; }
+  .draggable-part { position: relative; width: 110px; height: 110px; padding: 12px; border-radius: 19px; border: 2px solid #ba9cdb; background: #fffcf4; box-shadow: 0 6px 0 #bba9cf88, 0 9px 23px #5c496324; cursor: grab; touch-action: none; user-select: none; }
+  .draggable-part:active { cursor: grabbing; }
+  .draggable-part.armed { border-color: #8261c3; box-shadow: 0 0 0 5px #c5a6eb66, 0 5px 0 #bba9cf; }
+  .draggable-part > svg { width: 100%; height: 100%; pointer-events: none; }
+  .drag-grip { position: absolute; right: 4px; bottom: 4px; width: 23px; height: 23px; display: grid; place-items: center; color: #957bad; background: #f0e8f7; border-radius: 7px; pointer-events: none; }
+  .factory-feedback { position: absolute; left: 50%; bottom: 99px; transform: translateX(-50%); padding: 8px 13px; border-radius: 10px; background: #fff8e6; color: #856932; font-size: 13px; font-weight: 750; z-index: 6; white-space: nowrap; }
+  .factory-progress { display: flex; align-items: center; justify-content: center; gap: 17px; padding: 17px 20px; border-top: 1px solid #dce5d7; background: #f4f6ee; }
+  .parts-tray { display: flex; justify-content: center; gap: 9px; }
+  .part-card { width: 47px; height: 47px; padding: 6px; background: #e8ece2; border-radius: 11px; position: relative; border: 1.5px solid transparent; }
+  .part-card > svg { width: 100%; height: 100%; opacity: .28; }
+  .part-card.selected { background: #ede5f5; border-color: #b39bcf; }
+  .part-card.selected > svg, .part-card.placed > svg { opacity: 1; }
+  .part-card.placed { background: #e2efdb; border-color: #aaca9c; }
+  .part-check { position: absolute; top: -5px; right: -5px; background: #86aa76; color: #fff; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; }
+  .progress-label { font-size: 15px; font-weight: 800; color: #829473; white-space: nowrap; }
+  .activity-panel { border: 2px solid #e9e4ec; border-radius: 25px; background: #fffefa; padding: 28px; min-width: 0; display: grid; align-items: center; }
+  .math-puzzle { width: min(100%, 640px); margin-inline: auto; }
+  .earned-panel, .completion-panel { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 25px 0; }
+  .success-label { font-size: 25px; color: #799869; display: flex; align-items: center; gap: 10px; font-weight: 800; }
+  .drag-instruction-icon { color: #ae8bcf; margin: 49px 0 20px; rotate: -15deg; }
+  .earned-panel h2 { font-size: 28px; font-weight: 900; max-width: 260px; line-height: 1.3; }
+  .point-to-factory { color: #9f80c7; margin-top: 22px; }
+  .completion-panel h2 { font-size: 31px; font-weight: 900; margin: 25px 0 42px; }
+  .celebration-icon { display: grid; place-items: center; background: #f7eccd; color: #b69741; border-radius: 28px; width: 98px; height: 98px; rotate: -7deg; }
+  .completion-panel > .primary { width: 100%; }
+  .completion-panel > .text-button { margin-top: 20px; }
+  .confetti { position: absolute; inset: 0; pointer-events: none; }
+  .confetti i { width: 9px; height: 16px; border-radius: 2px; position: absolute; animation: factory-confetti 2.3s ease-in-out both; }
+  @media (min-width: 1400px) and (min-height: 950px) { .activity-panel { padding: 36px; } .math-puzzle .keypad button { min-height: 64px; } }
+  @media (min-width: 1800px) and (min-height: 1000px) {
+    .math-puzzle h2 { font-size: 30px; }
+    .math-puzzle .number-row { height: 64px; font-size: 56px; }
+    .math-puzzle .simple-sum { font-size: 56px; }
+    .math-puzzle .keypad button { font-size: 30px; }
+  }
+  @media (max-width: 1000px) { padding: 8px 24px 24px; .workshop-grid { gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(310px, 1fr); } .activity-panel { padding: 22px; } .factory-stage { min-height: 480px; } .robot-container { top: 47%; width: 95%; } .factory-chute { left: 17px; width: 72px; } .falling-piece { left: 10px; width: 95px; height: 95px; } .draggable-part { width: 95px; height: 95px; } .parts-tray { gap: 5px; } .part-card { width: 35px; height: 35px; border-radius: 8px; padding: 4px; } .factory-progress { padding: 15px 10px; gap: 10px; } }
+  @media (max-width: 365px) { .activity-panel { padding: 18px 14px !important; } }
+  @media (max-width: 700px) {
+    padding: 4px 16px 20px;
+    .page-heading { margin: 2px 0 13px; }
+    h1 { font-size: 25px; letter-spacing: -.6px; }
+    .level-label { font-size: 12px; }
+    .workshop-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+    .factory { border-radius: 19px; }
+    .factory-stage { min-height: 163px; }
+    .factory-rail { top: 12px; height: 12px; border-width: 2px; }
+    .factory-chute { height: 55px; width: 54px; left: 18px; border-width: 2px; }
+    .factory-chute > span { height: 23px; }
+    .factory-chute > i { height: 10px; border-width: 2px; margin: 7px 3px 0; }
+    .factory-light { top: 36px; right: 13px; padding: 5px; }
+    .factory-light i { width: 7px; height: 7px; }
+    .robot-container { width: 145px; top: 44%; }
+    .conveyor { bottom: 10px; height: 25px; left: 9px; right: 9px; border-radius: 11px; border-width: 2px; box-shadow: none; }
+    .belt { height: 8px; top: -5px; border-width: 2px; }
+    .rollers { padding: 3px; }
+    .rollers > i { height: 17px; width: 17px; border-width: 2px; }
+    .rollers > i::after { inset: 4px; }
+    .conveyor-leg { top: 22px; height: 12px; width: 12px; border-width: 2px; }
+    .factory-progress { padding: 8px 14px; justify-content: center; }
+    .parts-tray { gap: 8px; }
+    .part-card { width: 28px; height: 28px; padding: 3px; border-radius: 7px; }
+    .part-check { width: 13px; height: 13px; top: -4px; right: -4px; }
+    .part-check svg { width: 10px; }
+    .progress-label { font-size: 12px; }
+    .activity-panel { padding: 20px; border-radius: 19px; }
+    &.piece-ready .factory-stage { min-height: min(68dvh, 540px); }
+    &.piece-ready .robot-container { width: min(90%, 365px); top: 44%; }
+    &.piece-ready .factory-chute { width: 80px; height: 80px; }
+    &.piece-ready .factory-chute > span { height: 39px; }
+    &.piece-ready .falling-piece { width: 95px; height: 95px; left: 13px; bottom: 41px; }
+    &.piece-ready .activity-panel { background: transparent; border: 0; padding: 0; }
+    .earned-panel { padding: 7px 0; gap: 8px; }
+    .success-label { font-size: 18px; }
+    .earned-panel h2 { font-size: 23px; max-width: none; }
+    .drag-instruction-icon, .point-to-factory { display: none; }
+    .factory-feedback { bottom: 42px; font-size: 11px; padding: 6px 9px; left: auto; right: 10px; transform: none; }
+    .completion-panel { padding: 15px 0; }
+    .completion-panel h2 { font-size: 27px; margin: 19px 0 25px; }
+    .celebration-icon { width: 75px; height: 75px; }
+  }
+}
+@keyframes factory-belt { to { background-position-x: 22px; } }
+@keyframes factory-confetti { 0% { opacity: 0; transform: translateY(-25px) rotate(-20deg) scale(.7); } 35% { opacity: 1; } 100% { opacity: .8; transform: translateY(20px) rotate(45deg); } }
