@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { completeAdventureSetup } from './adventure-setup';
 import { createServer, type Server } from 'node:http';
 import { createReadStream, statSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
@@ -44,7 +45,7 @@ test.describe('GitHub Pages project deployment', () => {
 
     await page.goto(origin + prefix);
     await expect(page.getByRole('heading', { name: 'Una aventura espacial', exact: true })).toBeVisible();
-    await expect(page.locator('.chapter-card')).toHaveCount(7);
+    await expect(page.locator('.chapter-card')).toHaveCount(8);
     const image = page.locator('.cinematic-backdrop img');
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await page.getByRole('button', { name: 'Activar sonido' }).click();
@@ -52,7 +53,7 @@ test.describe('GitHub Pages project deployment', () => {
     await expect.poll(() => audio.evaluate(element => !(element as HTMLAudioElement).paused)).toBe(true);
     await expect.poll(() => audio.evaluate(element => (element as HTMLAudioElement).currentSrc)).toBe(origin + prefix + 'music/wallpaper.mp3');
     await page.getByRole('button', { name: 'Empezar aventura' }).click();
-    await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+    await completeAdventureSetup(page);
     await expect(page.getByRole('heading', { name: 'Un mensaje para ti' })).toBeVisible();
     await page.goto(origin + prefix + 'games/adventure.html');
     await expect(page.getByRole('heading', { name: 'Un mensaje para ti' })).toBeVisible();

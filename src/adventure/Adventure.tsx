@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { MotionConfig } from 'motion/react';
-import { ArrowLeft, ArrowRight, Bot, Check, Droplet, Radio, PencilLine, Volume2, VolumeX } from 'lucide-react';
-import { levels, loadProgress, saveProgress } from '../game';
+import { ArrowLeft, ArrowRight, Droplet, House, Radio, Volume2, VolumeX } from 'lucide-react';
+import { loadProgress, saveProgress } from '../game';
 import { BackgroundMusic } from '../components/BackgroundMusic';
-import { TextEntryDialog } from '../components/TextEntryDialog';
+import { AdventureSetupDialog } from './AdventureSetupDialog';
 import { playSound } from '../sound';
 import { soundtracks } from '../music';
 import { chapterCatalog, playableChapter, type ChapterEntry } from './chapters/catalog';
@@ -14,12 +14,13 @@ import { earnPart, moveTo, newAdventure, placePart, rotatePipe, type AdventurePr
 import { PipePuzzle } from './PipePuzzle';
 import { SceneArt } from './SceneArt';
 import { RobotIntroduction } from './RobotIntroduction';
+import { StoryReview, type ReadingScene } from './StoryReview';
 import { adventureMusic } from './music';
-import { normalizePlayerName, personalize, playerNameMaxLength } from './personalization';
+import { personalize } from './personalization';
 import { BuildActivity, DialogueActions } from './Activities';
 import './adventure.css';
 
-type View = 'home' | 'setup' | 'play';
+type View = 'home' | 'play';
 
 export default function Adventure({ chapter: chapterOverride, catalog: catalogOverride, entry = 'play' }: {
   chapter?: Chapter; catalog?: readonly ChapterEntry[]; entry?: 'home' | 'play';
@@ -34,21 +35,27 @@ export default function Adventure({ chapter: chapterOverride, catalog: catalogOv
     const nextProgress = typeof update === 'function' ? update(previous.chapters[chapter.id] ?? null) : update;
     return nextProgress ? recordChapter(previous, catalog, nextProgress) : previous;
   });
-  const [view, setView] = useState<View>(() => entry === 'home' ? 'home' : loaded.campaign.chapters[loaded.campaign.activeChapterId] ? 'play' : 'setup');
+  const [view, setView] = useState<View>(() => entry === 'play' && progress ? 'play' : 'home');
+  const [setupChapterId, setSetupChapterId] = useState<string | null>(() => entry === 'play' && !progress ? chapter.id : null);
+  const setupProfile = setupChapterId ? campaign.chapters[setupChapterId] ?? campaign.profile : campaign.profile;
   const [preferences, setPreferences] = useState(loadProgress);
-  const [character, setCharacter] = useState<Character>(loaded.campaign.profile.character);
-  const [mathsLevel, setMathsLevel] = useState(loaded.campaign.profile.mathsLevel);
-  const [playerName, setPlayerName] = useState(loaded.campaign.profile.playerName);
-  const [editingName, setEditingName] = useState(false);
   const [saveFailed, setSaveFailed] = useState(loaded.unavailable);
   const [soundSaveFailed, setSoundSaveFailed] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const liveSceneRef = useRef<HTMLDivElement>(null);
+  const [reviewId, setReviewId] = useState<string | null>(null);
+  const readingHistory = progress?.history.filter(id => !['build', 'pipes'].includes(chapter.scenes[id].type)) ?? [];
+  const reviewIndex = reviewId === null ? -1 : readingHistory.indexOf(reviewId);
+  const reviewScene = reviewIndex < 0 ? null : chapter.scenes[reviewId!] as ReadingScene;
+  const previousId = readingHistory[(reviewScene ? reviewIndex : readingHistory.length) - 1];
   const scene = progress ? chapter.scenes[progress.sceneId] : null;
+  const displayedScene = reviewScene ?? scene;
   const introduction = view !== 'play' || !scene ? undefined : scene.type === 'build'
     ? progress?.placedCount === 6 ? chapter.robot.introduction : undefined
     : scene.robotIntroduction ? { title: scene.title, paragraphs: scene.paragraphs, artwork: scene.robotIntroduction.artwork } : undefined;
-  const building = view === 'play' && scene?.type === 'build' && !introduction;
-  const piping = view === 'play' && scene?.type === 'pipes';
+  const displayedIntroduction = reviewScene ? Boolean(reviewScene.robotIntroduction) : Boolean(introduction);
+  const building = view === 'play' && !reviewScene && scene?.type === 'build' && !introduction;
+  const piping = view === 'play' && !reviewScene && scene?.type === 'pipes';
   const assetPrefix = entry === 'home' ? './' : '../';
 
   useEffect(() => {
@@ -56,9 +63,11 @@ export default function Adventure({ chapter: chapterOverride, catalog: catalogOv
     if (Object.keys(campaign.chapters).length) setSaveFailed(!saveCampaign(campaign));
   }, [campaign]);
   useEffect(() => {
-    headingRef.current?.focus({ preventScroll: true });
+    if (setupChapterId || reviewScene) return;
+    const heading = view === 'play' ? liveSceneRef.current?.querySelector('h1') : headingRef.current;
+    heading?.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [chapter.id, progress?.sceneId, view]);
+  }, [chapter.id, progress?.sceneId, view, reviewId]);
 
   const toggleSound = () => {
     const next = { ...loadProgress(), sound: !preferences.sound };
@@ -67,13 +76,14 @@ export default function Adventure({ chapter: chapterOverride, catalog: catalogOv
     playSound('tap', next.sound);
   };
   const next = (id: string) => setProgress(previous => previous ? moveTo(previous, chapter, id) : previous);
-  const start = () => { setProgress(newAdventure(chapter, mathsLevel, character, playerName)); setView('play'); };
-  const prepare = (id = chapter.id) => {
-    const profile = campaign.chapters[id] ?? campaign.profile;
-    setMathsLevel(profile.mathsLevel); setCharacter(profile.character); setPlayerName(profile.playerName);
-    setCampaign(previous => selectChapter(previous, catalog, id));
-    setView('setup');
+  const start = (name: string, character: Character) => {
+    const selected = catalog.find(item => item.id === setupChapterId)?.chapter;
+    if (!selected || !chapterUnlocked(campaign, catalog, selected.id)) return;
+    setCampaign(previous => recordChapter(previous, catalog, newAdventure(selected, setupProfile.mathsLevel, character, name)));
+    setSetupChapterId(null);
+    setView('play');
   };
+  const prepare = (id = chapter.id) => setSetupChapterId(id);
   const chooseChapter = (id: string) => {
     const selected = catalog.find(item => item.id === id)?.chapter;
     if (!selected || !chapterUnlocked(campaign, catalog, id)) return;
@@ -81,16 +91,20 @@ export default function Adventure({ chapter: chapterOverride, catalog: catalogOv
     if (!saved || (campaign.completed.includes(id) && selected.scenes[saved.sceneId].type === 'ending')) prepare(id);
     else { setCampaign(previous => selectChapter(previous, catalog, id)); setView('play'); }
   };
-  const home = () => setView('home');
+  const home = () => { setReviewId(null); setView('home'); };
+  const reviewNext = () => setReviewId(readingHistory[reviewIndex + 1] ?? null);
   const finish = () => { setCampaign(previous => completeChapter(previous, catalog, chapter.id)); setView('home'); };
   const finishedRun = progress && scene?.type === 'ending' && campaign.completed.includes(chapter.id);
 
-  return <MotionConfig reducedMotion="user"><div className={`adventure-experience ${view === 'home' ? 'is-home' : view === 'setup' ? 'is-setup' : introduction ? 'is-introducing' : building ? 'is-building' : piping ? 'is-piping' : 'is-reading'}`}>
-    {!introduction && <SceneArt chapter={chapter} character={view === 'setup' ? character : progress?.character ?? character} image={scene && scene.type !== 'build' && view === 'play' ? scene.image : 'ship'} assetPrefix={assetPrefix} />}
-    <BackgroundMusic enabled={preferences.sound && view !== 'setup'} src={`${assetPrefix}music/${view === 'home' ? soundtracks.home.file : adventureMusic(scene, Boolean(introduction))}`} />
+  return <MotionConfig reducedMotion="user"><div className={`adventure-experience ${view === 'home' ? 'is-home' : displayedIntroduction ? 'is-introducing' : building ? 'is-building' : piping ? 'is-piping' : 'is-reading'}`}>
+    {!displayedIntroduction && <SceneArt chapter={chapter} character={progress?.character ?? campaign.profile.character} image={displayedScene && displayedScene.type !== 'build' && view === 'play' ? displayedScene.image : 'ship'} assetPrefix={assetPrefix} />}
+    <BackgroundMusic enabled={preferences.sound && !setupChapterId} src={`${assetPrefix}music/${view === 'home' ? soundtracks.home.file : adventureMusic(displayedScene, displayedIntroduction)}`} />
     <header className="adventure-chrome">
-      {view !== 'home' && <button className="chrome-button" onClick={home} aria-label="Volver al inicio"><ArrowLeft size={20} /></button>}
-      {view !== 'setup' && <button className="chrome-button" onClick={toggleSound} aria-label={preferences.sound ? 'Desactivar sonido' : 'Activar sonido'} aria-pressed={preferences.sound}>{preferences.sound ? <Volume2 size={20} /> : <VolumeX size={20} />}</button>}
+      {view !== 'home' && <nav className="adventure-navigation" aria-label="Navegación de la aventura">
+        <button className="chrome-button" disabled={!previousId} onClick={() => setReviewId(previousId)} aria-label="Volver atrás" title="Volver atrás"><ArrowLeft size={20} /></button>
+        <button className="chrome-button" onClick={home} aria-label="Volver al inicio" title="Volver al inicio"><House size={20} /></button>
+      </nav>}
+      <button className="chrome-button" onClick={toggleSound} aria-label={preferences.sound ? 'Desactivar sonido' : 'Activar sonido'} aria-pressed={preferences.sound}>{preferences.sound ? <Volume2 size={20} /> : <VolumeX size={20} />}</button>
     </header>
     {(saveFailed || soundSaveFailed) && <div className="experience-notices" role="status">
       {saveFailed && <p>No se puede guardar el progreso en este navegador. Puedes jugar, pero los cambios no se conservarán al salir.</p>}
@@ -101,17 +115,9 @@ export default function Adventure({ chapter: chapterOverride, catalog: catalogOv
         <h1 ref={headingRef} tabIndex={-1}>Una aventura espacial</h1>
         {loaded.reset && !progress && <p className="inline-notice">La partida guardada no es compatible o está dañada. Puedes empezar de nuevo.</p>}
         <div className="home-actions"><button className="primary" onClick={() => chooseChapter(chapter.id)}>{finishedRun ? 'Repetir capítulo' : progress ? 'Continuar aventura' : 'Empezar aventura'}<ArrowRight size={21} /></button>{progress && !finishedRun && <button className="text-button" onClick={() => prepare()}>Reiniciar capítulo</button>}</div>
-        <a className="practice-link" href={`${assetPrefix}practice.html`}><Bot size={26} aria-hidden="true" />Practicar mates</a>
-        <ChapterMenu catalog={catalog} campaign={campaign} onSelect={chooseChapter} />
-      </section> : view === 'setup' ? <section className="dialogue-dock setup-dock" aria-label="Preparar la aventura">
-        <h1 ref={headingRef} tabIndex={-1}>¿Quién viaja hoy?</h1>
-        {loaded.reset && !progress && <p className="inline-notice">La partida guardada no es compatible o está dañada. Puedes empezar de nuevo.</p>}
-        {progress && <p className="inline-notice">Reiniciar este capítulo reemplazará su partida guardada. Los capítulos desbloqueados se conservarán.</p>}
-        <button className="name-picker" onClick={() => setEditingName(true)} aria-label={playerName ? `Cambiar nombre: ${playerName}` : 'Escribe tu nombre'}><span>{playerName || 'Escribe tu nombre'}</span><PencilLine size={20} aria-hidden="true" /></button>
-        <fieldset className="character-picker"><legend className="sr-only">Elige tu personaje</legend>{(['boy', 'girl'] as const).map(value => <label key={value} className={`character-option ${character === value ? 'selected' : ''}`}><input type="radio" name="character" value={value} checked={character === value} onChange={() => setCharacter(value)} /><span>{value === 'boy' ? 'Niño' : 'Niña'}</span>{character === value && <Check size={17} />}</label>)}</fieldset>
-        <details className="maths-choice"><summary>Elegir las cuentas</summary><label className="sr-only" htmlFor="maths-level">Dificultad de matemáticas</label><select id="maths-level" value={mathsLevel} onChange={event => setMathsLevel(Number(event.target.value))}>{levels.map((level, index) => <option key={level.name} value={index}>{level.name}</option>)}</select></details>
-        <div className="scene-actions"><button className="primary" onClick={start}>{progress ? 'Comenzar de nuevo' : 'Comenzar'}<ArrowRight size={21} /></button>{progress && <button className="text-button" onClick={home}>Cancelar</button>}</div>
+        <ChapterMenu catalog={catalog} campaign={campaign} onSelect={chooseChapter} practiceHref={`${assetPrefix}practice.html`} />
       </section> : scene && progress && <>
+        <div className="live-scene" ref={liveSceneRef} hidden={Boolean(reviewScene)} inert={Boolean(reviewScene)}>
         {introduction ? <RobotIntroduction key={progress.sceneId} robot={chapter.robot} introduction={introduction} playerName={progress.playerName} assetPrefix={assetPrefix} onNext={scene.type === 'build' ? () => next(scene.next) : undefined}>
           {scene.type !== 'build' ? <DialogueActions scene={scene} playerName={progress.playerName} onNext={next} onComplete={finish} /> : undefined}
         </RobotIntroduction> : scene.type === 'build' ? <section className="construction-console">
@@ -133,8 +139,12 @@ export default function Adventure({ chapter: chapterOverride, catalog: catalogOv
           <div className="story-passage">{scene.paragraphs.map((paragraph, index) => <p key={index}>{personalize(paragraph, progress.playerName)}</p>)}</div>
           <DialogueActions scene={scene} playerName={progress.playerName} onNext={next} onComplete={finish} />
         </article>}
+        </div>
+        {reviewScene && <StoryReview key={reviewId} chapter={chapter} scene={reviewScene} playerName={progress.playerName} assetPrefix={assetPrefix} onNext={reviewNext} />}
       </>}
     </main>
-    {editingName && <TextEntryDialog title="¿Cómo te llamas?" label="Tu nombre" initialValue={playerName} maxLength={playerNameMaxLength} onConfirm={value => { setPlayerName(normalizePlayerName(value)); setEditingName(false); }} onCancel={() => setEditingName(false)} />}
+    {setupChapterId && <AdventureSetupDialog key={setupChapterId} initialName={setupProfile.playerName}
+      initialCharacter={Object.keys(campaign.chapters).length ? setupProfile.character : null} replacing={Boolean(campaign.chapters[setupChapterId])}
+      onStart={start} onCancel={() => setSetupChapterId(null)} />}
   </div></MotionConfig>;
 }

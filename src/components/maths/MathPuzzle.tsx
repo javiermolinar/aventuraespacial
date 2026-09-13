@@ -37,6 +37,7 @@ function CountingBlocks({ operation, exchanged, column }: { operation: Operation
 }
 
 export function MathPuzzle({ operation, partName, sound, onSolved }: { operation: Operation; partName: string; sound: boolean; onSolved: () => void }) {
+  const puzzleRef = useRef<HTMLDivElement>(null);
   const [column, setColumn] = useState<'ones' | 'tens'>('ones');
   const [digit, setDigit] = useState('');
   const [exchanged, setExchanged] = useState(false);
@@ -110,8 +111,8 @@ export function MathPuzzle({ operation, partName, sound, onSolved }: { operation
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
-      // Native dialogs make the workshop inert; don't let global shortcuts bypass that.
-      if (document.querySelector('dialog[open]')) return;
+      // Rereading keeps the workshop mounted; hidden/inert puzzles must ignore global shortcuts.
+      if (puzzleRef.current?.closest('[hidden], [inert]') || document.querySelector('dialog[open]')) return;
       const target = event.target as HTMLElement;
       if (target.matches('input, textarea, select') || event.ctrlKey || event.metaKey || event.altKey) return;
       if (/^[0-9]$/.test(event.key)) { event.preventDefault(); enterDigit(event.key); }
@@ -122,7 +123,7 @@ export function MathPuzzle({ operation, partName, sound, onSolved }: { operation
     return () => window.removeEventListener('keydown', handleKey);
   });
 
-  return <div className={`math-puzzle ${!tens ? 'single-column' : ''} ${numericCarry ? 'has-numeric-carry' : ''} ${regrouping ? 'is-regrouping' : ''}`}>
+  return <div ref={puzzleRef} className={`math-puzzle ${!tens ? 'single-column' : ''} ${numericCarry ? 'has-numeric-carry' : ''} ${regrouping ? 'is-regrouping' : ''}`}>
     <h2>Consigue {partName}</h2>
     {simpleAddition ? <div className="simple-sum" aria-label={`Suma: ${operationLabel(operation)}`}><span>{operation.a}</span><span className="simple-sign">+</span><span>{operation.b}</span><span className="simple-sign">=</span><span className={`answer-box ${incorrect ? 'incorrect' : ''}`} aria-label="Respuesta de la suma">{digit || '?'}</span></div> : <div className="column-board" aria-label={`Operación en columnas: ${operationLabel(operation)}`}>
       <div className="column-labels"><span /><span className={column === 'tens' || regrouping ? 'active' : ''}>Decenas</span><span className={column === 'ones' && !regrouping ? 'active' : ''}>Unidades</span></div>

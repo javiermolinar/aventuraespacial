@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { chispaChapter as chapter } from '../../src/adventure/chapters/chispa';
 import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart } from '../../src/adventure/progress';
 import { placeByTap } from './helpers';
+import { completeAdventureSetup } from './adventure-setup';
 
 async function expectMusic(page: Page, file: string) {
   const audio = page.getByTestId('background-music');
@@ -24,7 +25,7 @@ test('home music is opt-in, survives home/continue, and pauses during setup', as
   await expectMusic(page, 'wallpaper');
   await page.getByRole('button', { name: 'Empezar aventura' }).click();
   expect(await audio.evaluate(element => (element as HTMLAudioElement).paused)).toBe(true);
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await completeAdventureSetup(page);
   await expectMusic(page, 'dream-culture');
   await audio.evaluate(element => { (element as HTMLAudioElement).currentTime = 10; });
   await page.getByRole('button', { name: 'En la estación Luna.', exact: true }).click();

@@ -23,6 +23,22 @@ function carry() {
   fireEvent.click(screen.getByRole('button', { name: 'Decenas: colocar la llevada' }));
 }
 
+it('preserves entered digits while hidden and ignores global keyboard shortcuts', () => {
+  const solved = vi.fn();
+  const puzzle = <MathPuzzle operation={{ a: 4, b: 3, operator: '+' }} partName="la cabeza" sound={false} onSolved={solved} />;
+  const view = render(<div hidden={false}>{puzzle}</div>);
+  fireEvent.keyDown(document.body, { key: '7' });
+  view.rerender(<div hidden>{puzzle}</div>);
+  fireEvent.keyDown(document.body, { key: 'Enter' });
+  fireEvent.keyDown(document.body, { key: 'Backspace' });
+  fireEvent.keyDown(document.body, { key: '9' });
+  expect(solved).not.toHaveBeenCalled();
+  view.rerender(<div hidden={false}>{puzzle}</div>);
+  expect(screen.getByLabelText('Respuesta de la suma').textContent).toBe('7');
+  fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }));
+  expect(solved).toHaveBeenCalledOnce();
+});
+
 describe('simple addition', () => {
   for (const [a, b, result] of [[4, 3, 7], [8, 3, 11], [8, 7, 15], [5, 5, 10], [9, 9, 18]]) {
     it(`${a} + ${b} accepts the complete answer without a separate carry`, () => {

@@ -54,7 +54,11 @@ Chapter version 6 migrates supported older saves without losing calculations, pa
 
 ### Chapter menu and campaign progress — implemented
 
-The home screen now contains seven robot chapter cards, Chispa first. Locked entries hide titles and robot identities; explicit completion reveals the next entry, with unwritten chapters marked **Próximamente**. Replays preserve unlocks. `src/adventure/campaign.ts` maintains independent chapter records and migrates the old single-chapter save into a versioned campaign. Tests cover completion, replay, multi-chapter selection, migration and unavailable storage.
+The home screen now contains seven robot chapter cards, Chispa first, with **Practicar mates** as an always-available tile beside Chispa. Locked entries hide titles and robot identities; explicit completion reveals the next entry, with unwritten chapters marked **Próximamente**. Starting opens a two-step popup: name → **Siguiente** → **Niño** / **Niña** → **Empezar**, with no difficulty selector or tabs. Only the final action writes the profile and chapter; cancelling changes nothing. Existing maths levels are preserved. Replays preserve unlocks. `src/adventure/campaign.ts` maintains independent chapter records and migrates the old single-chapter save into a versioned campaign. Tests cover completion, replay, multi-chapter selection, migration and unavailable storage.
+
+### Back navigation — implemented
+
+The adventure has separate Back (arrow) and Home (house) controls. Back rereads visited story pages, skipping completed construction and minigames; Continue returns through the recorded path to the current activity. It does not rewind saves or unlocks. The live activity remains mounted but hidden/inert, preserving even unfinished answers and carrying steps. Hidden maths ignores global keyboard shortcuts. Home/reload resumes the saved position rather than the temporary rereading page.
 
 ### Current limitations
 - Only Chispa has authored story content.
@@ -290,7 +294,7 @@ Build these as separate reusable mechanics, one at a time, with focused chapter 
 - Tests cover one-step problems, doubles/halves, multi-step totals, incorrect answers, guided steps, alternate valid working paths and saved intermediate work.
 - Every chapter receives a Spanish-language, vocabulary and mathematical-content review.
 
-Latest chapter-menu validation: **114 unit/component tests pass; production build passes; 44/44 browser tests pass.** The factory finger-drag test in `tests/e2e/touch.spec.ts` failed in earlier runs but passed in the latest full run without a targeted fix. Investigate that intermittent behaviour before relying on dragging as the principal interaction for packing.
+Latest menu/navigation validation: **119 unit/component tests pass; production build passes; 49/50 browser tests pass.** All menu, two-step setup, Back navigation, save-preservation and Pages-path checks pass. The pre-existing factory finger-drag test in `tests/e2e/touch.spec.ts` passed in an earlier run and failed in later full runs; no factory drag code was changed for this work. Investigate that intermittent behaviour before relying on dragging as the principal interaction for packing.
 
 ## 8. Decisions still to confirm
 

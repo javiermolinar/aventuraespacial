@@ -31,13 +31,34 @@ it('keeps the passage across questions, resets answer state, and resumes the cur
   expect(screen.getByRole('heading', { name: '¿Funciona la radio?' })).toBeTruthy();
   expect(screen.getByText(/Lucía, ¿dónde estás\?/)).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Continuar' })).toBeNull();
-  expect(JSON.parse(localStorage.getItem(campaignStorageKey)!).chapters[chapter.id].sceneId).toBe('message:question:radio');
+  const saved = localStorage.getItem(campaignStorageKey);
+  expect(JSON.parse(saved!).chapters[chapter.id].sceneId).toBe('message:question:radio');
+  fireEvent.click(screen.getByRole('button', { name: 'No.' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Volver atrás' }));
+  expect((screen.getByRole('button', { name: 'Volver atrás' }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.queryByRole('button', { name: 'No.' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+  expect(screen.getByRole('button', { name: 'No.' }).className).toContain('is-correct');
+  expect(localStorage.getItem(campaignStorageKey)).toBe(saved);
   cleanup();
   render(<Adventure chapter={chapter} />);
   expect(screen.getByRole('heading', { name: '¿Funciona la radio?' })).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'No.' }));
   fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
   expect(screen.getByRole('button', { name: 'Entrar al taller' })).toBeTruthy();
+});
+
+it('can go back and forward with blocked storage without resetting the run', () => {
+  const chapter = defineChapter(chispaScript);
+  saveAdventure(moveTo(newAdventure(chapter, 0, 'girl', 'Lucía'), chapter, 'plan'));
+  vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+  render(<Adventure chapter={chapter} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Volver atrás' }));
+  expect(screen.getByRole('heading', { name: 'Un mensaje para ti' })).toBe(document.activeElement);
+  fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+  expect(screen.getByRole('heading', { name: 'Mejor en compañía' })).toBe(document.activeElement);
+  fireEvent.click(screen.getByRole('button', { name: 'Entrar al taller' }));
+  expect(screen.getByRole('heading', { name: 'Hora de trabajar' })).toBe(document.activeElement);
 });
 
 it('uses the same question actions in illustrated robot dialogue, then advances to another page', () => {

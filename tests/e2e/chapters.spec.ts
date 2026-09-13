@@ -5,6 +5,7 @@ import { campaignStorageKey, newCampaign } from '../../src/adventure/campaign';
 import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart } from '../../src/adventure/progress';
 import { destinations } from '../../src/adventure/types';
 import { readAdventure, readCampaign } from './adventure-saves';
+import { completeAdventureSetup } from './adventure-setup';
 
 function ending() {
   let p = newAdventure(chapter, 3, 'girl', 'Lucía');
@@ -36,8 +37,8 @@ test('home shows selectable Chispa and six anonymous locked chapters, with keybo
   }
   await menu.getByRole('button', { name: /Capítulo 1\. Chispa/ }).focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('heading', { name: '¿Quién viaja hoy?' })).toBeFocused();
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Tu nombre' })).toBeFocused();
+  await completeAdventureSetup(page);
   await page.getByRole('button', { name: 'Volver al inicio', exact: true }).click();
   await expect(menu.getByRole('button', { name: /Capítulo 1\. Chispa.*Continuar/ })).toBeEnabled();
   await page.reload();
@@ -68,7 +69,7 @@ test('explicit completion reveals Brote as upcoming; replay confirmation and rel
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   expect(await readAdventure(page)).toEqual(saved);
   await page.getByRole('button', { name: 'Repetir capítulo', exact: true }).click();
-  await page.getByRole('button', { name: 'Comenzar de nuevo', exact: true }).click();
+  await completeAdventureSetup(page, 'Lucía', 'Niña');
   expect(await readAdventure(page)).toMatchObject({ sceneId: 'message', placedCount: 0, character: 'girl', playerName: 'Lucía', mathsLevel: 3 });
   expect((await readCampaign(page)).completed).toEqual([chapter.id]);
   await page.goto('/');
@@ -90,7 +91,7 @@ test('completion and replay keep unlocks in memory when storage writes are block
   await page.getByRole('button', { name: 'Terminar capítulo', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Repetir capítulo', exact: true }).click();
-  await page.getByRole('button', { name: 'Comenzar de nuevo', exact: true }).click();
+  await completeAdventureSetup(page, 'Lucía', 'Niña');
   await page.getByRole('button', { name: 'Volver al inicio', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.', exact: true })).toBeDisabled();
 });

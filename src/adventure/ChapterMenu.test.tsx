@@ -12,11 +12,18 @@ import { destinations } from './types';
 beforeEach(() => {
   const entries = new Map<string, string>();
   vi.stubGlobal('localStorage', { getItem: (key: string) => entries.get(key) ?? null, setItem: (key: string, value: string) => entries.set(key, value) });
+  Object.defineProperties(HTMLDialogElement.prototype, {
+    showModal: { configurable: true, value(this: HTMLDialogElement) { this.open = true; } },
+    close: { configurable: true, value(this: HTMLDialogElement) { this.open = false; } },
+  });
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
   vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('prefers-reduced-motion'), addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() }));
 });
-afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+afterEach(() => {
+  cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals();
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal'); Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
+});
 
 function ending() {
   let p = newAdventure(chapter, 0, 'girl', 'Lucía');
@@ -32,6 +39,8 @@ it('shows seven cards but no locked robot names, titles or illustrations, includ
   const onSelect = vi.fn();
   const { container } = render(<ChapterMenu catalog={chapterCatalog} campaign={newCampaign(chapterCatalog)} onSelect={onSelect} />);
   expect(screen.getAllByRole('button')).toHaveLength(7);
+  expect(screen.getByRole('link', { name: 'Practicar mates' }).closest('.chapter-list')).not.toBeNull();
+  expect(screen.getAllByRole('listitem')).toHaveLength(8);
   for (const entry of chapterCatalog.slice(1)) expect(container.innerHTML).not.toContain(entry.robot.name);
   const locked = screen.getByRole('button', { name: 'Capítulo 2. Bloqueado. Completa el capítulo 1.' });
   expect((locked as HTMLButtonElement).disabled).toBe(true);
@@ -63,7 +72,8 @@ it('does not complete a chapter through Home; finishing and replaying preserve t
   fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
   expect(screen.getByText('Brote')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Repetir capítulo' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Comenzar de nuevo' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Empezar' }));
   const saved = JSON.parse(localStorage.getItem(campaignStorageKey)!);
   expect(saved.completed).toEqual([chapter.id]);
   expect(saved.chapters[chapter.id]).toMatchObject({ sceneId: 'message', placedCount: 0, character: 'girl', playerName: 'Lucía' });
@@ -84,8 +94,12 @@ it('selects another released chapter without discarding the first chapter replay
   saveCampaign(campaign);
   render(<Adventure catalog={catalog} entry="home" />);
   fireEvent.click(screen.getByRole('button', { name: /Capítulo 2\. Brote/ }));
-  expect(screen.getByRole('button', { name: 'Cambiar nombre: Lucía' })).toBeTruthy();
-  fireEvent.click(screen.getByRole('button', { name: 'Comenzar' }));
+  expect((screen.getByRole('textbox', { name: 'Tu nombre' }) as HTMLInputElement).value).toBe('Lucía');
+  fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+  expect(JSON.parse(localStorage.getItem(campaignStorageKey)!)).toEqual(campaign);
+  fireEvent.click(screen.getByRole('button', { name: /Capítulo 2\. Brote/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Empezar' }));
   let saved = JSON.parse(localStorage.getItem(campaignStorageKey)!);
   expect(saved.chapters[chapter.id]).toEqual(replay);
   expect(saved.chapters.brote).toMatchObject({ chapterId: 'brote', sceneId: 'message', character: 'girl', playerName: 'Lucía', mathsLevel: 3 });

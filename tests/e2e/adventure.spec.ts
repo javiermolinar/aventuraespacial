@@ -4,16 +4,17 @@ import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart, type Ad
 import { chispaChapter as chapter, chispaScript } from '../../src/adventure/chapters/chispa';
 import { personalize } from '../../src/adventure/personalization';
 import { readAdventure, seedLegacyAdventure } from './adventure-saves';
+import { completeAdventureSetup } from './adventure-setup';
 
 declare global { interface Window { shakes: number } }
 
 async function begin(page: Page, level = '0') {
   await page.goto('/games/adventure.html');
   if (level !== '0') {
-    await page.getByText('Elegir las cuentas', { exact: true }).click();
-    await page.getByLabel('Dificultad de matemáticas').selectOption(level);
-  }
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+    // Existing saves retain their difficulty; new setup no longer asks for one.
+    await seedLegacyAdventure(page, newAdventure(chapter, Number(level), 'boy', 'piloto'));
+    await page.reload();
+  } else await completeAdventureSetup(page);
 }
 
 async function expectFullScene(page: Page, playerName = '') {
@@ -74,11 +75,11 @@ async function restart(page: Page) {
   await page.getByRole('button', { name: 'Reiniciar capítulo', exact: true }).click();
 }
 
-test('home: single main action, bigger practice link, and continuous start/continue flow', async ({ page }) => {
+test('home: single main action, practice tile beside chapters, and continuous start/continue flow', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('little-robot-lab:v1', JSON.stringify({ completed: { 1: 3 }, sound: false })));
   await page.goto('/');
   await expect(page.locator('.home-actions button')).toHaveCount(1);
-  await expect(page.locator('.chapter-card')).toHaveCount(7);
+  await expect(page.locator('.chapter-card')).toHaveCount(8);
   await expect(page.getByRole('button', { name: 'Empezar aventura' })).toBeVisible();
   await expect(page.getByRole('link')).toHaveCount(1);
   await capture(page, 'adventure-home-desktop');
@@ -88,15 +89,17 @@ test('home: single main action, bigger practice link, and continuous start/conti
   const bounds = await practice.boundingBox();
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844);
   expect(bounds!.height).toBeGreaterThanOrEqual(56);
-  await expect(practice.locator('svg')).toBeVisible();
+  await expect(practice.locator('.chapter-robot svg')).toBeVisible();
+  await expect(practice).toHaveClass(/chapter-card/);
+  const firstChapter = await page.locator('.chapter-card').first().boundingBox();
+  expect(bounds!.y).toBe(firstChapter!.y);
   await practice.click();
   await expect(page.locator('.level-card')).toHaveCount(7);
   await expect(page.locator('.collected-robot')).toHaveCount(1);
   await page.getByRole('link', { name: 'Volver al inicio' }).click();
   await page.getByRole('button', { name: 'Empezar aventura' }).click();
   await expect(page).toHaveURL(/index.html$/);
-  await page.getByRole('radio', { name: 'Niña', exact: true }).check();
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await completeAdventureSetup(page, 'piloto', 'Niña');
   await expectFullScene(page);
   await expectArtwork(page, 'girl-portrait');
   await page.getByRole('button', { name: 'Activar sonido' }).click();
@@ -111,25 +114,24 @@ test('home: single main action, bigger practice link, and continuous start/conti
   await page.reload();
   await page.getByRole('button', { name: 'Continuar aventura' }).click();
   await expectFullScene(page);
-  await expect(page.locator('.character-picker')).toHaveCount(0);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('little-robot-lab:v1')!).completed)).toEqual({ 1: 3 });
 });
 
 test('name entry focuses and traps the keyboard; cancel preserves the draft profile and saves personalize the story', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Empezar aventura' }).click();
-  const opener = page.getByRole('button', { name: 'Escribe tu nombre' });
-  await opener.click();
+  const opener = page.getByRole('button', { name: 'Empezar aventura' });
   const dialog = page.getByRole('dialog', { name: '¿Cómo te llamas?' });
   const input = dialog.getByRole('textbox', { name: 'Tu nombre' });
   await expect(input).toBeFocused();
   await expect(input).toHaveAttribute('maxlength', '24');
-  await expect(dialog.getByRole('button', { name: 'Guardar' })).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: 'Siguiente' })).toBeDisabled();
   await input.fill('   ');
-  await expect(dialog.getByRole('button', { name: 'Guardar' })).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: 'Siguiente' })).toBeDisabled();
   await input.fill('No guardar');
   await page.keyboard.press('Tab');
-  await expect(dialog.getByRole('button', { name: 'Guardar' })).toBeFocused();
+  await expect(dialog.getByRole('button', { name: 'Siguiente' })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(dialog.getByRole('button', { name: 'Cancelar' })).toBeFocused();
   await page.keyboard.press('Escape');
@@ -142,33 +144,62 @@ test('name entry focuses and traps the keyboard; cancel preserves the draft prof
   await page.setViewportSize({ width: 390, height: 844 });
   await capture(page, 'adventure-name-mobile');
   await page.keyboard.press('Enter');
-  await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Cambiar nombre: Lucía' })).toBeFocused();
-  await page.getByRole('radio', { name: 'Niña', exact: true }).check();
+  await expect(page.getByRole('dialog', { name: '¿Niño o niña?' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Niño', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Empezar', exact: true })).toBeDisabled();
+  await expect(page.locator('select, details, [role="tab"]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Niña', exact: true }).click();
   await capture(page, 'adventure-named-setup-mobile');
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await page.getByRole('button', { name: 'Empezar', exact: true }).click();
   await expectFullScene(page, 'Lucía');
   await page.reload();
   await page.getByRole('button', { name: 'Continuar aventura' }).click();
   await expectFullScene(page, 'Lucía');
   expect((await readAdventure(page)).playerName).toBe('Lucía');
   await restart(page);
-  await page.getByRole('button', { name: 'Cambiar nombre: Lucía' }).click();
   await expect(input).toHaveValue('Lucía');
   await input.fill('Mateo');
-  await dialog.getByRole('button', { name: 'Guardar' }).click();
+  await dialog.getByRole('button', { name: 'Siguiente' }).click();
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   await page.getByRole('button', { name: 'Continuar aventura' }).click();
   await expectFullScene(page, 'Lucía');
 });
 
+test('two-step setup fits small and landscape phones and writes nothing until starting', async ({ page }) => {
+  await page.goto('/games/adventure.html');
+  await page.getByRole('textbox', { name: 'Tu nombre' }).fill('Ana');
+  for (const [width, height] of [[320, 568], [844, 390]]) {
+    await page.setViewportSize({ width, height });
+    for (const step of ['name', 'character']) {
+      const dialog = page.getByRole('dialog');
+      const box = (await dialog.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      expect(box.y + box.height).toBeLessThanOrEqual(height);
+      await page.screenshot({ path: `artifacts/setup-${step}-${width}x${height}.png`, animations: 'disabled' });
+      if (step === 'name') await page.getByRole('button', { name: 'Siguiente', exact: true }).click();
+      else {
+        await page.getByRole('button', { name: 'Niña', exact: true }).click();
+        await page.getByRole('button', { name: 'Anterior', exact: true }).click();
+        await expect(page.getByRole('textbox')).toHaveValue('Ana');
+      }
+    }
+  }
+  await page.getByRole('button', { name: 'Siguiente', exact: true }).click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('matefaciles:campaign:v1'))).toBeNull();
+  await page.getByRole('button', { name: 'Empezar aventura' }).click();
+  await expect(page.getByRole('textbox')).toHaveValue('');
+  await completeAdventureSetup(page, 'Mateo');
+  expect(await readAdventure(page)).toMatchObject({ playerName: 'Mateo', character: 'boy', mathsLevel: 0 });
+});
+
 test('names are rendered as text, not HTML, and survive in-memory play with blocked storage', async ({ page }) => {
   await page.addInitScript(() => { Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } }); });
   await page.goto('/games/adventure.html');
-  await page.getByRole('button', { name: 'Escribe tu nombre' }).click();
-  await page.getByRole('textbox', { name: 'Tu nombre' }).fill('<b>Ana</b>');
-  await page.getByRole('button', { name: 'Guardar' }).click();
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await completeAdventureSetup(page, '<b>Ana</b>');
   await expectFullScene(page, '<b>Ana</b>');
   await expect(page.locator('.story-passage b')).toHaveCount(0);
   await page.getByRole('button', { name: 'Volver al inicio', exact: true }).click();
@@ -184,7 +215,7 @@ test('whole chapter: text and choices share each screen; answers use only red/gr
   await begin(page);
   await expect(page.getByRole('heading', { name: 'Un mensaje para ti' })).toBeFocused();
   await expectFullScene(page);
-  await expect(page.locator('.adventure-chrome button')).toHaveCount(2);
+  await expect(page.locator('.adventure-chrome button')).toHaveCount(3);
   expect(await page.locator('.cinematic-backdrop').boundingBox()).toEqual({ x: 0, y: 0, width: 1440, height: 1000 });
   await capture(page, 'cinematic-reading-desktop');
   const height = (await page.locator('.reading-dock').boundingBox())!.height;
@@ -271,7 +302,7 @@ test('ready parts and operations survive home/continue; new adventure requires c
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
   expect(await readOperation(page)).toEqual(second);
   await restart(page);
-  await page.getByRole('button', { name: 'Comenzar de nuevo' }).click();
+  await completeAdventureSetup(page);
   await toBuild(page);
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
 });
@@ -315,7 +346,10 @@ test('mobile touch and keyboard, construction and tablet layouts', async ({ brow
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
   const page = await context.newPage();
   await page.goto('http://127.0.0.1:4173/games/adventure.html');
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).tap();
+  await page.getByRole('textbox', { name: 'Tu nombre' }).fill('piloto');
+  await page.getByRole('button', { name: 'Siguiente', exact: true }).tap();
+  await page.getByRole('button', { name: 'Niño', exact: true }).tap();
+  await page.getByRole('button', { name: 'Empezar', exact: true }).tap();
   await capture(page, 'cinematic-boy-reading-mobile');
   await expectFullScene(page);
   await page.getByRole('button', { name: 'En la estación Luna.', exact: true }).focus();
@@ -349,7 +383,7 @@ test('blocked storage and missing artwork still allow home/start/continue', asyn
   await page.route('**/cockpit-*.webp', route => route.abort());
   await page.goto('/');
   await page.getByRole('button', { name: 'Empezar aventura' }).click();
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await completeAdventureSetup(page);
   await expect(page.getByText(/No se puede guardar el progreso/)).toBeVisible();
   await expect(page.getByText(/La ilustración no se ha podido cargar/)).toBeVisible();
   await toBuild(page);
@@ -364,6 +398,6 @@ test('incompatible chapter saves show an explicit fresh-start notice', async ({ 
   await page.goto('/');
   await page.getByRole('button', { name: 'Empezar aventura' }).click();
   await expect(page.getByText(/La partida guardada no es compatible/)).toBeVisible();
-  await page.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await completeAdventureSetup(page);
   await expectFullScene(page);
 });
