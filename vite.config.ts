@@ -14,6 +14,7 @@ export default defineConfig({
         practice: resolve(import.meta.dirname, 'practice.html'),
         adventure: resolve(import.meta.dirname, 'games/adventure.html'),
         robotLab: resolve(import.meta.dirname, 'games/robot-lab.html'),
+        shapeBox: resolve(import.meta.dirname, 'games/shape-box.html'),
       },
     },
   },

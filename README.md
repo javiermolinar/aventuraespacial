@@ -14,7 +14,8 @@ npm run dev
 Open the URL printed by Vite, normally `http://localhost:5173`.
 
 - `/index.html`: the adventure itself. Start or continue over the full-screen artwork; **Practicar mates** is a tile beside the first chapter.
-- `/practice.html`: the existing seven maths levels, robot collection, family information, and music credits.
+- `/practice.html`: the seven maths levels, robot collection, shape-packing game, family information, and music credits.
+- `/games/shape-box.html`: **¡Todo encaja!**, six square/rectangular shape-packing puzzles with drag-and-drop and quarter-turn rotation.
 - `/games/robot-lab.html?level=1`: the maths-only robot factory. Levels are numbered 1–7.
 - `/games/adventure.html`: retained direct entry to the same adventure. The normal home/start/play flow stays on `/index.html` without another landing page.
 
@@ -61,6 +62,18 @@ Mouse and touch dragging are supported. As an alternative, select the part (or n
 
 Music and effects share one optional sound toggle, available on the home screen and during play. Music starts after user interaction and pauses when the page is hidden or character setup is open. The home screen plays **Wallpaper**, reading uses **Dream Culture**, maths uses **Carefree**, robot introductions and the final ending use **Life of Riley**, and cable/pipe games use **Cipher**. Tracks switch with the activity, not with every dialogue page. Reduced-motion preferences suppress spatial animation. No timers, lives, ads, analytics, accounts, or backend.
 
+## Shape-packing game
+
+**¡Todo encaja!** is a standalone game linked from practice, not part of the adventure save. Fill each box with all its pieces, without gaps or overlaps. The six authored puzzles grow from a 3 × 3 box to a 6 × 5 rectangle; each has a verified tiling of connected pieces. Any valid complete tiling wins, not just the authored solution.
+
+Drag with mouse or touch; the board previews valid and invalid drops. Click or tap any piece, on the table or in the box, to select it—even when another piece is already selected. Drag a piece's body to move it. Grab its upper-right edge and sweep around its center to rotate in either direction: the piece follows the gesture continuously, then snaps to the nearest quarter-turn on release. A circular-arrow cue appears while the mouse hovers anywhere over the piece or its rotation edge, a finger holds the edge, or the edge has keyboard focus. Hovering does not select or rotate a piece; leaving it hides the cue. Selecting a piece does not show a permanent control. Clicking/tapping the edge without dragging does not rotate. Escape, pointer cancellation, lost capture, window blur, or resizing cancels the rotation. Keyboard/assistive activation of the edge still turns it clockwise by 90°. Placed pieces can be dragged directly again; dropping outside the box returns the piece to the table, keeping its rotation and selection. A preview message confirms the return before release. Drops inside the box that overlap or cross its edges, blocked rotations, and cancelled drags leave the previous placement intact. Alternatively, select a piece and activate an empty cell for its lettered block using taps or Tab/Enter/Space; arrow keys move between board cells. Activating an occupied cell selects its piece instead of attempting a placement. Delete/Backspace returns the selected piece to the table without a separate removal button. Escape cancels the current selection/drag. On tall phones, the box stays visible while scrolling through the pieces; rotation gestures work directly on each piece, without first selecting it.
+
+The play area expands across the available viewport, with board cells and tray pieces scaling together. Phones keep a stacked, scrollable layout. Reset is an icon beside the box selector at the top, not a text action under the board.
+
+The play screen keeps only a short gesture hint: no piece counter or routine selection/placement messages. Detailed keyboard/tap instructions and routine announcements remain available to screen readers; errors, drop-return cues, and completion feedback stay visible.
+
+There are no timers, penalties, reflections, or falling pieces. The **Empezar de nuevo** reset icon clears the current box and its gestures without changing the selected level, the selector opens any puzzle, and completion offers the next box (or replay after the last). Reloading, leaving, or changing puzzles resets the current puzzle; shape-game progress is not saved. Optional effects share the existing sound preference.
+
 ## Static build
 
 ```sh
@@ -68,7 +81,7 @@ npm run build
 npm run preview
 ```
 
-Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All four HTML pages are built explicitly. No SPA rewrite is required; Vite's `base: './'` and relative navigation/assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
+Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All five HTML pages are built explicitly. No SPA rewrite is required; Vite's `base: './'` and relative navigation/assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
 
 ### GitHub Pages
 
@@ -77,7 +90,7 @@ Deploy the entire `dist/` directory to any static host, including Cloudflare Pag
 - Pages source: **GitHub Actions** in **Settings → Pages**.
 - `.github/workflows/pages.yml` runs on pushes and pull requests to `main`, and can be started manually.
 - The workflow uses Node.js 22, installs with `npm ci`, validates chapters/artwork, runs unit/component tests, builds the site, and runs Chromium tests for the development-only preview and production build. CI retries browser tests twice and retains failure diagnostics for seven days.
-- `tests/e2e/pages.spec.ts` also serves the built site under `/aventuraespacial/` to check all four entry pages, navigation, illustrations and music without a root-path fallback.
+- `tests/e2e/pages.spec.ts` also serves the built site under `/aventuraespacial/` to check all five entry pages, navigation, illustrations and music without a root-path fallback.
 - Only a successful `main` build is uploaded and deployed to the `github-pages` environment. Pull requests run checks without deployment permissions. Actions are pinned to commit SHAs.
 - The generated `dist/` directory is uploaded as a Pages artifact; no `gh-pages` branch, custom server, personal access token or repository secret is needed.
 

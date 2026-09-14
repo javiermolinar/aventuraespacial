@@ -66,6 +66,11 @@ test.describe('GitHub Pages project deployment', () => {
     await expect(page.getByRole('heading', { name: 'Construye a Brote' })).toBeVisible();
     await page.getByRole('link', { name: 'Salir', exact: true }).click();
     await expect(page).toHaveURL(origin + prefix + 'practice.html');
+    await page.getByRole('region', { name: '¡Todo encaja!' }).getByRole('link', { name: 'Jugar' }).click();
+    await expect(page).toHaveURL(origin + prefix + 'games/shape-box.html');
+    await expect(page.getByRole('heading', { name: '¡Todo encaja!' })).toBeVisible();
+    await page.getByRole('link', { name: 'Salir', exact: true }).click();
+    await expect(page).toHaveURL(origin + prefix + 'practice.html');
     await page.getByRole('link', { name: 'Volver al inicio', exact: true }).click();
     await expect(page).toHaveURL(origin + prefix + 'index.html');
     expect(errors).toEqual([]);
