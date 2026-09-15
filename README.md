@@ -14,7 +14,8 @@ npm run dev
 Open the URL printed by Vite, normally `http://localhost:5173`.
 
 - `/index.html`: the adventure itself. Start or continue over the full-screen artwork; **Practicar mates** is a tile beside the first chapter.
-- `/practice.html`: the seven maths levels, robot collection, shape-packing game, family information, and music credits.
+- `/practice.html`: the seven maths levels, robot collection, shape-packing and clock games, family information, and music credits.
+- `/games/time-chef.html`: **El chef del tiempo**, three recipes per menu to practise analog clocks and 24-hour alarms.
 - `/games/shape-box.html`: **¡Todo encaja!**, six square/rectangular shape-packing puzzles with drag-and-drop and quarter-turn rotation.
 - `/games/robot-lab.html?level=1`: the maths-only robot factory. Levels are numbered 1–7.
 - `/games/adventure.html`: retained direct entry to the same adventure. The normal home/start/play flow stays on `/index.html` without another landing page.
@@ -74,6 +75,16 @@ The play screen keeps only a short gesture hint: no piece counter or routine sel
 
 There are no timers, penalties, reflections, or falling pieces. The **Empezar de nuevo** reset icon clears the current box and its gestures without changing the selected level, the selector opens any puzzle, and completion offers the next box (or replay after the last). Reloading, leaving, or changing puzzles resets the current puzzle; shape-game progress is not saved. Optional effects share the existing sound preference.
 
+## Time Chef
+
+**El chef del tiempo** is a standalone practice game with a robot chef. Three recipes ask the child to read a digital time, read analog hands with afternoon context, and follow a written time. Move the analog hands or set a digital alarm to take each dish off the heat. Whole hours, half hours, and quarter-past times have separate three-recipe menus. Any menu can be selected; completing one offers the next.
+
+The play screen uses dish icons, one short prompt, and clock controls instead of explanatory paragraphs. Nothing cooks in real time. Confirming an early answer shows a raw dish; a late answer burns it with cartoon smoke. Short reactions offer a fresh dish; retry opens a visual analog = digital hint, also available from the lightbulb. Correct answers celebrate and advance only when the child chooses. All recipe times are on the same calendar day; these are time-of-day exercises, not duration arithmetic. No lives, countdown, or saved progress; sound uses the existing preference.
+
+Choose **Horas** or **Minutos** and tap a clock number, drag a hand, or use keyboard arrows. The minute hand carries the hour hand across hours, noon, and midnight when dragging. The digital alarm uses accessible increment/decrement buttons. Analog answers show two selectable digital times twelve hours apart rather than abstract AM/PM labels. **Juega con las 24 h** opens a linked pair of interactive clocks, a day slider, and a **+12 h** button: change either clock to see the other follow. Escape, pointer cancellation, or lost capture restores the pre-drag time. Phones stack the recipe and controls; result artwork also appears beside the feedback so it stays visible without scrolling back to the oven.
+
+The theme-independent [`src/components/clocks/`](src/components/clocks/README.md) components own only clock display/input and time helpers. Recipes, scoring, hints, day-period choices, and kitchen artwork live in `src/games/time-chef/`. Other games can reuse either clock in display-only or interactive mode and theme it with CSS variables.
+
 ## Static build
 
 ```sh
@@ -81,7 +92,7 @@ npm run build
 npm run preview
 ```
 
-Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All five HTML pages are built explicitly. No SPA rewrite is required; Vite's `base: './'` and relative navigation/assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
+Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All six HTML pages are built explicitly. No SPA rewrite is required; Vite's `base: './'` and relative navigation/assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
 
 ### GitHub Pages
 

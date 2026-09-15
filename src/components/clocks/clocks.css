@@ -1,0 +1,17 @@
+.analog-clock { display: block; width: 100%; height: auto; aspect-ratio: 1; user-select: none; }
+.analog-clock.is-interactive { touch-action: none; }
+.analog-clock.is-interactive .clock-hand:not([aria-disabled="true"]) { cursor: grab; touch-action: none; }
+.analog-clock.is-interactive .clock-hand:active { cursor: grabbing; }
+.clock-hand:focus-visible { outline: none; }
+.clock-hand:focus-visible .clock-hand-hit { stroke: var(--clock-focus, #d9c8ec); }
+.clock-number-button { cursor: pointer; }
+.clock-number-button:focus-visible { outline: none; }
+.clock-number-button:hover > circle, .clock-number-button:focus-visible > circle { fill: var(--clock-focus, #d9c8ec); }
+.digital-clock { display: inline-flex; align-items: flex-start; gap: .6em; padding: .25em .5em; border-radius: 18px; color: var(--clock-digital-ink, #244c4a); background: var(--clock-digital-face, #e4eee5); font-size: clamp(36px, 6vw, 60px); font-weight: 900; font-variant-numeric: tabular-nums; }
+.digital-clock-column { display: flex; flex-direction: column; align-items: center; position: relative; min-width: 1.4em; }
+.digital-clock-digits { line-height: 1.4; }
+.digital-clock-column:first-child .digital-clock-digits::after { content: ':'; position: absolute; left: calc(100% + .17em); }
+.digital-clock button { border: 1px solid #bdd0c1; background: #ffffffb3; border-radius: 10px; width: 100%; min-width: 48px; min-height: 44px; display: grid; place-items: center; }
+.digital-clock button:hover:not(:disabled) { background: white; }
+.digital-clock button:disabled { opacity: .45; }
+.digital-clock-label { font-size: 13px; margin-top: 7px; font-weight: 750; }

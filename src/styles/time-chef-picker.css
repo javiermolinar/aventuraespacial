@@ -1,0 +1,7 @@
+.time-chef-picker { display: grid; grid-template-columns: 100px 1fr auto; gap: 24px; align-items: center; margin-top: 24px; padding: 26px; border: 1.5px solid #e6cfa9; border-radius: 24px; background: #fff3dc; }
+.time-chef-picker-art { font-size: 51px; text-align: center; }
+.time-chef-picker-art span { display: block; background: #dbe9d9; color: #41654e; border: 3px solid #9ab397; border-radius: 9px; font-size: 23px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.time-chef-category { font-size: 10px; letter-spacing: 1.4px; color: #936e3d; font-weight: 850; }
+.time-chef-picker h2 { font-size: 28px; font-weight: 900; margin: 5px 0; }
+.time-chef-picker p { font-size: 15px; color: #796b58; line-height: 1.5; }
+@media (max-width: 700px) { .time-chef-picker { grid-template-columns: 65px minmax(0, 1fr); gap: 16px; padding: 18px; } .time-chef-picker h2 { font-size: 23px; } .time-chef-picker-art { font-size: 39px; } .time-chef-picker-art span { font-size: 18px; } .time-chef-picker > a { grid-column: 1 / -1; } }

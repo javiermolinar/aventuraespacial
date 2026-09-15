@@ -5,6 +5,7 @@ import { RobotPortrait } from './games/robot-lab/RobotArtwork';
 import { soundtracks } from './music';
 import './styles/landing.css';
 import './styles/shape-game-picker.css';
+import './styles/time-chef-picker.css';
 
 /** Standalone games preserve the existing practice collection and level URLs. */
 export default function Practice() {
@@ -30,7 +31,13 @@ export default function Practice() {
         <div><span className="shape-game-category">FORMAS Y ESPACIO</span><h2 id="shape-game-title">¡Todo encaja!</h2><p>Arrastra, gira y encaja todas las piezas en la caja. Seis retos, sin cronómetro.</p></div>
         <a className="primary" href="./games/shape-box.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
       </section>
+      <section className="time-chef-picker" aria-labelledby="time-chef-title">
+        <div className="time-chef-picker-art" aria-hidden="true">👨‍🍳<span>08:00</span></div>
+        <div><span className="time-chef-category">EL RELOJ Y LAS 24 HORAS</span><h2 id="time-chef-title">El chef del tiempo</h2><p>Mueve las agujas y pon la alarma. ¡Tres recetas para servir en su punto!</p></div>
+        <a className="primary" href="./games/time-chef.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
+      </section>
       <details className="parent-info"><summary>Para familias</summary><p>Empezamos con sumas y restas sencillas. Las sumas con llevadas se practican por separado en el nivel 4. Las restas con llevadas, más difíciles, tienen su propio nivel 6 y no aparecen en la práctica mixta. Cada operación resuelta da una pieza para construir un robot. No hay cronómetro, vidas ni penalizaciones.</p><p>Los robots terminados se guardan en este navegador, no entre dispositivos. Salir o recargar reinicia el puzzle en curso. El sonido es opcional. También se puede jugar con el teclado: números para responder y tabulador para moverse entre botones. Para colocar una pieza sin arrastrar, selecciónala y después selecciona su silueta.</p></details>
+      <details className="parent-info"><summary>Aprender la hora con el chef</summary><p>Practicamos horas en punto, medias horas y cuartos, con agujas y formato de 24 horas. Si sacas el plato antes, queda crudo; si lo sacas después, se quema. Puedes repetir sin perder vidas. La cocina solo avanza al confirmar: no hay cuenta atrás. Cada menú ocurre en un mismo día; enseñamos la hora de sacar el plato, no la duración de una receta.</p><p>Las agujas se arrastran con ratón o dedo, o se mueven con las flechas del teclado al enfocarlas con Tab. La aguja corta avanza una hora; la larga, cinco minutos. El menú no se guarda al salir. El apartado de ayuda permite recorrer las 24 horas del día.</p></details>
       <details className="parent-info music-credits"><summary>Créditos de música</summary><p>Música de Kevin MacLeod (incompetech.com), con licencia <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Atribución 4.0</a>:</p><ul>{Object.values(soundtracks).map(track => <li key={track.isrc}><a href={`https://incompetech.com/music/royalty-free/index.html?isrc=${track.isrc}`}>{track.title}</a></li>)}</ul><p>Audio convertido a MP3 de 96 kbps. <a href="./music/ATTRIBUTION.txt">Créditos completos</a>.</p></details>
     </main>
   </div>;

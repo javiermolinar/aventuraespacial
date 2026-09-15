@@ -15,6 +15,7 @@ export default defineConfig({
         adventure: resolve(import.meta.dirname, 'games/adventure.html'),
         robotLab: resolve(import.meta.dirname, 'games/robot-lab.html'),
         shapeBox: resolve(import.meta.dirname, 'games/shape-box.html'),
+        timeChef: resolve(import.meta.dirname, 'games/time-chef.html'),
       },
     },
   },
