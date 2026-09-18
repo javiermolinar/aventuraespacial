@@ -1,4 +1,14 @@
-/* Narrative framing belongs to the host, not the reusable connection puzzle. */
+/* Narrative framing belongs to the host, not the reusable games. */
+.adventure-experience.is-packing { display: flex; flex-direction: column; min-height: 100dvh; }
+.adventure-experience.is-packing .cinematic-backdrop::after { background: #071122d9; }
+.adventure-experience .packing-stage { display: flex; flex: 1; }
+.adventure-experience .adventure-packing { padding: 12px clamp(16px, 2.4vw, 46px) 24px; }
+.adventure-packing .packing-passage { max-width: 85ch; font-size: 18px; line-height: 1.5; margin-top: 12px; }
+.adventure-packing .packing-passage p + p { margin-top: 6px; }
+.adventure-packing .packing-workspace { color: #34364b; }
+.adventure-experience .adventure-packing .packing-workspace button:focus-visible { outline-color: #7351c8; }
+.adventure-packing .packing-skip { align-self: flex-start; margin-top: 16px; }
+@media (max-width: 700px) { .adventure-packing .packing-passage { font-size: 17px; } }
 .adventure-experience.is-piping { display: flex; flex-direction: column; min-height: 100dvh; }
 .adventure-experience.is-piping .adventure-chrome { flex-shrink: 0; }
 .adventure-experience.is-piping .cinematic-backdrop::after { background: #071122c9; }

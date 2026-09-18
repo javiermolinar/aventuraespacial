@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Calculator } from 'lucide-react';
 import type { CampaignProgress } from '../adventure/campaign';
 import type { ChapterEntry } from '../adventure/chapters/catalog';
 import { ChapterMenu } from './ChapterMenu';
@@ -21,6 +21,10 @@ export function AdventureHome({ catalog, campaign, hasProgress, finishedRun, res
     <h1 ref={heading} tabIndex={-1}>Una aventura espacial</h1>
     {reset && !hasProgress && <p className="inline-notice">La partida guardada no es compatible o está dañada. Puedes empezar de nuevo.</p>}
     <div className="home-actions"><button className="primary" onClick={onContinue}>{finishedRun ? 'Repetir capítulo' : hasProgress ? 'Continuar aventura' : 'Empezar aventura'}<ArrowRight size={21} /></button>{hasProgress && !finishedRun && <button className="text-button" onClick={onRestart}>Reiniciar capítulo</button>}</div>
-    <ChapterMenu catalog={catalog} campaign={campaign} onSelect={onSelect} practiceHref={practiceHref} />
+    <section className="home-practice" aria-labelledby="home-practice-title">
+      <h2 id="home-practice-title"><Calculator size={24} aria-hidden="true" />Práctica libre</h2>
+      <a href={practiceHref}>Practicar mates<ArrowRight size={20} aria-hidden="true" /></a>
+    </section>
+    <ChapterMenu catalog={catalog} campaign={campaign} onSelect={onSelect} />
   </section>;
 }

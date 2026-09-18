@@ -1,4 +1,4 @@
-import { validateChapter, type Chapter, type ComprehensionScene, type Illustration, type PipeScene, type ResponsiveArtwork, type Scene } from './types';
+import { validateChapter, type Chapter, type ComprehensionScene, type Illustration, type PipeScene, type PackingScene, type ResponsiveArtwork, type Scene } from './types';
 
 export type DialogueQuestion = {
   id: string;
@@ -37,7 +37,7 @@ export type ChapterScript = {
   maths: { id: string; title: string; instruction: string };
   robotIntroduction: DialoguePhase & { artwork?: ResponsiveArtwork };
   middle?: DialoguePhase;
-  game: { id: string } & Omit<PipeScene, 'next' | 'paragraphs' | 'robotIntroduction'> & { text: string[] };
+  game: { id: string; text: string[] } & (Omit<PipeScene, 'next' | 'paragraphs' | 'robotIntroduction'> | Omit<PackingScene, 'next' | 'paragraphs' | 'robotIntroduction'>);
   ending: DialoguePhase & { prompt: string };
 };
 

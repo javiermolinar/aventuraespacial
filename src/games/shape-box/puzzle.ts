@@ -42,6 +42,13 @@ export const puzzles: Puzzle[] = [
   puzzle('Una caja de colores', ['AAABB', 'ACBBB', 'ACDDD', 'CCDEE']),
   puzzle('El gran cuadrado', ['AAABB', 'ACBBB', 'ACDDD', 'CCEDF', 'EEEFF']),
   puzzle('La última mudanza', ['AAABBC', 'ADBBCC', 'ADDEEC', 'FDGEHH', 'FFGGHH']),
+  // Append new boxes: adventure chapters and saved progress reference existing indices.
+  puzzle('Zigzag de colores', ['AABB', 'CAAB', 'CCDB', 'CDDD']),
+  puzzle('Puentes y esquinas', ['AAADD', 'ACADD', 'CCBDB', 'CCBBB']),
+  puzzle('Una cruz en la caja', ['BBDDD', 'BBDAD', 'BCAAA', 'CCEAE', 'CCEEE']),
+  puzzle('Escaleras de colores', ['EEEDDD', 'EABBDD', 'EAABBF', 'CCAABF', 'CCCFFF']),
+  puzzle('Letras escondidas', ['ABBBCC', 'AABBCC', 'EAAFCD', 'EEEFDD', 'EFFFDD']),
+  puzzle('La gran mezcla', ['CCCDDD', 'CACBBD', 'AAAEBD', 'FFAEBB', 'FFFEEE']),
 ];
 
 export function initialState(puzzle: Puzzle): PiecesState {
@@ -59,6 +66,24 @@ export function canPlace(puzzle: Puzzle, state: PiecesState, id: string, placeme
   const occupied = new Set(puzzle.pieces.filter(piece => piece.id !== id).flatMap(piece => occupiedCells(piece, state[piece.id])).map(({ x, y }) => `${x},${y}`));
   return occupiedCells(piece, { turns: placement.turns, position: placement }).every(({ x, y }) =>
     x >= 0 && y >= 0 && x < puzzle.width && y < puzzle.height && !occupied.has(`${x},${y}`));
+}
+
+/** Validate saved or host-supplied state before passing it to the interactive board. */
+export function validPiecesState(puzzle: Puzzle, value: unknown): value is PiecesState {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const state = value as PiecesState;
+  if (Object.keys(state).length !== puzzle.pieces.length) return false;
+  for (const piece of puzzle.pieces) {
+    if (!Object.hasOwn(state, piece.id)) return false;
+    const entry = state[piece.id];
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry) || !Number.isInteger(entry.turns) || entry.turns < 0 || entry.turns > 3) return false;
+    if (entry.position !== null && (!entry.position || typeof entry.position !== 'object' || Array.isArray(entry.position) ||
+      !Number.isInteger(entry.position.x) || !Number.isInteger(entry.position.y))) return false;
+  }
+  return puzzle.pieces.every(piece => {
+    const entry = state[piece.id];
+    return !entry.position || canPlace(puzzle, state, piece.id, { ...entry.position, turns: entry.turns });
+  });
 }
 
 export function isSolved(puzzle: Puzzle, state: PiecesState): boolean {

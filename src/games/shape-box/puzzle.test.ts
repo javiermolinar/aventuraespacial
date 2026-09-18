@@ -11,6 +11,24 @@ describe('shape packing geometry', () => {
     expect(sorted(rotate(shape, -1))).toEqual(sorted(rotate(shape, 3)));
   });
 
+  it('adds zigzags, bridges, crosses, stairs and interlocking five-cell pieces', () => {
+    const signature = (cells: Cell[]) => Array.from({ length: 4 }, (_, turns) => sorted(rotate(cells, turns)).join(';')).sort()[0];
+    const examples = [
+      ['Zigzag de colores', ['XX.', '.XX']],
+      ['Puentes y esquinas', ['X.X', 'XXX']],
+      ['Una cruz en la caja', ['.X.', 'XXX', '.X.']],
+      ['Escaleras de colores', ['X..', 'XX.', '.XX']],
+      ['Letras escondidas', ['XXX', '.X.', '.X.']],
+      ['La gran mezcla', ['.XX', 'XX.', '.X.']],
+      ['La gran mezcla', ['XX.', '.X.', '.XX']],
+    ] as const;
+    for (const [name, rows] of examples) {
+      const cells = rows.flatMap((row, y) => [...row].flatMap((value, x) => value === 'X' ? [{ x, y }] : []));
+      const puzzle = puzzles.find(puzzle => puzzle.name === name)!;
+      expect(puzzle.pieces.map(piece => signature(piece.cells))).toContain(signature(cells));
+    }
+  });
+
   for (const puzzle of puzzles) {
     it(`${puzzle.name}: connected pieces tile the entire board using rotations only`, () => {
       const state = initialState(puzzle);

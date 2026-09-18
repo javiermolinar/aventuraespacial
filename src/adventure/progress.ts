@@ -1,3 +1,4 @@
+import { initialState, isSolved, puzzles, validPiecesState, type PiecesState } from '../games/shape-box/puzzle';
 import { levels } from '../game';
 import { generateRound } from '../games/robot-lab/operations';
 import { resultOf, type Operation } from '../lib/maths';
@@ -13,6 +14,7 @@ export type AdventureProgress = {
   history: string[]; mathsLevel: number; character: Character; playerName: string;
   operations: Operation[]; placedCount: number; ready: boolean;
   pipeRotations?: Record<string, number[]>;
+  packingStates?: Record<string, PiecesState>;
 };
 
 export function newAdventure(chapter: Chapter, mathsLevel: number, character: Character = 'boy', playerName = ''): AdventureProgress {
@@ -45,6 +47,14 @@ export function validateProgress(value: unknown, chapter: Chapter): value is Adv
       if (!Object.hasOwn(chapter.scenes, id)) return false;
       const scene = chapter.scenes[id];
       if (scene.type !== 'pipes' || !validRotations(rotations, scene.layout.tiles.length) || (id !== p.sceneId && !p.history.includes(id))) return false;
+    }
+  }
+  if (p.packingStates !== undefined) {
+    if (!p.packingStates || typeof p.packingStates !== 'object' || Array.isArray(p.packingStates)) return false;
+    for (const [id, state] of Object.entries(p.packingStates)) {
+      if (!Object.hasOwn(chapter.scenes, id)) return false;
+      const scene = chapter.scenes[id];
+      if (scene.type !== 'packing' || !validPiecesState(puzzles[scene.puzzleIndex], state) || (id !== p.sceneId && !p.history.includes(id))) return false;
     }
   }
   let expected = [chapter.start];
@@ -83,6 +93,18 @@ export function restoreAdventure(parsed: unknown, chapter: Chapter): AdventurePr
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       const { beat: _legacyBeat, ...value } = { character: 'boy', playerName: '', beat: undefined, ...parsed };
       if (validateProgress(value, chapter)) return value;
+      if (chapter.id === 'brote' && chapter.version === 2) {
+        const game = chapter.scenes['supply-boxes'];
+        if (game?.type === 'packing') {
+          const previous = { ...chapter, version: 1, scenes: { ...chapter.scenes, 'supply-boxes': { ...game, puzzleIndex: 0 } } };
+          if (validateProgress(value, previous)) {
+            // Keep story/build progress; the old board's placements cannot fit the new puzzle.
+            const { packingStates: _oldBoxes, ...progress } = value;
+            const migrated = { ...progress, chapterVersion: chapter.version };
+            if (validateProgress(migrated, chapter)) return migrated;
+          }
+        }
+      }
       if (chapter.id === 'chispa-radio' && chapter.version === 6) {
         if (validateProgress(value, chispaV5Chapter())) {
           const migrated = migrateChispaV5(value);
@@ -128,6 +150,15 @@ export function rotatePipe(progress: AdventureProgress, chapter: Chapter, index:
   if (pipeFlow(scene.layout, rotations).solved || turns % 4 === 0) return progress;
   const next = rotations.map((rotation, tile) => tile === index ? ((rotation + turns) % 4 + 4) % 4 : rotation);
   return { ...progress, pipeRotations: { ...progress.pipeRotations, [progress.sceneId]: next } };
+}
+
+export function updatePacking(progress: AdventureProgress, chapter: Chapter, state: PiecesState): AdventureProgress {
+  const scene = chapter.scenes[progress.sceneId];
+  if (scene.type !== 'packing') return progress;
+  const puzzle = puzzles[scene.puzzleIndex];
+  const previous = progress.packingStates?.[progress.sceneId] ?? initialState(puzzle);
+  if (isSolved(puzzle, previous) || !validPiecesState(puzzle, state)) return progress;
+  return { ...progress, packingStates: { ...progress.packingStates, [progress.sceneId]: structuredClone(state) } };
 }
 
 export function earnPart(progress: AdventureProgress, chapter: Chapter): AdventureProgress {

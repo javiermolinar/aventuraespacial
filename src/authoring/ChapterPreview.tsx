@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { levels } from '../game';
 import { chapterCatalog } from '../adventure/chapters/catalog';
-import { earnPart, moveTo, placePart, rotatePipe, type AdventureProgress } from '../adventure/progress';
+import { earnPart, moveTo, placePart, rotatePipe, updatePacking, type AdventureProgress } from '../adventure/progress';
 import { playerNameMaxLength } from '../adventure/personalization';
 import type { Chapter, Character } from '../adventure/types';
 import NarrativeView from '../adventure/NarrativeView';
@@ -36,19 +36,21 @@ function PreviewRun({ chapter, initialProgress, onRestart }: { chapter: Chapter;
     : scene.robotIntroduction ? { title: scene.title, paragraphs: scene.paragraphs, artwork: scene.robotIntroduction.artwork } : undefined;
   const building = scene.type === 'build' && !introduction && !completed;
   const piping = scene.type === 'pipes' && !completed;
-  return <div className={`adventure-experience chapter-preview-screen ${completed ? 'is-reading' : introduction ? 'is-introducing' : building ? 'is-building' : piping ? 'is-piping' : 'is-reading'}`}>
+  const packing = scene.type === 'packing' && !completed;
+  return <div className={`adventure-experience chapter-preview-screen ${completed ? 'is-reading' : introduction ? 'is-introducing' : building ? 'is-building' : piping ? 'is-piping' : packing ? 'is-packing' : 'is-reading'}`}>
     {!introduction && <SceneArt chapter={chapter} character={progress.character} image={scene.type === 'build' ? 'workshop' : scene.image} assetPrefix="./" />}
     <BackgroundMusic enabled={sound} src={`./music/${adventureMusic(scene, Boolean(introduction))}`} />
     <header className="adventure-chrome">
       <span className="preview-position">Escena actual: <code>{progress.sceneId}</code></span>
       <button className="chrome-button" aria-pressed={sound} onClick={() => setSound(previous => !previous)}>{sound ? 'Desactivar sonido' : 'Activar sonido'}</button>
     </header>
-    <main className={building ? 'construction-stage' : piping ? 'pipe-stage' : 'cinematic-stage'}>
+    <main className={building ? 'construction-stage' : piping ? 'pipe-stage' : packing ? 'packing-stage' : 'cinematic-stage'}>
       {completed ? <section className="dialogue-dock"><h1>Capítulo terminado (sin guardar)</h1><button className="primary" onClick={onRestart}>Reiniciar escena</button></section> : <NarrativeView
         chapter={chapter} scene={scene} progress={progress} introduction={introduction} sound={sound} assetPrefix="./"
         reviewId={null} reviewScene={null} onReviewNext={() => {}}
         onNext={id => setProgress(previous => moveTo(previous, chapter, id))} onComplete={() => setCompleted(true)}
         onEarn={() => setProgress(previous => earnPart(previous, chapter))} onPlace={() => setProgress(previous => placePart(previous, chapter))}
+        onPackingChange={state => setProgress(previous => updatePacking(previous, chapter, state))}
         onRotate={(index, turns) => setProgress(previous => rotatePipe(previous, chapter, index, turns))} />}
     </main>
   </div>;

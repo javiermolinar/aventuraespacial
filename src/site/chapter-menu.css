@@ -20,7 +20,6 @@
   .chapter-locked-label { font-size: 14px; }
   .chapter-card.is-upcoming { border-style: dashed; }
   &.is-home .cinematic-stage { padding-top: 12svh; }
-  .practice-card .chapter-robot > svg { width: 60px; height: 60px; color: #f4d39a; }
   @media (max-width: 900px) { .chapter-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 600px) {
     .chapter-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }

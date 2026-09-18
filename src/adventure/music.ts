@@ -5,6 +5,6 @@ import type { Scene } from './types';
 export function adventureMusic(scene: Scene | null, introducingRobot = false): string {
   if (introducingRobot || (scene && scene.type !== 'build' && scene.robotIntroduction) || scene?.type === 'ending') return soundtracks.robot.file;
   if (scene?.type === 'build') return soundtracks.maths.file;
-  if (scene?.type === 'pipes') return soundtracks.game.file;
+  if (scene?.type === 'pipes' || scene?.type === 'packing') return soundtracks.game.file;
   return soundtracks.story.file;
 }

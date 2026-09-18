@@ -13,19 +13,21 @@ npm run dev
 
 Open the URL printed by Vite, normally `http://localhost:5173`.
 
-- `/index.html`: the adventure itself. Start or continue over the full-screen artwork; **Practicar mates** is a tile beside the first chapter.
+- `/index.html`: the adventure itself. Start or continue over the full-screen artwork; **Practicar mates** has its own **Práctica libre** section above the chapter selector.
 - `/practice.html`: the seven maths levels, robot collection, shape-packing and clock games, family information, and music credits.
 - `/games/time-chef.html`: **El chef del tiempo**, three recipes per menu to practise analog clocks and 24-hour alarms.
-- `/games/shape-box.html`: **¡Todo encaja!**, six square/rectangular shape-packing puzzles with drag-and-drop and quarter-turn rotation.
+- `/games/shape-box.html`: **¡Todo encaja!**, twelve square/rectangular shape-packing puzzles with drag-and-drop and quarter-turn rotation.
 - `/games/robot-lab.html?level=1`: the maths-only robot factory. Levels are numbered 1–7.
 - `/games/adventure.html`: retained direct entry to the same adventure. The normal home/start/play flow stays on `/index.html` without another landing page.
 
 The first chapter is **Una voz entre las estrellas**: build Chispa and repair the radio to talk to your parents.
 
+Chapter 2, **Un bocado entre las estrellas**, continues the journey to estación Luna. The hungry pilot finds food on a high shelf, builds Brote through six uninterrupted maths operations, and helps him pack the lowered boxes into the floor compartment using the existing **¡Todo encaja!** game. A snack, a sequencing question and the explicit ending finish the chapter. Box placements and rotations survive Home/reload; rereading skips the game without unmounting it. **Saltar** lets Brote finish arranging the boxes. Completing the chapter reveals Rayo as **Próximamente**. The chapter reuses the cockpit artwork and Brote's existing SVG robot illustration.
+
 ## Chapter authoring
 
 - `npm run chapter:check` — type-check and validate registered chapters, drafts, catalogue consistency and local artwork files. Runs in CI.
-- `npm run chapter:new -- brote` — create a typed, unpublished draft for an existing catalogue entry; never overwrite or register it automatically.
+- `npm run chapter:new -- rayo` — create a typed, unpublished draft for an existing catalogue entry; never overwrite or register it automatically.
 - `npm run dev`, then open `/?chapter-preview=chispa-radio&scene=radio-cables` — jump to a scene with isolated test progress. The preview never touches real saves or preferences and is excluded from production.
 
 See the [authoring guide](src/adventure/README.md#authoring-tools) for preview controls and the explicit publishing workflow. Validation does not replace content review or save-migration decisions.
@@ -36,7 +38,7 @@ The chapter combines short Spanish passages with one uninterrupted robot-buildin
 
 **Empezar aventura** opens a two-step popup over the home screen: enter a name or nickname → **Siguiente** → choose **Niño** or **Niña** → **Empezar**. There are no tabs, difficulty selectors or extra questions. A name and character are required for a new adventure; existing unnamed saves still continue normally, using “piloto” in dialogue. Names are limited to 24 characters and never sent to a server. New campaigns use small additions/subtractions; existing chapter/profile difficulty is preserved without asking again. **Continuar aventura** resumes directly. **Reiniciar capítulo** opens the same popup with saved details and an explicit replacement warning. Only the final **Empezar** saves the profile and replaces that chapter's run. Going back preserves the draft; cancelling or pressing Escape discards it without changing the campaign or selected chapter. Returning home also preserves in-memory progress when storage is blocked.
 
-The home screen includes seven chapter cards, one per robot, with Chispa first, plus a **Practicar mates** tile alongside Chispa. Practice is always available and does not count toward chapter completion. Only Chispa has playable content. Locked cards show a chapter number and padlock, without titles or robot identities. **Terminar capítulo** on the final reading screen records completion and reveals Brote as **Próximamente**, still disabled until its chapter is written. General home navigation never records completion. Completed chapters can be replayed without losing unlocks, and each started chapter has an independent resumable save. The catalogue can grow as the planned syllabus is authored; there are no fake playable chapters.
+The home screen includes seven chapter cards, one per robot, with Chispa first. A separate **Práctica libre** section above the chapter selector links to **Practicar mates**. Practice is always available and does not count toward chapter completion. Chispa and Brote have playable content. Locked cards show a chapter number and padlock, without titles or robot identities. **Terminar capítulo** on the final reading screen records completion and unlocks Brote after Chispa; completing Brote reveals the unwritten Rayo chapter as **Próximamente**. General home navigation never records completion. Completed chapters can be replayed without losing unlocks, and each started chapter has an independent resumable save. The catalogue can grow as the planned syllabus is authored; there are no fake playable chapters.
 
 The user-supplied Gemini cockpit artwork fills the viewport. `<picture>` selects separate portrait/landscape compositions for the chosen character. Local WebP derivatives (roughly 116–190 KB each) load instead of the preserved JPEG originals. The cockpit is currently the establishing backdrop throughout the chapter; dedicated workshop and repaired-radio artwork has not been supplied yet. The original SVG scene prototypes are no longer displayed in the adventure.
 
@@ -65,7 +67,7 @@ Music and effects share one optional sound toggle, available on the home screen 
 
 ## Shape-packing game
 
-**¡Todo encaja!** is a standalone game linked from practice, not part of the adventure save. Fill each box with all its pieces, without gaps or overlaps. The six authored puzzles grow from a 3 × 3 box to a 6 × 5 rectangle; each has a verified tiling of connected pieces. Any valid complete tiling wins, not just the authored solution.
+**¡Todo encaja!** is a standalone game linked from practice, not part of the adventure save. Fill each box with all its pieces, without gaps or overlaps. The twelve authored puzzles range from a 3 × 3 box to a 6 × 5 rectangle, including zigzags, U-shaped bridges, crosses, stairs and interlocking five-cell pieces. Each has a verified tiling of connected pieces. The original six retain their indices for adventure compatibility. Any valid complete tiling wins, not just the authored solution.
 
 Drag with mouse or touch; the board previews valid and invalid drops. Click or tap any piece, on the table or in the box, to select it—even when another piece is already selected. Drag a piece's body to move it. Grab its upper-right edge and sweep around its center to rotate in either direction: the piece follows the gesture continuously, then snaps to the nearest quarter-turn on release. A circular-arrow cue appears while the mouse hovers anywhere over the piece or its rotation edge, a finger holds the edge, or the edge has keyboard focus. Hovering does not select or rotate a piece; leaving it hides the cue. Selecting a piece does not show a permanent control. Clicking/tapping the edge without dragging does not rotate. Escape, pointer cancellation, lost capture, window blur, or resizing cancels the rotation. Keyboard/assistive activation of the edge still turns it clockwise by 90°. Placed pieces can be dragged directly again; dropping outside the box returns the piece to the table, keeping its rotation and selection. A preview message confirms the return before release. Drops inside the box that overlap or cross its edges, blocked rotations, and cancelled drags leave the previous placement intact. Alternatively, select a piece and activate an empty cell for its lettered block using taps or Tab/Enter/Space; arrow keys move between board cells. Activating an occupied cell selects its piece instead of attempting a placement. Delete/Backspace returns the selected piece to the table without a separate removal button. Escape cancels the current selection/drag. On tall phones, the box stays visible while scrolling through the pieces; rotation gestures work directly on each piece, without first selecting it.
 
@@ -153,6 +155,7 @@ src/games/connections/pipes.ts       Layout, connectivity and hints
 src/games/connections/pipes.css      Self-scoped board styles
 src/adventure/types.ts              Scene types and graph validation
 src/adventure/chapters/chispa.ts     First chapter content
+src/adventure/chapters/brote.ts      Second chapter: food, construction and boxes
 src/adventure/progress.ts           Validated, separate adventure saves
 src/adventure/SceneArt.tsx           Responsive cinematic backdrop
 src/adventure/RobotIntroduction.tsx Post-build profession, passage and responsive portrait
@@ -186,7 +189,7 @@ To add a story activity, put its component, pure rules and self-scoped CSS under
 
 **Practice:** the unchanged `little-robot-lab:v1` localStorage key stores completion counts per robot and the shared sound preference. Completed robot silhouettes remain revealed across visits on the same browser and origin. Unfinished practice puzzles restart on exit or reload. Storage failures never prevent play, but progress cannot then be retained. Clearing browser data also clears the collection.
 
-**Adventure:** `matefaciles:campaign:v1` stores a versioned campaign: active chapter, player profile, completed chapter IDs and an independent progress record per started chapter. Each record preserves the scene/history, identity, maths stage, six generated operations, placed pieces, pending reward and cable rotations. Replaying a chapter replaces only its current run, not completion or other chapter saves.
+**Adventure:** `matefaciles:campaign:v1` stores a versioned campaign: active chapter, player profile, completed chapter IDs and an independent progress record per started chapter. Each record preserves the scene/history, identity, maths stage, six generated operations, placed pieces, pending reward, cable rotations and box-game placements/rotations. Replaying a chapter replaces only its current run, not completion or other chapter saves.
 
 When no campaign exists, the old `matefaciles:adventure:v1` record is validated and migrated into Chispa's record. The legacy key is left unchanged and is no longer written by the app. Existing Chispa versions migrate to version 6, retaining construction and cable progress while removing obsolete branches. A legacy ending save still requires the explicit final action to unlock the next chapter. Corrupt campaigns do not fall back to stale legacy saves. See the adventure authoring guide for individual version migrations.
 

@@ -45,7 +45,7 @@ test.describe('GitHub Pages project deployment', () => {
 
     await page.goto(origin + prefix);
     await expect(page.getByRole('heading', { name: 'Una aventura espacial', exact: true })).toBeVisible();
-    await expect(page.locator('.chapter-card')).toHaveCount(8);
+    await expect(page.locator('.chapter-card')).toHaveCount(7);
     const image = page.locator('.cinematic-backdrop img');
     await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await page.getByRole('button', { name: 'Activar sonido' }).click();

@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { chapterCatalog, playableChapter, validateCatalog } from './chapters/catalog';
 import { chispaChapter as chapter } from './chapters/chispa';
+import { broteChapter as second } from './chapters/brote';
 import { chispaV5Chapter } from './chapters/chispa-migration';
 import { campaignStorageKey, chapterStatus, completeChapter, loadCampaign, newCampaign, recordChapter, restoreCampaign, saveCampaign, selectChapter } from './campaign';
 import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart, rotatePipe } from './progress';
 import { destinations, type Chapter } from './types';
 
-const second: Chapter = { ...chapter, id: 'brote', title: 'El jardín de Brote', robot: chapterCatalog[1].robot };
 const released = [playableChapter(chapter), playableChapter(second), chapterCatalog[2]];
 function storage() {
   const entries = new Map<string, string>();
@@ -29,7 +29,7 @@ it('starts with only Chispa available and rejects invalid catalogues', () => {
   const campaign = newCampaign(chapterCatalog);
   expect(chapterCatalog.map(entry => chapterStatus(campaign, chapterCatalog, entry.id))).toEqual(['available', ...Array(6).fill('locked')]);
   expect(() => validateCatalog([])).toThrow();
-  expect(() => validateCatalog([chapterCatalog[1]])).toThrow();
+  expect(() => validateCatalog([chapterCatalog[2]])).toThrow();
   expect(() => validateCatalog([chapterCatalog[0], chapterCatalog[0]])).toThrow();
   expect(selectChapter(campaign, chapterCatalog, 'brote')).toBe(campaign);
   expect(selectChapter(campaign, chapterCatalog, 'missing')).toBe(campaign);
@@ -43,9 +43,12 @@ it('only explicit ending completion reveals the next card, without making unwrit
   expect(chapterStatus(atEnding, chapterCatalog, 'brote')).toBe('locked');
   const finished = completeChapter(atEnding, chapterCatalog, chapter.id);
   expect(chapterStatus(finished, chapterCatalog, chapter.id)).toBe('completed');
-  expect(chapterStatus(finished, chapterCatalog, 'brote')).toBe('upcoming');
+  expect(chapterStatus(finished, chapterCatalog, 'brote')).toBe('available');
+  const upcoming = [chapterCatalog[0], { id: second.id, robot: second.robot }, chapterCatalog[2]];
+  expect(chapterStatus(finished, upcoming, 'brote')).toBe('upcoming');
+  expect(selectChapter(finished, upcoming, 'brote')).toBe(finished);
   expect(chapterStatus(finished, chapterCatalog, 'rayo')).toBe('locked');
-  expect(selectChapter(finished, chapterCatalog, 'brote')).toBe(finished);
+  expect(selectChapter(finished, chapterCatalog, 'brote').activeChapterId).toBe('brote');
   expect(completeChapter(finished, chapterCatalog, chapter.id)).toBe(finished);
   expect(chapterStatus(finished, released, 'brote')).toBe('available');
 });
@@ -141,6 +144,6 @@ describe('migration and validation', () => {
     campaign = recordChapter(campaign, chapterCatalog, toScene(chapter, 'ending'));
     campaign = completeChapter(campaign, chapterCatalog, chapter.id);
     expect(saveCampaign(campaign)).toBe(false);
-    expect(chapterStatus(campaign, chapterCatalog, 'brote')).toBe('upcoming');
+    expect(chapterStatus(campaign, chapterCatalog, 'brote')).toBe('available');
   });
 });

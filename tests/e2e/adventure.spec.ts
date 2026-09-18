@@ -75,11 +75,11 @@ async function restart(page: Page) {
   await page.getByRole('button', { name: 'Reiniciar capítulo', exact: true }).click();
 }
 
-test('home: single main action, practice tile beside chapters, and continuous start/continue flow', async ({ page }) => {
+test('home: single main action, separate free practice, and continuous start/continue flow', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('little-robot-lab:v1', JSON.stringify({ completed: { 1: 3 }, sound: false })));
   await page.goto('/');
   await expect(page.locator('.home-actions button')).toHaveCount(1);
-  await expect(page.locator('.chapter-card')).toHaveCount(8);
+  await expect(page.locator('.chapter-card')).toHaveCount(7);
   await expect(page.getByRole('button', { name: 'Empezar aventura' })).toBeVisible();
   await expect(page.getByRole('link')).toHaveCount(1);
   await capture(page, 'adventure-home-desktop');
@@ -88,11 +88,11 @@ test('home: single main action, practice tile beside chapters, and continuous st
   const practice = page.getByRole('link', { name: 'Practicar mates' });
   const bounds = await practice.boundingBox();
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844);
-  expect(bounds!.height).toBeGreaterThanOrEqual(56);
-  await expect(practice.locator('.chapter-robot svg')).toBeVisible();
-  await expect(practice).toHaveClass(/chapter-card/);
-  const firstChapter = await page.locator('.chapter-card').first().boundingBox();
-  expect(bounds!.y).toBe(firstChapter!.y);
+  expect(bounds!.height).toBeGreaterThanOrEqual(44);
+  const practiceSection = page.getByRole('region', { name: 'Práctica libre' });
+  await expect(practiceSection.getByRole('link', { name: 'Practicar mates' })).toBeVisible();
+  const chapterMenu = await page.getByRole('region', { name: 'Elige un capítulo' }).boundingBox();
+  expect(bounds!.y + bounds!.height).toBeLessThan(chapterMenu!.y);
   await practice.click();
   await expect(page.locator('.level-card')).toHaveCount(7);
   await expect(page.locator('.collected-robot')).toHaveCount(1);
@@ -255,7 +255,7 @@ test('whole chapter: text and choices share each screen; answers use only red/gr
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('little-robot-lab:v1') || '{}').completed || {})).toEqual({});
   await page.locator('.chapter-ending').getByRole('button', { name: 'Terminar capítulo', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Repetir capítulo', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ })).toBeEnabled();
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });

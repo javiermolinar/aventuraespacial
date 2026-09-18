@@ -5,6 +5,7 @@ import Adventure from '../site/AdventureSite';
 import { ChapterMenu } from '../site/ChapterMenu';
 import { chapterCatalog, playableChapter } from './chapters/catalog';
 import { chispaChapter as chapter } from './chapters/chispa';
+import { broteChapter as second } from './chapters/brote';
 import { campaignStorageKey, completeChapter, newCampaign, recordChapter, saveCampaign } from './campaign';
 import { earnPart, moveTo, newAdventure, placePart, saveAdventure } from './progress';
 import { destinations } from './types';
@@ -39,8 +40,8 @@ it('shows seven cards but no locked robot names, titles or illustrations, includ
   const onSelect = vi.fn();
   const { container } = render(<ChapterMenu catalog={chapterCatalog} campaign={newCampaign(chapterCatalog)} onSelect={onSelect} />);
   expect(screen.getAllByRole('button')).toHaveLength(7);
-  expect(screen.getByRole('link', { name: 'Practicar mates' }).closest('.chapter-list')).not.toBeNull();
-  expect(screen.getAllByRole('listitem')).toHaveLength(8);
+  expect(screen.queryByRole('link', { name: 'Practicar mates' })).toBeNull();
+  expect(screen.getAllByRole('listitem')).toHaveLength(7);
   for (const entry of chapterCatalog.slice(1)) expect(container.innerHTML).not.toContain(entry.robot.name);
   const locked = screen.getByRole('button', { name: 'Capítulo 2. Bloqueado. Completa el capítulo 1.' });
   expect((locked as HTMLButtonElement).disabled).toBe(true);
@@ -51,11 +52,20 @@ it('shows seven cards but no locked robot names, titles or illustrations, includ
   expect(onSelect).toHaveBeenCalledWith(chapter.id);
 });
 
-it('reveals only Brote after explicit completion, and keeps its unwritten chapter disabled', () => {
+it('keeps free practice on home, outside the chapter selector', () => {
+  render(<Adventure entry="home" />);
+  const practice = screen.getByRole('region', { name: 'Práctica libre' });
+  expect(within(practice).getByRole('link', { name: 'Practicar mates' }).getAttribute('href')).toBe('./practice.html');
+  const menu = screen.getByRole('region', { name: 'Elige un capítulo' });
+  expect(within(menu).queryByRole('link')).toBeNull();
+  expect(within(menu).getAllByRole('listitem')).toHaveLength(7);
+});
+
+it('reveals playable Brote only after explicit completion', () => {
   let campaign = recordChapter(newCampaign(chapterCatalog), chapterCatalog, ending());
   campaign = completeChapter(campaign, chapterCatalog, chapter.id);
   const { container } = render(<ChapterMenu catalog={chapterCatalog} campaign={campaign} onSelect={vi.fn()} />);
-  expect((screen.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.' }) as HTMLButtonElement).disabled).toBe(true);
+  expect((screen.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ }) as HTMLButtonElement).disabled).toBe(false);
   expect(screen.getByText('Completado')).toBeTruthy();
   for (const entry of chapterCatalog.slice(2)) expect(container.innerHTML).not.toContain(entry.robot.name);
 });
@@ -83,7 +93,6 @@ it('does not complete a chapter through Home; finishing and replaying preserve t
 });
 
 it('selects another released chapter without discarding the first chapter replay or its pending reward', async () => {
-  const second = { ...chapter, id: 'brote', title: 'El jardín de Brote', robot: chapterCatalog[1].robot };
   const catalog = [playableChapter(chapter), playableChapter(second), chapterCatalog[2]];
   let campaign = recordChapter(newCampaign(catalog), catalog, ending());
   campaign = completeChapter(campaign, catalog, chapter.id);
@@ -102,11 +111,11 @@ it('selects another released chapter without discarding the first chapter replay
   fireEvent.click(screen.getByRole('button', { name: 'Empezar' }));
   let saved = JSON.parse(localStorage.getItem(campaignStorageKey)!);
   expect(saved.chapters[chapter.id]).toEqual(replay);
-  expect(saved.chapters.brote).toMatchObject({ chapterId: 'brote', sceneId: 'message', character: 'girl', playerName: 'Lucía', mathsLevel: 3 });
+  expect(saved.chapters.brote).toMatchObject({ chapterId: 'brote', sceneId: 'hungry', character: 'girl', playerName: 'Lucía', mathsLevel: 3 });
   fireEvent.click(screen.getByRole('button', { name: 'Volver al inicio' }));
   fireEvent.click(within(screen.getByRole('region', { name: 'Elige un capítulo' })).getByRole('button', { name: /Capítulo 1\. Chispa/ }));
   expect(await screen.findByRole('button', { name: 'Arrastrar la cabeza' })).toBeTruthy();
   saved = JSON.parse(localStorage.getItem(campaignStorageKey)!);
   expect(saved.activeChapterId).toBe(chapter.id);
-  expect(saved.chapters.brote.sceneId).toBe('message');
+  expect(saved.chapters.brote.sceneId).toBe('hungry');
 });

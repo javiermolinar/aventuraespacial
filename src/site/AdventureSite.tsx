@@ -17,10 +17,10 @@ const AdventureSetupDialog = lazy(() => import('../adventure/AdventureSetupDialo
 export default function AdventureSite(options: AdventureOptions) {
   const story = useAdventureController(options);
   const sound = useSoundPreference();
-  const { chapter, campaign, progress, view, scene, displayedScene, introduction, displayedIntroduction, building, piping, setupChapterId, setupProfile, reviewScene } = story;
+  const { chapter, campaign, progress, view, scene, displayedScene, introduction, displayedIntroduction, building, piping, packing, setupChapterId, setupProfile, reviewScene } = story;
   const assetPrefix = options.entry === 'home' ? './' : '../';
 
-  return <div className={`adventure-experience ${view === 'home' ? 'is-home' : displayedIntroduction ? 'is-introducing' : building ? 'is-building' : piping ? 'is-piping' : 'is-reading'}`}>
+  return <div className={`adventure-experience ${view === 'home' ? 'is-home' : displayedIntroduction ? 'is-introducing' : building ? 'is-building' : piping ? 'is-piping' : packing ? 'is-packing' : 'is-reading'}`}>
     {!displayedIntroduction && <SceneArt chapter={chapter} character={progress?.character ?? campaign.profile.character} image={displayedScene && displayedScene.type !== 'build' && view === 'play' ? displayedScene.image : 'ship'} assetPrefix={assetPrefix} />}
     <BackgroundMusic enabled={sound.enabled && !setupChapterId} src={`${assetPrefix}music/${view === 'home' ? soundtracks.home.file : adventureMusic(displayedScene, displayedIntroduction)}`} />
     <header className="adventure-chrome">
@@ -34,13 +34,13 @@ export default function AdventureSite(options: AdventureOptions) {
       {story.saveFailed && <p>No se puede guardar el progreso en este navegador. Puedes jugar, pero los cambios no se conservarán al salir.</p>}
       {sound.saveFailed && <p>No se puede guardar la preferencia de sonido.</p>}
     </div>}
-    <main className={building ? 'construction-stage' : piping ? 'pipe-stage' : 'cinematic-stage'}>
+    <main className={building ? 'construction-stage' : piping ? 'pipe-stage' : packing ? 'packing-stage' : 'cinematic-stage'}>
       {view === 'home' ? <AdventureHome catalog={story.catalog} campaign={campaign} hasProgress={Boolean(progress)} finishedRun={story.finishedRun}
         reset={story.reset} setupOpen={Boolean(setupChapterId)} practiceHref={`${assetPrefix}practice.html`}
         onContinue={() => story.chooseChapter(chapter.id)} onRestart={() => story.prepare()} onSelect={story.chooseChapter} /> : scene && progress && <DeferredContent key={chapter.id}>
         <NarrativeScreen chapter={chapter} progress={progress} scene={scene} introduction={introduction} reviewId={story.reviewId} reviewScene={reviewScene}
           assetPrefix={assetPrefix} sound={sound.enabled} onNext={story.next} onComplete={story.finish} onReviewNext={story.reviewNext}
-          onEarn={story.earn} onPlace={story.place} onRotate={story.rotate} />
+          onEarn={story.earn} onPlace={story.place} onRotate={story.rotate} onPackingChange={story.pack} />
       </DeferredContent>}
     </main>
     {setupChapterId && <DeferredContent key={setupChapterId}><AdventureSetupDialog initialName={setupProfile.playerName}

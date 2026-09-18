@@ -15,7 +15,7 @@ it('checks the published catalogue and gathers every responsive artwork file', (
 it('reports duplicate catalogue IDs, chapter ID mismatches and gaps in the playable prefix', () => {
   expect(checkCatalog([...chapterCatalog, chapterCatalog[0]])).toContain('Invalid chapter catalogue');
   expect(checkCatalog([{ ...chapterCatalog[0], id: 'other' }])).toContain('Invalid chapter catalogue');
-  expect(checkCatalog([chapterCatalog[0], chapterCatalog[1], { ...chapterCatalog[2], chapter: { ...chispaChapter, id: 'rayo' } }]).join(';')).toContain('playable chapters must form a prefix');
+  expect(checkCatalog([chapterCatalog[0], chapterCatalog[2], { ...chapterCatalog[3], chapter: { ...chispaChapter, id: 'tuerca' } }]).join(';')).toContain('playable chapters must form a prefix');
 });
 
 it('rejects invalid metadata, unknown images and broken game configurations', () => {
@@ -44,7 +44,7 @@ it('rejects missing responsive artwork and unsafe, remote or route-dependent URL
 });
 
 it('keeps TODOs as draft warnings but blocks publication, unknown IDs and robot mismatches', () => {
-  const draft = { ...structuredClone(chispaChapter), id: 'brote', version: 1, robot: chapterCatalog[1].robot, title: 'TODO: título' };
+  const draft = { ...structuredClone(chispaChapter), id: 'rayo', version: 1, robot: chapterCatalog[2].robot, title: 'TODO: título' };
   expect(checkChapter(draft, chapterCatalog, true).errors).toEqual([]);
   expect(checkChapter(draft, chapterCatalog, true).warnings.join(';')).toContain('replace TODO');
   expect(checkChapter(draft, chapterCatalog).errors.join(';')).toContain('replace TODO');
@@ -54,12 +54,12 @@ it('keeps TODOs as draft warnings but blocks publication, unknown IDs and robot 
 });
 
 it('discovers and compiles drafts without registering them or hiding malformed scripts', async () => {
-  const script = { ...structuredClone(chispaScript), id: 'brote', robot: chapterCatalog[1].robot };
-  const source = chapterSources(chapterCatalog, { '../adventure/drafts/brote.ts': async () => ({ default: script }) }).at(-1)!;
-  expect(source).toMatchObject({ id: 'brote', draft: true, label: 'Borrador: Brote' });
-  expect((await source.load()).id).toBe('brote');
-  expect(chapterCatalog[1].chapter).toBeUndefined();
-  const wrongName = chapterSources(chapterCatalog, { '../adventure/drafts/rayo.ts': async () => ({ default: script }) }).at(-1)!;
+  const script = { ...structuredClone(chispaScript), id: 'rayo', robot: chapterCatalog[2].robot };
+  const source = chapterSources(chapterCatalog, { '../adventure/drafts/rayo.ts': async () => ({ default: script }) }).at(-1)!;
+  expect(source).toMatchObject({ id: 'rayo', draft: true, label: 'Borrador: Rayo' });
+  expect((await source.load()).id).toBe('rayo');
+  expect(chapterCatalog[2].chapter).toBeUndefined();
+  const wrongName = chapterSources(chapterCatalog, { '../adventure/drafts/tuerca.ts': async () => ({ default: script }) }).at(-1)!;
   await expect(wrongName.load()).rejects.toThrow('filename must match');
   script.intro.pages = [];
   await expect(source.load()).rejects.toThrow('Dialogue phases need at least one page');

@@ -1,8 +1,9 @@
+import { puzzles } from '../games/shape-box/puzzle';
 import type { RobotDesign } from '../games/robot-lab/design';
 import { validPipeLayout, type PipeLayout, type ConnectionTheme } from '../games/connections/pipes';
 
 export type Character = 'boy' | 'girl';
-export type Illustration = 'ship' | 'workshop' | 'radio';
+export type Illustration = 'ship' | 'workshop' | 'radio' | 'journey' | 'storage';
 export type ResponsiveArtwork = { landscape: string; portrait: string };
 export type CharacterArtwork = Record<Character, ResponsiveArtwork>;
 export type RobotIntroduction = {
@@ -39,13 +40,14 @@ export type SequenceScene = Reading & {
   next: string;
 };
 export type PipeScene = Reading & { type: 'pipes'; theme?: ConnectionTheme; layout: PipeLayout; next: string };
+export type PackingScene = Reading & { type: 'packing'; puzzleIndex: number; next: string };
 export type EndingScene = Reading & { type: 'ending'; prompt: string };
-export type Scene = StoryScene | ComprehensionScene | BuildScene | SequenceScene | PipeScene | EndingScene;
-export type ReadingScene = Exclude<Scene, { type: 'build' | 'pipes' }>;
+export type Scene = StoryScene | ComprehensionScene | BuildScene | SequenceScene | PipeScene | PackingScene | EndingScene;
+export type ReadingScene = Exclude<Scene, { type: 'build' | 'pipes' | 'packing' }>;
 export type Chapter = {
   id: string; version: number; title: string; subtitle: string;
   intro: { title: string; description: string };
-  artwork: { ship: CharacterArtwork; workshop?: CharacterArtwork; radio?: CharacterArtwork };
+  artwork: { ship: CharacterArtwork } & Partial<Record<Exclude<Illustration, 'ship'>, CharacterArtwork>>;
   robot: { name: string; design: RobotDesign; color: string; introduction?: RobotIntroduction };
   start: string;
   scenes: Record<string, Scene>;
@@ -85,6 +87,7 @@ export function validateChapter(chapter: Chapter): string[] {
       const validTerminals = scene.theme !== 'radio' || (scene.layout.source.side === 3 && scene.layout.goal.side === 1);
       if (!validTheme || !validTerminals || !validPipeLayout(scene.layout)) errors.push(`Invalid pipe layout: ${id}`);
     }
+    if (scene.type === 'packing' && (!Number.isInteger(scene.puzzleIndex) || !puzzles[scene.puzzleIndex])) errors.push(`Invalid packing puzzle: ${id}`);
     if (scene.type === 'ending' && previousTarget !== 6) errors.push(`Incomplete robot at ending: ${id}`);
     for (const next of destinations(scene)) visit(next, previousTarget);
     visiting.delete(id);

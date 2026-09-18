@@ -111,5 +111,5 @@ test('rereading the ending does not unlock chapters; reload resumes the saved po
   await expect(page.getByRole('button', { name: 'Terminar capítulo' })).toBeVisible();
   expect((await readCampaign(page)).completed).toEqual([]);
   await page.getByRole('button', { name: 'Terminar capítulo' }).click();
-  await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ })).toBeEnabled();
 });

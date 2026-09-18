@@ -26,6 +26,10 @@ test('home shows selectable Chispa and six anonymous locked chapters, with keybo
   await page.goto('/');
   const menu = page.getByRole('region', { name: 'Elige un capítulo' });
   await expect(menu.getByRole('button')).toHaveCount(7);
+  await expect(menu.getByRole('listitem')).toHaveCount(7);
+  await expect(menu.getByRole('link')).toHaveCount(0);
+  const practice = page.getByRole('region', { name: 'Práctica libre' });
+  await expect(practice.getByRole('link', { name: 'Practicar mates' })).toHaveAttribute('href', './practice.html');
   await expect(menu.locator('button:disabled')).toHaveCount(6);
   for (const entry of chapterCatalog.slice(1)) {
     await expect(menu).not.toContainText(entry.robot.name);
@@ -46,7 +50,7 @@ test('home shows selectable Chispa and six anonymous locked chapters, with keybo
   await expect(page.getByRole('heading', { name: 'Un mensaje para ti' })).toBeFocused();
 });
 
-test('explicit completion reveals Brote as upcoming; replay confirmation and reload preserve that unlock', async ({ page }) => {
+test('explicit completion unlocks Brote; replay confirmation and reload preserve that unlock', async ({ page }) => {
   const saved = ending();
   await page.addInitScript(({ key, saved }) => localStorage.setItem(key, JSON.stringify(saved)), { key: adventureStorageKey, saved });
   await page.goto('/games/adventure.html');
@@ -57,7 +61,7 @@ test('explicit completion reveals Brote as upcoming; replay confirmation and rel
   await page.getByRole('button', { name: 'Continuar aventura', exact: true }).click();
   await page.getByRole('button', { name: 'Terminar capítulo', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Una aventura espacial', exact: true })).toBeFocused();
-  await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ })).toBeEnabled();
   await expect(page.getByRole('region', { name: 'Elige un capítulo' })).not.toContainText('Rayo');
   expect((await readCampaign(page)).completed).toEqual([chapter.id]);
   expect(await page.evaluate(() => localStorage.getItem('little-robot-lab:v1'))).toBeNull();
@@ -73,7 +77,7 @@ test('explicit completion reveals Brote as upcoming; replay confirmation and rel
   expect(await readAdventure(page)).toMatchObject({ sceneId: 'message', placedCount: 0, character: 'girl', playerName: 'Lucía', mathsLevel: 3 });
   expect((await readCampaign(page)).completed).toEqual([chapter.id]);
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ })).toBeEnabled();
   // A stale ending in the legacy key cannot overwrite the new replay's position.
   expect((await readAdventure(page)).sceneId).toBe('message');
 });
@@ -89,11 +93,11 @@ test('completion and replay keep unlocks in memory when storage writes are block
   await page.goto('/games/adventure.html');
   await expect(page.getByText(/No se puede guardar el progreso/)).toBeVisible();
   await page.getByRole('button', { name: 'Terminar capítulo', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ })).toBeEnabled();
   await page.getByRole('button', { name: 'Repetir capítulo', exact: true }).click();
   await completeAdventureSetup(page, 'Lucía', 'Niña');
   await page.getByRole('button', { name: 'Volver al inicio', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Capítulo 2. Brote. Próximamente.', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ })).toBeEnabled();
 });
 
 test('an invalid campaign cannot expose future titles or fall back to a stale completed chapter', async ({ page }) => {

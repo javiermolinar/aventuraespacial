@@ -50,7 +50,7 @@ export function checkChapter(chapter: Chapter, catalog: readonly ChapterEntry[],
   };
   if (!chapter.artwork.ship) errors.push('artwork.ship: required for both characters');
   for (const [location, characters] of Object.entries(chapter.artwork)) {
-    if (!['ship', 'workshop', 'radio'].includes(location)) errors.push(`Unknown artwork location: ${location}`);
+    if (!['ship', 'workshop', 'radio', 'journey', 'storage'].includes(location)) errors.push(`Unknown artwork location: ${location}`);
     for (const character of ['boy', 'girl'] as const) pair(`artwork.${location}.${character}`, characters[character]);
   }
   if (chapter.robot.introduction) {
@@ -66,7 +66,7 @@ export function checkChapter(chapter: Chapter, catalog: readonly ChapterEntry[],
       text(`${id}.completion`, scene.completion);
       continue;
     }
-    if (!['ship', 'workshop', 'radio'].includes(scene.image)) errors.push(`${id}: unknown image ${scene.image}`);
+    if (!['ship', 'workshop', 'radio', 'journey', 'storage'].includes(scene.image)) errors.push(`${id}: unknown image ${scene.image}`);
     scene.paragraphs.forEach((paragraph, index) => text(`${id}.paragraphs.${index}`, paragraph));
     if (scene.robotIntroduction?.artwork) pair(`${id}.artwork`, scene.robotIntroduction.artwork);
     if (scene.type === 'story') scene.choices.forEach(choice => text(`${id}.choices.${choice.id}`, choice.label));

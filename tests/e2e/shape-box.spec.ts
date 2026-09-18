@@ -314,10 +314,11 @@ test('uses the viewport with larger pieces and a top reset icon, without clippin
     await page.screenshot({ path: `artifacts/full-viewport-shape-box-${width}x${height}.png`, fullPage: true });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  const id = puzzles[5].pieces[0].id;
+  const lastLevel = puzzles.length - 1;
+  const id = puzzles[lastLevel].pieces[0].id;
   await gestureRotate(page, id, 1);
   await page.getByRole('button', { name: 'Empezar de nuevo' }).click();
-  await expect(page.getByRole('combobox', { name: 'Caja' })).toHaveValue('5');
+  await expect(page.getByRole('combobox', { name: 'Caja' })).toHaveValue(String(lastLevel));
   await expect(page.getByRole('status')).toHaveText('Elige una pieza para empezar.');
   await expect(pieceButton(page, id)).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.packing-cell.is-filled')).toHaveCount(0);

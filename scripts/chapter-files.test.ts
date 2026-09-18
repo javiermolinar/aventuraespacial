@@ -16,9 +16,9 @@ afterEach(async () => { await rm(root, { recursive: true, force: true }); });
 
 it('creates a typed compilable draft, leaving the catalogue and existing files untouched', async () => {
   const catalog = structuredClone(chapterCatalog);
-  const path = await createDraft(root, 'brote', catalog);
+  const path = await createDraft(root, 'rayo', catalog);
   const source = await readFile(path, 'utf8');
-  expect(path).toBe(join(root, 'src/adventure/drafts/brote.ts'));
+  expect(path).toBe(join(root, 'src/adventure/drafts/rayo.ts'));
   expect(source).toContain('satisfies ChapterScript');
   expect(source).toContain('version: 1');
   // Execute only our generated template; no chapter code or browser storage is loaded.
@@ -29,11 +29,11 @@ it('creates a typed compilable draft, leaving the catalogue and existing files u
     return { waterTankPuzzle };
   } });
   const draft = defineChapter(exported.default!);
-  expect(draft.id).toBe('brote');
+  expect(draft.id).toBe('rayo');
   expect(checkChapter(draft, catalog, true).errors).toEqual([]);
   expect(checkChapter(draft, catalog, true).warnings.length).toBeGreaterThan(0);
   expect(catalog).toEqual(chapterCatalog);
-  await expect(createDraft(root, 'brote', catalog)).rejects.toThrow('Nothing overwritten');
+  await expect(createDraft(root, 'rayo', catalog)).rejects.toThrow('Nothing overwritten');
   expect(await readFile(path, 'utf8')).toBe(source);
 });
 
@@ -42,9 +42,10 @@ it('refuses traversal, unknown IDs, published chapters and unregistered existing
   await expect(createDraft(root, 'unknown', chapterCatalog)).rejects.toThrow('Unknown catalogue');
   await expect(createDraft(root, 'chispa-radio', chapterCatalog)).rejects.toThrow('already playable');
   await mkdir(join(root, 'src/adventure/chapters'), { recursive: true });
-  await writeFile(join(root, 'src/adventure/chapters/brote.ts'), 'preserve me');
-  await expect(createDraft(root, 'brote', chapterCatalog)).rejects.toThrow('Refusing to shadow');
-  expect(await readFile(join(root, 'src/adventure/chapters/brote.ts'), 'utf8')).toBe('preserve me');
+  await expect(createDraft(root, 'brote', chapterCatalog)).rejects.toThrow('already playable');
+  await writeFile(join(root, 'src/adventure/chapters/rayo.ts'), 'preserve me');
+  await expect(createDraft(root, 'rayo', chapterCatalog)).rejects.toThrow('Refusing to shadow');
+  expect(await readFile(join(root, 'src/adventure/chapters/rayo.ts'), 'utf8')).toBe('preserve me');
 });
 
 it('checks artwork existence, exact case, empty files and symlinks escaping public', async () => {

@@ -4,7 +4,7 @@ import { RotationGesture } from './RotationGesture';
 import { SiteShell } from '../../components/SiteShell';
 import { useSoundPreference } from '../../services/useSoundPreference';
 import { playSound } from '../../sound';
-import { canPlace, dimensions, initialState, isSolved, occupiedCells, puzzles, rotate, type Cell, type Piece, type Puzzle } from './puzzle';
+import { canPlace, dimensions, initialState, isSolved, occupiedCells, puzzles, rotate, type Cell, type Piece, type PiecesState, type Puzzle } from './puzzle';
 import './shape-box.css';
 
 type Drag = { id: string; pointer: number; start: Cell; point: Cell; grab: Cell; moved: boolean };
@@ -17,8 +17,13 @@ function Shape({ piece, turns }: { piece: Piece; turns: number }) {
   </span>;
 }
 
-export function PackingPuzzle({ puzzle, sound, onNext, last = false }: { puzzle: Puzzle; sound: boolean; onNext: () => void; last?: boolean }) {
-  const [state, setState] = useState(() => initialState(puzzle));
+export function PackingPuzzle({ puzzle, sound, onNext, last = false, state: controlledState, onChange, nextLabel }: {
+  puzzle: Puzzle; sound: boolean; onNext: () => void; last?: boolean;
+  state?: PiecesState; onChange?: (state: PiecesState) => void; nextLabel?: string;
+}) {
+  const [localState, setLocalState] = useState(() => initialState(puzzle));
+  const state = controlledState ?? localState;
+  const setState = (next: PiecesState) => { setLocalState(next); onChange?.(next); };
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [feedback, setFeedback] = useState({ text: 'Elige una pieza para empezar.', visible: false });
@@ -240,7 +245,7 @@ export function PackingPuzzle({ puzzle, sound, onNext, last = false }: { puzzle:
         </div>
         <p className={`packing-status ${solved || feedback.visible || returningToTable ? '' : 'sr-only'}`} role="status">{solved ? last ? '¡Todas las cajas listas! ¡Lo has conseguido!' : '¡Todo encaja! Has llenado la caja.' : returningToTable ? 'Suelta para devolver la pieza a la mesa.' : feedback.text}</p>
         {solved && <div className="packing-feedback">
-          <button className="primary" onClick={onNext}>{last ? 'Volver a jugar' : 'Siguiente caja'}<ArrowRight size={20} aria-hidden="true" /></button>
+          <button className="primary" onClick={onNext}>{nextLabel ?? (last ? 'Volver a jugar' : 'Siguiente caja')}<ArrowRight size={20} aria-hidden="true" /></button>
         </div>}
       </div>
       <div className="packing-table">

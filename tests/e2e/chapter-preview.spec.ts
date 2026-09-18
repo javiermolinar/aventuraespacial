@@ -29,6 +29,16 @@ test.describe('development chapter preview', () => {
     await expect(tile).toHaveAttribute('data-rotation', rotation!);
     await page.screenshot({ path: 'artifacts/chapter-preview-desktop.png', fullPage: true });
 
+    await page.getByRole('combobox', { name: 'Capítulo', exact: true }).selectOption('brote');
+    await page.getByRole('combobox', { name: 'Escena', exact: true }).selectOption('supply-boxes');
+    await page.getByRole('button', { name: 'Aplicar y reiniciar' }).click();
+    await expect(page.locator('.packing-board')).toBeVisible();
+    await page.getByRole('button', { name: 'Girar pieza A', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('status').filter({ hasText: 'Pieza A girada.' })).toBeAttached();
+    await page.getByRole('button', { name: 'Saltar', exact: true }).click();
+    await expect(page.getByText(/Dentro hay manzanas y pan/)).toBeVisible();
+    await page.getByRole('combobox', { name: 'Capítulo', exact: true }).selectOption('chispa-radio');
     await page.getByRole('combobox', { name: 'Escena', exact: true }).selectOption('build-start');
     await page.getByRole('button', { name: 'Aplicar y reiniciar' }).click();
     await expect(page.locator('.factory')).toBeVisible();
