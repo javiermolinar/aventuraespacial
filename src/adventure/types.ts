@@ -41,7 +41,7 @@ export type SequenceScene = Reading & {
 };
 export type PipeScene = Reading & { type: 'pipes'; theme?: ConnectionTheme; layout: PipeLayout; next: string };
 export type PackingScene = Reading & { type: 'packing'; puzzleIndex: number; next: string };
-export type EndingScene = Reading & { type: 'ending'; prompt: string };
+export type EndingScene = Reading & { type: 'ending'; prompt?: string };
 export type Scene = StoryScene | ComprehensionScene | BuildScene | SequenceScene | PipeScene | PackingScene | EndingScene;
 export type ReadingScene = Exclude<Scene, { type: 'build' | 'pipes' | 'packing' }>;
 export type Chapter = {

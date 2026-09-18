@@ -66,7 +66,7 @@ export function DialogueActions({ scene, playerName, onNext, onComplete }: {
     <div className="story-options">{scene.choices.map(choice => <button className="story-option" key={choice.id} onClick={() => onNext(choice.next)}>{personalize(choice.label, playerName)}<ArrowRight size={20} /></button>)}</div>
   </section>;
   if (scene.type === 'ending') return <section className="chapter-ending">
-    <p className="retell-prompt">{personalize(scene.prompt, playerName)}</p>
+    {scene.prompt && <p className="retell-prompt">{personalize(scene.prompt, playerName)}</p>}
     <button className="primary" onClick={onComplete}>Terminar capítulo<ArrowRight size={21} /></button>
   </section>;
   return null;

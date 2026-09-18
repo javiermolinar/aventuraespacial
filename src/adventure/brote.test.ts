@@ -7,6 +7,7 @@ import { initialState, puzzles, type PiecesState } from '../games/shape-box/puzz
 import { previewProgress } from '../authoring/preview-progress';
 import { adventureMusic } from './music';
 import { soundtracks } from '../music';
+import { previousBroteChapter } from './chapters/brote-migration';
 
 const puzzle = puzzles[broteScript.game.puzzleIndex];
 const atGame = () => previewProgress(chapter, { sceneId: 'supply-boxes', mathsLevel: 0, character: 'girl', playerName: 'Ada' });
@@ -22,6 +23,24 @@ it('preserves version 1 story progress while discarding placements from the easi
   expect(restored).toEqual(current);
   expect(old.packingStates['supply-boxes']).toEqual(initialState(puzzles[0]));
   expect(restoreAdventure({ ...old, packingStates: { 'supply-boxes': {} } }, chapter)).toBeNull();
+});
+
+it('migrates both old endings and preserves version 2 puzzle placements', () => {
+  for (const version of [1, 2] as const) {
+    const previous = previousBroteChapter(chapter, version);
+    for (const sceneId of ['supply-boxes', 'snack', 'recap', 'ending']) {
+      const old = previewProgress(previous, { sceneId, mathsLevel: 0, character: 'girl', playerName: 'Ada' });
+      if (version === 2) old.packingStates = { 'supply-boxes': solved() };
+      const restored = restoreAdventure(old, chapter);
+      expect(restored).not.toBeNull();
+      expect(restored!.sceneId).toBe(sceneId === 'supply-boxes' ? sceneId : 'snack');
+      expect(restored!.operations).toEqual(old.operations);
+      expect(restored!.placedCount).toBe(6);
+      expect(restored!.packingStates).toEqual(version === 2 ? old.packingStates : undefined);
+      expect(restored!.history).not.toContain('recap');
+      expect(validateProgress(restored, chapter)).toBe(true);
+    }
+  }
 });
 
 it('requires all six Brote pieces before introducing the robot and opening the box game', () => {

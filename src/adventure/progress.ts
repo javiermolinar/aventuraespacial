@@ -6,6 +6,7 @@ import { destinations, type Chapter, type Character } from './types';
 import { normalizePlayerName, playerNameMaxLength } from './personalization';
 import { chispaV1Chapter, chispaV2Chapter, chispaV3Chapter, chispaV5Chapter, migrateChispaV1, migrateChispaV2, migrateChispaV3, migrateChispaV4, migrateChispaV5 } from './chapters/chispa-migration';
 import { chispaV4Chapter } from './chapters/chispa-v4';
+import { previousBroteChapter } from './chapters/brote-migration';
 import { pipeFlow, validRotations } from '../games/connections/pipes';
 
 export const adventureStorageKey = 'matefaciles:adventure:v1';
@@ -93,14 +94,18 @@ export function restoreAdventure(parsed: unknown, chapter: Chapter): AdventurePr
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       const { beat: _legacyBeat, ...value } = { character: 'boy', playerName: '', beat: undefined, ...parsed };
       if (validateProgress(value, chapter)) return value;
-      if (chapter.id === 'brote' && chapter.version === 2) {
-        const game = chapter.scenes['supply-boxes'];
-        if (game?.type === 'packing') {
-          const previous = { ...chapter, version: 1, scenes: { ...chapter.scenes, 'supply-boxes': { ...game, puzzleIndex: 0 } } };
-          if (validateProgress(value, previous)) {
-            // Keep story/build progress; the old board's placements cannot fit the new puzzle.
-            const { packingStates: _oldBoxes, ...progress } = value;
-            const migrated = { ...progress, chapterVersion: chapter.version };
+      if (chapter.id === 'brote' && chapter.version === 3) {
+        for (const version of [1, 2] as const) {
+          if (validateProgress(value, previousBroteChapter(chapter, version))) {
+            const { packingStates, ...progress } = value;
+            const atOldEnding = ['snack', 'recap', 'ending'].includes(progress.sceneId);
+            const migrated = {
+              ...progress, chapterVersion: chapter.version,
+              sceneId: atOldEnding ? 'snack' : progress.sceneId,
+              history: atOldEnding ? progress.history.filter(id => !['snack', 'recap', 'ending'].includes(id)) : progress.history,
+              // Only version 1 used a different board; keep version 2 puzzle progress.
+              ...(version === 2 && packingStates !== undefined ? { packingStates } : {}),
+            };
             if (validateProgress(migrated, chapter)) return migrated;
           }
         }

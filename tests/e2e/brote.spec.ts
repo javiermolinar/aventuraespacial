@@ -41,7 +41,7 @@ test('Brote plays from hunger through construction, boxes and food, then unlocks
   await seed(page);
   await page.getByRole('button', { name: /Capítulo 2\. Brote.*Empezar/ }).click();
   await completeAdventureSetup(page, 'Ada', 'Niña');
-  await expect(page.getByText(/Todavía queda un rato de viaje, Ada/)).toBeVisible();
+  await expect(page.getByText(/Nada puede ir más rápido que la luz, Ada/)).toBeVisible();
   await page.getByRole('button', { name: 'Buscar comida' }).click();
   await page.getByRole('button', { name: 'Junto a la jarra de agua.' }).click();
   await expect(page.getByRole('button', { name: 'Junto a la jarra de agua.' })).toHaveClass(/is-incorrect/);
@@ -83,12 +83,8 @@ test('Brote plays from hunger through construction, boxes and food, then unlocks
   await expect(page.getByRole('heading', { name: 'Brote', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByText(/Dentro hay manzanas y pan/)).toBeVisible();
-  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
-  for (const text of ['Busqué comida y encontré una caja demasiado alta.', 'Construí a Brote.', 'Brote bajó las cajas y las dejamos ordenadas.']) {
-    await page.getByRole('button', { name: new RegExp(text.replaceAll('.', '\\.')) }).click();
-  }
-  await page.getByRole('button', { name: 'Comprobar orden', exact: true }).click();
-  await page.getByRole('button', { name: 'Enviar mi relato', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Por fin, barriga llena' })).toBeAttached();
+  await expect(page.locator('.retell-prompt')).toHaveCount(0);
   expect((await readCampaign(page)).completed).toEqual([chispaChapter.id]);
   await page.getByRole('button', { name: 'Terminar capítulo' }).click();
   await expect(page.getByRole('button', { name: 'Capítulo 3. Rayo. Próximamente.', exact: true })).toBeDisabled();

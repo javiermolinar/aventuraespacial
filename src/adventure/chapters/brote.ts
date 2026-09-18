@@ -3,8 +3,8 @@ import { chispaScript } from './chispa';
 
 export const broteScript = {
   id: 'brote',
-  version: 2,
-  title: 'Un bocado entre las estrellas',
+  version: 3,
+  title: '¡Qué hambre!',
   subtitle: 'Capítulo 2 · Brote y las cajas',
   summary: {
     title: 'Una barriga vacía y unas cajas demasiado altas.',
@@ -40,17 +40,18 @@ export const broteScript = {
       {
         id: 'hungry', title: 'La barriga protesta', image: 'journey',
         text: [
-          'La nave despega del planeta desconocido. Chispa se sienta a tu lado y el ordenador pone rumbo a la estación Luna, donde os esperan tus padres.',
-          'De pronto, tu barriga hace un ruido más fuerte que la radio. ¡Tienes muchísima hambre!',
-          '—Todavía queda un rato de viaje, {{name}} —dice Chispa—. Vamos a buscar algo para comer.',
+          'Te despiertas a la mañana siguiente. ¡Qué hambre!',
+          '—Chispa, ¿por qué son tan lentos los viajes estelares? —preguntas.',
+          '—Nada puede ir más rápido que la luz, {{name}} —contesta Chispa.',
+          '—¡Pues me muero de hambre! ¡Vamos a picar algo!',
         ],
         continueLabel: 'Buscar comida',
       },
       {
         id: 'supplies', title: 'La caja de las manzanas', image: 'storage',
         text: [
-          'En la cocina solo queda una jarra de agua. Bebes un poco y miras en el almacén de la nave.',
-          'En la estantería más alta ves una caja con una manzana dibujada. Delante hay otras cajas que te impiden abrirla.',
+          'En el almacén de la nave se guarda toda la comida, pero está envasada y almacenada en cajas.',
+          'En la estantería más alta ves una caja enorme con una manzana dibujada.',
           '—¡Ahí está la comida! —dices—. Pero no llego.',
           '—No te subas a las cajas —avisa Chispa—. Podrían caerse. Necesitamos a alguien que pueda bajarlas con cuidado.',
         ],
@@ -65,7 +66,7 @@ export const broteScript = {
         }],
       },
       {
-        id: 'workshop', title: 'Un robot para el almacén', image: 'workshop',
+        id: 'workshop', title: 'El bruto de Brote', image: 'workshop',
         text: [
           '—Brote se encarga de las provisiones —explica el ordenador—. Tiene brazos fuertes para bajar cajas y guardarlas en su sitio.',
           'Chispa encuentra su plano en el taller. La máquina de piezas está lista para trabajar otra vez.',
@@ -104,39 +105,14 @@ export const broteScript = {
     image: 'ship',
     pages: [
       {
-        id: 'snack', title: 'Por fin, un bocado',
+        id: 'snack', title: 'Por fin, barriga llena',
         text: [
-          'Brote termina de asegurar las cajas en el compartimento. Ahora la tapa de la caja de comida se abre sin tropezar con nada.',
-          'Dentro hay manzanas y pan. Te lavas las manos, lavas una manzana y te sientas a comer con un trozo de pan.',
-          '—¡Eso está mejor! —dices. Tu barriga ya no protesta.',
-          'Chispa enciende la radio. Les cuentas a tus padres que Brote os acompaña y que ya has tomado un bocado.',
-        ],
-      },
-      {
-        id: 'recap', title: 'Una ayuda a tiempo',
-        text: [
-          'Primero buscaste comida y encontraste una caja demasiado alta. Después construiste a Brote. Por último, Brote bajó las cajas y las dejasteis ordenadas para poder comer.',
-        ],
-        questions: [{
-          id: 'story-order', type: 'order', prompt: '¿En qué orden pasó todo?',
-          events: [
-            { id: 'sort', text: 'Brote bajó las cajas y las dejamos ordenadas.' },
-            { id: 'search', text: 'Busqué comida y encontré una caja demasiado alta.' },
-            { id: 'build', text: 'Construí a Brote.' },
-          ],
-          answer: ['search', 'build', 'sort'],
-        }],
-      },
-      {
-        id: 'ending', title: 'Seguimos hacia casa',
-        text: [
-          '—Guardaremos el resto para otro momento —dice Brote, cerrando la caja de comida.',
-          'Vuelves a tu asiento con Chispa y Brote. Ya no tienes hambre y ahora sois tres a bordo.',
-          'Por la ventana ves las estrellas. La estación Luna aún está lejos, pero la nave sigue su camino a casa.',
+          'La tapa de la caja de comida se abre. Dentro hay manzanas y pan. Te lavas las manos, lavas una manzana y te sientas a comer con un trozo de pan.',
+          '—¡Eso está mejor! —dices. Tu barriga ya no ruge.',
+          'Chispa enciende la radio. Les cuentas a tus padres que Brote os acompaña y que ya has desayunado. El viaje continúa.',
         ],
       },
     ],
-    prompt: 'Cuéntale a alguien por qué necesitabas a Brote y cómo te ayudó con las cajas.',
   },
 } satisfies ChapterScript;
 

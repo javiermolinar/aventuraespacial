@@ -78,7 +78,7 @@ export function checkChapter(chapter: Chapter, catalog: readonly ChapterEntry[],
       text(`${id}.question`, scene.question);
       scene.events.forEach(event => text(`${id}.events.${event.id}`, event.text));
     }
-    if (scene.type === 'ending') text(`${id}.prompt`, scene.prompt);
+    if (scene.type === 'ending' && scene.prompt !== undefined) text(`${id}.prompt`, scene.prompt);
   }
   return { errors: [...new Set(errors)], warnings: [...new Set(warnings)], artwork };
 }

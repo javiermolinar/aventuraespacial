@@ -38,7 +38,7 @@ export type ChapterScript = {
   robotIntroduction: DialoguePhase & { artwork?: ResponsiveArtwork };
   middle?: DialoguePhase;
   game: { id: string; text: string[] } & (Omit<PipeScene, 'next' | 'paragraphs' | 'robotIntroduction'> | Omit<PackingScene, 'next' | 'paragraphs' | 'robotIntroduction'>);
-  ending: DialoguePhase & { prompt: string };
+  ending: DialoguePhase & { prompt?: string };
 };
 
 /** Compile to the existing runtime graph. A question keeps its page's complete passage. */

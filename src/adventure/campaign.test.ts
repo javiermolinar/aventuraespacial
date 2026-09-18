@@ -14,6 +14,7 @@ function storage() {
   return entries;
 }
 function toScene(chapter: Chapter, target: string) {
+  if (!Object.hasOwn(chapter.scenes, target)) throw new Error(`Unknown target scene: ${target}`);
   let p = newAdventure(chapter, 3, 'girl', 'Lucía');
   while (p.sceneId !== target) {
     const scene = chapter.scenes[p.sceneId];
@@ -68,7 +69,7 @@ it('preserves independent chapter saves and unlocks during replay, selection and
   expect(campaign.chapters[chapter.id]).toEqual(replay);
   expect(saveCampaign(campaign)).toBe(true);
   expect(loadCampaign(released)).toEqual({ campaign, unavailable: false, reset: false });
-  campaign = recordChapter(campaign, released, toScene(second, 'ending'));
+  campaign = recordChapter(campaign, released, toScene(second, 'snack'));
   campaign = completeChapter(campaign, released, 'brote');
   expect(campaign.completed).toEqual([chapter.id, 'brote']);
   expect(chapterStatus(campaign, released, 'rayo')).toBe('upcoming');
