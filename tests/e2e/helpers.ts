@@ -3,9 +3,9 @@ import { needsExchange, needsTens, resultOf, type Operation } from '../../src/li
 
 export async function readOperation(page: Page): Promise<Operation> {
   const label = await page.locator('.simple-sum, .column-board').getAttribute('aria-label');
-  const match = label?.match(/(\d+) ([+−]) (\d+)$/);
+  const match = label?.match(/(\d+) ([+−]) (\d+)(?: \+ (\d+))?$/);
   if (!match) throw new Error(`Missing operation: ${label}`);
-  return { a: Number(match[1]), b: Number(match[3]), operator: match[2] as Operation['operator'] };
+  return { a: Number(match[1]), b: Number(match[3]), operator: match[2] as Operation['operator'], ...(match[4] ? { extraAddends: [Number(match[4])] } : {}) };
 }
 
 export async function answer(page: Page, value: number) {
@@ -21,7 +21,19 @@ export async function carryByTap(page: Page) {
 export async function solveCurrent(page: Page) {
   const operation = await readOperation(page);
   const result = resultOf(operation);
-  if (operation.operator === '+' && operation.a < 10 && operation.b < 10) {
+  if (Math.max(operation.a, operation.b, result) >= 100) {
+    let carry = 0;
+    for (let place = 0; place < 3; place++) {
+      const exchange = page.getByRole('button', { name: /^Cambiar una/ });
+      if (await exchange.isVisible()) await exchange.click();
+      if (operation.operator === '+') {
+        const total = Math.floor(operation.a / 10 ** place) % 10 + Math.floor(operation.b / 10 ** place) % 10 + carry + (operation.extraAddends ?? []).reduce((sum, n) => sum + Math.floor(n / 10 ** place) % 10, 0);
+        await answer(page, total);
+        carry = Math.floor(total / 10);
+        if (carry) await page.getByRole('button', { name: /^Llevar \d+ a las/ }).click();
+      } else await answer(page, Math.floor(result / 10 ** place) % 10);
+    }
+  } else if (operation.operator === '+' && operation.a < 10 && operation.b < 10) {
     await answer(page, result);
   } else {
     if (needsExchange(operation)) {

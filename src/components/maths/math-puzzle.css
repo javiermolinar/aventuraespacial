@@ -89,3 +89,14 @@
   @media (max-width: 700px) { h2 { font-size: 22px; } .column-board { margin: 12px auto 14px; } .number-row { height: 43px; font-size: 39px; } .carry-row { height: 25px; } .answer-row { min-height: 53px; padding-bottom: 7px; font-size: 34px; } .answer-box { width: 59px; height: 47px; } .sum-line { margin-top: 5px; margin-bottom: 5px; } .blocks-area { min-height: 68px; padding: 11px 8px; } .keypad { margin-top: 14px; gap: 8px; } .keypad button { min-height: 47px; font-size: 24px; } .answer-controls { margin-top: 14px; } .primary { min-height: 50px; font-size: 17px; } .erase-key { min-height: 50px; } .exchange-controls { padding-top: 18px; } .exchange-controls > p { font-size: 16px; } }
   @media (max-width: 365px) { .simple-sum { gap: 7px; font-size: 33px; } .simple-sum .simple-sign { font-size: 25px; } .simple-sum .answer-box { width: 66px; height: 56px; } .cubes { grid-template-columns: repeat(5, 16px); gap: 4px; } .cube { width: 16px; height: 16px; } .block-equation { gap: 10px; } .exchange-button { font-size: 14px; gap: 7px; } }
 }
+
+.math-puzzle.hundreds-puzzle {
+  .column-board { width: min(100%, 300px); }
+  .column-labels, .carry-row, .number-row, .answer-row { grid-template-columns: 22px repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .column-labels { text-transform: capitalize; }
+  .answer-box { width: min(100%, 60px); }
+  .number-row { font-size: 36px; }
+  .carry-row { height: 38px; }
+  .numeric-help { min-height: 100px; }
+  .tens-calculation { font-size: 25px; gap: 8px; }
+}

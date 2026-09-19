@@ -90,11 +90,40 @@ export function generateMixedOperation(operator: Operator, random: Random = Math
   return generators[integer(0, generators.length - 1, random)](operator, random);
 }
 
+
+export function generateHundredsOperation(operator: Operator, random: Random = Math.random): Operation {
+  const aHundreds = integer(2, 6, random);
+  const bHundreds = integer(1, operator === '+' ? 9 - aHundreds : aHundreds - 1, random);
+  const aTens = integer(0, 9, random), aOnes = integer(0, 9, random);
+  const bTens = integer(0, operator === '+' ? 9 - aTens : aTens, random);
+  const bOnes = integer(0, operator === '+' ? 9 - aOnes : aOnes, random);
+  return operation(aHundreds * 100 + aTens * 10 + aOnes, bHundreds * 100 + bTens * 10 + bOnes, operator);
+}
+
+export function generateHundredsExchange(operator: Operator, random: Random = Math.random): Operation {
+  const aHundreds = integer(2, 6, random);
+  const bHundreds = integer(1, operator === '+' ? 8 - aHundreds : aHundreds - 1, random);
+  if (operator === '+') {
+    const aTens = integer(1, 9, random), aOnes = integer(1, 9, random);
+    return operation(aHundreds * 100 + aTens * 10 + aOnes,
+      bHundreds * 100 + integer(9 - aTens, 9, random) * 10 + integer(10 - aOnes, 9, random), operator);
+  }
+  // Include borrowing through a zero tens column, e.g. 402 − 178.
+  const aTens = integer(0, 8, random), aOnes = integer(0, 8, random);
+  return operation(aHundreds * 100 + aTens * 10 + aOnes,
+    bHundreds * 100 + integer(aTens, 9, random) * 10 + integer(aOnes + 1, 9, random), operator);
+}
+
+export function generateTripleAddition(_operator: Operator, random: Random = Math.random): Operation {
+  const values = Array.from({ length: 3 }, () => integer(1, 2, random) * 100 + integer(7, 9, random) * 10 + integer(7, 9, random)).sort((a, b) => b - a);
+  return { a: values[0], b: values[1], operator: '+', extraAddends: [values[2]] };
+}
+
 export function generateRound(level: number, pieceCount: number, random: Random = Math.random): Operation[] {
-  const generator = [...stageGenerators, generateMixedOperation][level];
+  const generator = [...stageGenerators, generateMixedOperation, generateHundredsOperation, generateHundredsExchange, generateHundredsExchange, generateTripleAddition][level];
   if (!generator) throw new RangeError(`Unknown maths stage: ${level}`);
   // Stage 4 teaches addition carries; stage 6 separately teaches subtraction borrowing.
-  const focusedOperator = level === 3 ? '+' : level === 5 ? '−' : undefined;
+  const focusedOperator = level === 3 || level === 8 || level === 10 ? '+' : level === 5 || level === 9 ? '−' : undefined;
   const operators: Operator[] = Array.from({ length: pieceCount }, (_, index) => focusedOperator ?? (index % 2 ? '−' : '+'));
   for (let i = operators.length - 1; i > 0; i--) {
     const j = integer(0, i, random);

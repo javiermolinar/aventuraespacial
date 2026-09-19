@@ -6,8 +6,8 @@ import { answer, dragPiece, placeByTap, readOperation, solveCurrent } from './he
 test('distinct robot silhouettes appear above the practice levels; the game has no menus', async ({ page }) => {
   await page.goto('/practice.html');
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-  await expect(page.locator('.level-card')).toHaveCount(7);
-  await expect(page.locator('.robot-silhouette')).toHaveCount(7);
+  await expect(page.locator('.level-card')).toHaveCount(levels.length);
+  await expect(page.locator('.robot-silhouette')).toHaveCount(levels.length);
   const collection = await page.locator('.collection-section').boundingBox();
   const picker = await page.locator('.game-picker').boundingBox();
   expect(collection!.y + collection!.height).toBeLessThan(picker!.y);
@@ -16,7 +16,7 @@ test('distinct robot silhouettes appear above the practice levels; the game has 
       [shape.tagName, ...['d', 'x', 'y', 'rx', 'ry', 'r', 'cx', 'cy', 'width', 'height'].map(name => shape.getAttribute(name))].join(':')
     ).join('|')
   ));
-  expect(new Set(silhouettes).size).toBe(7);
+  expect(new Set(silhouettes).size).toBe(10);
   await page.getByRole('link', { name: 'Nivel 1: Primeras cuentas' }).click();
   await expect(page).toHaveURL(/games\/robot-lab.html\?level=1$/);
   await expect(page.getByRole('navigation')).toHaveCount(0);
@@ -49,7 +49,7 @@ test('wrong answers give no pieces; a completed mixed round reveals and saves it
   await solveCurrent(page);
   await page.getByRole('link', { name: 'Salir', exact: true }).click();
   await expect(page.locator('.collected-robot')).toHaveCount(1);
-  await expect(page.locator('.robot-silhouette')).toHaveCount(6);
+  await expect(page.locator('.robot-silhouette')).toHaveCount(levels.length - 1);
   await page.reload();
   await expect(page.locator('.collected-robot')).toHaveCount(1);
   expect(errors).toEqual([]);
@@ -71,7 +71,7 @@ test('wrong drops return to the conveyor; the correct outline accepts the part',
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
 });
 
-test('all seven random levels respect the separated carrying skills and remain playable', async ({ page }) => {
+test('all random levels respect the separated carrying skills and remain playable', async ({ page }) => {
   test.setTimeout(120_000);
   for (let level = 0; level < levels.length; level++) {
     await page.goto(`/games/robot-lab.html?level=${level + 1}`);
@@ -80,15 +80,15 @@ test('all seven random levels respect the separated carrying skills and remain p
       const operation = await solveCurrent(page);
       operators.add(operation.operator);
       expect(operation.a).toBeGreaterThanOrEqual(operation.b);
-      if (operation.operator === '−' && level !== 5) expect(needsExchange(operation)).toBe(false);
+      if (operation.operator === '−' && level !== 5 && level !== 9) expect(needsExchange(operation)).toBe(false);
       await dragPiece(page);
       await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', String(index + 1));
     }
-    expect([...operators].sort()).toEqual(level === 3 ? ['+'] : level === 5 ? ['−'] : ['+', '−']);
+    expect([...operators].sort()).toEqual(level === 3 || level === 8 || level === 10 ? ['+'] : level === 5 || level === 9 ? ['−'] : ['+', '−']);
     await expect(page.getByRole('heading', { name: '¡Lo has conseguido!' })).toBeVisible();
   }
   await page.goto('/practice.html');
-  await expect(page.locator('.collected-robot')).toHaveCount(7);
+  await expect(page.locator('.collected-robot')).toHaveCount(levels.length);
 });
 
 test('mobile selection, sound, and exit work without overflow', async ({ browser }) => {

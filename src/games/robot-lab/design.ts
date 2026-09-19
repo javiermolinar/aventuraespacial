@@ -1,1 +1,1 @@
-export type RobotDesign = 'sprout' | 'spark' | 'bolt' | 'space' | 'bubble' | 'gear' | 'pixel';
+export type RobotDesign = 'sprout' | 'spark' | 'bolt' | 'space' | 'bubble' | 'gear' | 'pixel' | 'cobalt' | 'nova' | 'titan';

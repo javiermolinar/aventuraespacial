@@ -112,7 +112,9 @@ test.describe('mobile touch', () => {
     await arc(page, 'hour', 180, 240, touch);
     await arc(page, 'minute', 0, 180, touch);
     await expect(hourHand(page)).toHaveAttribute('transform', 'rotate(255 150 150)');
-    await page.screenshot({ path: 'artifacts/time-chef-visual-hint.png', fullPage: true });
+    // Keep the emulated touch viewport unchanged between the drag and tap.
+    // Full-page capture can resize it and invalidate Chromium's touch coordinates.
+    await page.screenshot({ path: 'artifacts/time-chef-visual-hint.png' });
     await page.getByRole('button', { name: '¡Listo!' }).tap();
     await expect(page.getByRole('status')).toHaveText('¡En su punto!');
   });

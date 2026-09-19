@@ -9,6 +9,9 @@ export const partPositions: Record<PartId, [number, number]> = {
 // Shared geometry keeps silhouettes, targets, and earned parts visually consistent.
 function HeadGeometry({ design }: { design: RobotDesign }) {
   switch (design) {
+    case 'cobalt': return <path d="M155 80H245L263 131L245 183H155L137 131Z" />;
+    case 'nova': return <path d="M137 183V110Q200 45 263 110V183Z" />;
+    case 'titan': return <rect x="127" y="90" width="146" height="83" rx="18" />;
     case 'sprout': return <rect x="137" y="80" width="126" height="103" rx="32" />;
     case 'spark': return <path d="M159 80H241L263 104V160L241 183H159L137 160V104Z" />;
     case 'bolt': return <path d="M137 80H240L263 105V183H160L137 158Z" />;
@@ -21,6 +24,9 @@ function HeadGeometry({ design }: { design: RobotDesign }) {
 
 function BodyGeometry({ design }: { design: RobotDesign }) {
   switch (design) {
+    case 'cobalt': return <path d="M160 198H240L260 250L240 303H160L140 250Z" />;
+    case 'nova': return <path d="M140 198H260L250 303H150Z" />;
+    case 'titan': return <rect x="130" y="208" width="140" height="85" rx="20" />;
     case 'sprout': return <path d="M157 198H243L254 278Q254 303 231 303H169Q146 303 146 278Z" />;
     case 'spark': return <path d="M157 198H243L260 216V286L243 303H157L140 286V216Z" />;
     case 'bolt': return <path d="M140 198H260L239 303H161Z" />;
@@ -33,6 +39,9 @@ function BodyGeometry({ design }: { design: RobotDesign }) {
 
 function Antenna({ design }: { design: RobotDesign }) {
   switch (design) {
+    case 'cobalt': return <><path d="M200 80V55" fill="none" /><path d="M200 27L216 43L200 59L184 43Z" /></>;
+    case 'nova': return <><path d="M200 80V57" fill="none" /><path d="M200 23L207 36L222 38L211 49L214 64L200 57L186 64L189 49L178 38L193 36Z" /></>;
+    case 'titan': return <><path d="M160 90V52M240 90V52" fill="none" /><circle cx="160" cy="45" r="10" /><circle cx="240" cy="45" r="10" /></>;
     case 'sprout': return <><path d="M200 80V53" fill="none" /><path d="M200 61Q175 65 176 42Q199 42 200 61ZM200 57Q224 59 224 35Q201 35 200 57Z" /></>;
     case 'spark': return <><path d="M183 80V50M217 80V50" fill="none" /><circle cx="183" cy="43" r="8" /><circle cx="217" cy="43" r="8" /></>;
     case 'bolt': return <path d="M205 28L183 54H198L191 80L218 47H203Z" />;

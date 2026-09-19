@@ -5,6 +5,7 @@ import { columnAnswer, needsExchange, needsTens, operationLabel, regroupUnits, r
 import { playSound } from '../../sound';
 import { CarryNumbers, tensLabel } from './CarryNumbers';
 import './math-puzzle.css';
+import { HundredsPuzzle } from './HundredsPuzzle';
 
 function Cubes({ count, tone = 'purple', removed = 0 }: { count: number; tone?: 'purple' | 'gold'; removed?: number }) {
   return <div className="cubes" aria-label={`${count - removed} unidades${removed ? `, ${removed} tachadas` : ''}`}>
@@ -36,7 +37,7 @@ function CountingBlocks({ operation, exchanged, column }: { operation: Operation
   </div>;
 }
 
-export function MathPuzzle({ operation, partName, sound, onSolved }: { operation: Operation; partName: string; sound: boolean; onSolved: () => void }) {
+function TwoDigitPuzzle({ operation, partName, sound, onSolved }: { operation: Operation; partName: string; sound: boolean; onSolved: () => void }) {
   const puzzleRef = useRef<HTMLDivElement>(null);
   const [column, setColumn] = useState<'ones' | 'tens'>('ones');
   const [digit, setDigit] = useState('');
@@ -151,4 +152,10 @@ export function MathPuzzle({ operation, partName, sound, onSolved }: { operation
     </>}
     <span className="sr-only" aria-live="polite">{simpleAddition ? '' : regrouping ? `El ${carry.ones} queda en las unidades. Lleva ${tensLabel(carry.tens)} a las decenas.` : column === 'tens' ? numericCarry ? `Llevamos ${tensLabel(carry.tens)}. Ahora suma las decenas.` : 'Ahora, las decenas.' : exchanged ? 'Hemos cambiado una decena por diez unidades.' : ''}</span>
   </div>;
+}
+
+export function MathPuzzle(props: Parameters<typeof TwoDigitPuzzle>[0]) {
+  return Math.max(props.operation.a, props.operation.b, resultOf(props.operation)) >= 100
+    ? <HundredsPuzzle key={operationLabel(props.operation)} {...props} />
+    : <TwoDigitPuzzle {...props} />;
 }

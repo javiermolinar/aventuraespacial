@@ -1,3 +1,4 @@
+import { levels } from '../../src/game';
 import { expect, test, type Page } from '@playwright/test';
 import { placeByTap, readOperation, solveCurrent } from './helpers';
 import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart, type AdventureProgress } from '../../src/adventure/progress';
@@ -94,7 +95,7 @@ test('home: single main action, separate free practice, and continuous start/con
   const chapterMenu = await page.getByRole('region', { name: 'Elige un capítulo' }).boundingBox();
   expect(bounds!.y + bounds!.height).toBeLessThan(chapterMenu!.y);
   await practice.click();
-  await expect(page.locator('.level-card')).toHaveCount(7);
+  await expect(page.locator('.level-card')).toHaveCount(levels.length);
   await expect(page.locator('.collected-robot')).toHaveCount(1);
   await page.getByRole('link', { name: 'Volver al inicio' }).click();
   await page.getByRole('button', { name: 'Empezar aventura' }).click();

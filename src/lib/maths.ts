@@ -1,4 +1,4 @@
-export type Operation = { a: number; b: number; operator: '+' | '−' };
+export type Operation = { a: number; b: number; operator: '+' | '−'; extraAddends?: number[] };
 
 export function largerFirst(operation: Operation): Operation {
   return operation.operator === '+' && operation.a < operation.b
@@ -7,7 +7,7 @@ export function largerFirst(operation: Operation): Operation {
 }
 
 export function resultOf(operation: Operation) {
-  return operation.operator === '+' ? operation.a + operation.b : operation.a - operation.b;
+  return operation.operator === '+' ? operation.a + operation.b + (operation.extraAddends ?? []).reduce((sum, n) => sum + n, 0) : operation.a - operation.b;
 }
 
 /** Split a column total into the amount carried and the digit left behind.
@@ -21,7 +21,7 @@ export function regroupUnits(total: number) {
 export function needsExchange(operation: Operation) {
   const a = operation.a % 10;
   const b = operation.b % 10;
-  return operation.operator === '+' ? a + b >= 10 : a < b;
+  return operation.operator === '+' ? a + b + (operation.extraAddends ?? []).reduce((sum, n) => sum + n % 10, 0) >= 10 : a < b;
 }
 
 export function needsTens(operation: Operation) {
@@ -34,5 +34,5 @@ export function columnAnswer(operation: Operation, column: 'ones' | 'tens') {
 }
 
 export function operationLabel(operation: Operation) {
-  return `${operation.a} ${operation.operator} ${operation.b}`;
+  return `${operation.a} ${operation.operator} ${operation.b}${(operation.extraAddends ?? []).map(n => ` + ${n}`).join('')}`;
 }

@@ -63,25 +63,27 @@ describe('level generation', () => {
       for (let round = 0; round < 100; round++) {
         const operations = getOperations(level, random);
         expect(operations).toHaveLength(levels[level].pieceCount);
-        const additionCount = level === 3 ? levels[level].pieceCount : level === 5 ? 0 : levels[level].pieceCount / 2;
+        const additionCount = level === 3 || level === 8 || level === 10 ? levels[level].pieceCount : level === 5 || level === 9 ? 0 : levels[level].pieceCount / 2;
         expect(operations.filter(operation => operation.operator === '+')).toHaveLength(additionCount);
         expect(operations.filter(operation => operation.operator === '−')).toHaveLength(levels[level].pieceCount - additionCount);
         distinct.add(JSON.stringify(operations));
         for (const operation of operations) {
           const result = resultOf(operation);
           expect(result).toBeGreaterThanOrEqual(0);
-          expect(result).toBeLessThan(100);
+          expect(result).toBeLessThan(level >= 7 ? 1000 : 100);
           expect(columnAnswer(operation, 'ones') + columnAnswer(operation, 'tens') * 10).toBe(result);
           expect(operation.a).toBeGreaterThanOrEqual(operation.b);
-          if (operation.operator === '−' && level !== 5) expect(needsExchange(operation)).toBe(false);
+          if (operation.operator === '−' && level !== 5 && level !== 9) expect(needsExchange(operation)).toBe(false);
+          if (level === 10) { expect(operation.extraAddends).toHaveLength(1); expect((operation.a % 10 + operation.b % 10 + operation.extraAddends![0] % 10)).toBeGreaterThanOrEqual(20); }
+          if (level >= 7) { expect(operation.a).toBeGreaterThanOrEqual(100); expect(operation.b).toBeGreaterThanOrEqual(100); }
           if (level === 0) { expect(result).toBeLessThan(10); expect(operation.a).toBeLessThan(10); expect(needsExchange(operation)).toBe(false); }
-          if (level === 1 || level === 4) expect(needsExchange(operation)).toBe(false);
+          if (level === 1 || level === 4 || level === 7) expect(needsExchange(operation)).toBe(false);
           if (level === 2) {
             expect(result).toBeLessThanOrEqual(20);
             if (operation.operator === '+') { expect(operation.a).toBeLessThan(10); expect(result).toBeGreaterThanOrEqual(10); }
             else expect(needsExchange(operation)).toBe(false);
           }
-          if (level === 3 || level === 5) expect(needsExchange(operation)).toBe(true);
+          if (level === 3 || level === 5 || level === 8 || level === 9) expect(needsExchange(operation)).toBe(true);
           if (level === 3 || level === 4 || level === 5) { expect(operation.a).toBeGreaterThanOrEqual(10); expect(operation.b).toBeGreaterThanOrEqual(10); }
         }
       }
@@ -106,7 +108,7 @@ describe('level generation', () => {
     for (let level = 0; level < levels.length; level++) for (const value of [0, 0.999999]) {
       for (const operation of getOperations(level, () => value)) {
         expect(resultOf(operation)).toBeGreaterThanOrEqual(0);
-        expect(resultOf(operation)).toBeLessThan(100);
+        expect(resultOf(operation)).toBeLessThan(level >= 7 ? 1000 : 100);
         expect(operation.a).toBeGreaterThanOrEqual(operation.b);
       }
     }

@@ -21,6 +21,10 @@ export const levels = [
   { name: 'Cuentas más grandes', description: 'Dos cifras, sin llevadas', design: 'bubble', color: '#8fc1ce', robot: 'Burbuja', pieceCount: 6 },
   { name: 'Restas con llevadas', description: 'Solo restas, paso a paso', design: 'gear', color: '#d6a3bd', robot: 'Tuerca', pieceCount: 6 },
   { name: 'El gran taller', description: 'Sumas y restas; las restas sin llevadas', design: 'pixel', color: '#b3bd78', robot: 'Pixel', pieceCount: 6 },
+  { name: 'Llegan las centenas', description: 'Tres cifras, sin llevadas', design: 'cobalt', color: '#78bcca', robot: 'Cobalto', pieceCount: 6 },
+  { name: 'Sumas de tres cifras', description: 'Llevadas en varias columnas', design: 'nova', color: '#d9ae65', robot: 'Nova', pieceCount: 6 },
+  { name: 'Restas de tres cifras', description: 'Cambios entre centenas, decenas y unidades', design: 'titan', color: '#99b4de', robot: 'Titan', pieceCount: 6 },
+  { name: 'Tres números, más llevadas', description: 'Sumas de tres números: llevamos 2', design: 'bolt', color: '#e8a4cf', robot: 'Rayo experto', pieceCount: 6 },
 ] as const;
 
 // Illustrations for the landing cards only, never used to populate a game.
@@ -29,6 +33,9 @@ export const levelExamples: Operation[] = [
   { a: 8, b: 7, operator: '+' }, { a: 15, b: 15, operator: '+' },
   { a: 25, b: 12, operator: '−' }, { a: 23, b: 7, operator: '−' },
   { a: 43, b: 12, operator: '−' },
+  { a: 324, b: 152, operator: '+' }, { a: 278, b: 156, operator: '+' },
+  { a: 402, b: 178, operator: '−' },
+  { a: 289, b: 178, operator: '+', extraAddends: [177] },
 ];
 
 export function getOperations(level: number, random: Random = Math.random): Operation[] {
