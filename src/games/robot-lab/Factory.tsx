@@ -46,9 +46,11 @@ export function Factory({ placed, selected, ready, color, design, complete, acti
       <div className="factory-rail" aria-hidden="true"><i /><i /><i /><i /><i /></div>
       <div className={`factory-chute ${ready ? 'open' : ''}`} aria-hidden="true"><span /><i /></div>
       <div className="factory-light" aria-hidden="true"><i className={ready || complete ? 'lit' : ''} /><i /></div>
-      <div className="robot-container">
-        <Robot placed={placed} selected={selected} ready={ready} color={color} design={design} complete={complete} />
-        {ready && <button ref={targetRef} className="part-target" style={{ left: `${target.x / 4}%`, top: `${target.y / 4.2}%`, width: `${target.width / 4}%`, height: `${target.height / 4.2}%` }} aria-label={`Encajar ${selectedName}`} onClick={() => { if (armed) onPlace(); else setMissed(true); }} />}
+      <div className="robot-assembly">
+        <div className="robot-container">
+          <Robot placed={placed} selected={selected} ready={ready} color={color} design={design} complete={complete} />
+          {ready && <button ref={targetRef} className="part-target" style={{ left: `${target.x / 4}%`, top: `${target.y / 4.2}%`, width: `${target.width / 4}%`, height: `${target.height / 4.2}%` }} aria-label={`Encajar ${selectedName}`} onClick={() => { if (armed) onPlace(); else setMissed(true); }} />}
+        </div>
       </div>
       <div className={`conveyor ${conveyor.running ? 'running' : ''}`} style={{ '--conveyor-pace': travelMs / conveyorTravelMs } as CSSProperties} aria-hidden="true"><div className="belt" /><div className="rollers">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div><span className="conveyor-leg leg-left" /><span className="conveyor-leg leg-right" /></div>
       {ready && <div className="conveyor-track"><motion.div className={`falling-piece ${conveyor.onFloor ? 'on-floor' : ''}`} key={selected} style={{ left: reducedMotion ? (conveyor.onFloor ? '100%' : 0) : conveyor.position }} initial={reducedMotion ? false : { y: -480, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ y: { duration: conveyorArrivalMs / 1000, ease: 'easeOut' }, opacity: { duration: 0.15 } }}>

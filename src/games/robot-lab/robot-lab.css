@@ -6,7 +6,7 @@
   .level-label { font-size: 14px; color: #8c809c; font-weight: 750; white-space: nowrap; flex-shrink: 0; }
   .workshop-grid { display: grid; flex: 1; grid-template-columns: minmax(0, 1.15fr) minmax(340px, 1fr); gap: clamp(18px, 2vw, 36px); align-items: stretch; }
   .factory { background: #eaf0e6; border: 2px solid #dee6d8; border-radius: 25px; min-width: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; scroll-margin-top: 10px; }
-  .factory-stage { --piece-size: 110px; --piece-drop: 76px; --belt-left: 15px; --belt-right: calc(30px + var(--piece-size)); min-height: 510px; flex: 1; position: relative; background-image: linear-gradient(#dce6d544 1px, transparent 1px), linear-gradient(90deg, #dce6d544 1px, transparent 1px); background-size: 34px 34px; }
+  .factory-stage { --piece-size: 110px; --piece-drop: 76px; --belt-left: 15px; --belt-right: calc(30px + var(--piece-size)); --belt-bottom: 28px; --belt-height: 58px; --robot-gap: 16px; min-height: 510px; flex: 1; position: relative; background-image: linear-gradient(#dce6d544 1px, transparent 1px), linear-gradient(90deg, #dce6d544 1px, transparent 1px); background-size: 34px 34px; }
   .factory-floor { position: absolute; inset: auto 0 0; height: 28px; border-top: 2px solid #bcc9b4; background: #d5dfcb; }
   .factory-rail { position: absolute; top: 21px; left: 0; right: 0; height: 18px; border-block: 3px solid #a7b6a2; background: #c3cebd; display: flex; justify-content: space-around; align-items: center; }
   .factory-rail i { width: 5px; height: 5px; background: #8b9b87; border-radius: 50%; }
@@ -17,11 +17,13 @@
   .factory-light { position: absolute; right: 19px; top: 58px; border: 2px solid #b7c3ad; border-radius: 20px; padding: 7px; background: #dce4d5; display: flex; gap: 7px; }
   .factory-light i { width: 11px; height: 11px; border-radius: 50%; background: #b1bc9e; border: 1px solid #96a780; }
   .factory-light i.lit { background: #9ccf7a; box-shadow: 0 0 12px #a0d37d; }
-  .robot-container { width: min(84%, calc(70dvh - 175px), 850px); max-width: calc(100% - var(--piece-size) - 16px); position: absolute; left: calc((100% + var(--belt-left) - var(--belt-right)) / 2); top: 46%; transform: translate(-50%, -50%); }
+  /* The robot and its hit areas scale together in the space directly above the belt. */
+  .robot-assembly { position: absolute; top: 92px; bottom: calc(var(--belt-bottom) + var(--belt-height) + var(--robot-gap)); left: var(--belt-left); right: var(--belt-right); container-type: size; }
+  .robot-container { width: min(100cqw, calc(100cqh * 400 / 420), 850px); position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); }
   .part-target { position: absolute; background: transparent; border: 0; border-radius: 15px; padding: 0; z-index: 3; touch-action: manipulation; }
   .part-target:focus-visible { outline: 4px solid #8c60d0; outline-offset: 3px; }
   .piece-selected .part-target { outline: 3px dashed #9a7bcc; outline-offset: 5px; background: #c3a7e615; }
-  .conveyor { position: absolute; bottom: 28px; left: var(--belt-left); right: var(--belt-right); height: 58px; background: #aebbac; border: 3px solid #81957e; border-radius: 18px; box-shadow: 0 5px 0 #d6dfce; }
+  .conveyor { position: absolute; bottom: var(--belt-bottom); left: var(--belt-left); right: var(--belt-right); height: var(--belt-height); background: #aebbac; border: 3px solid #81957e; border-radius: 18px; box-shadow: 0 5px 0 #d6dfce; }
   .belt { position: absolute; top: -6px; left: 7px; right: 7px; height: 12px; border: 3px solid #75886e; border-radius: 7px; background: repeating-linear-gradient(90deg, #b1bc9f 0 18px, #8c9c7d 18px 22px); }
   .rollers { height: 100%; display: flex; align-items: center; justify-content: space-around; padding: 8px; overflow: hidden; }
   .rollers > i { height: 28px; width: 28px; flex-shrink: 0; border: 3px solid #85987f; background: #d3ddc9; border-radius: 50%; position: relative; }
@@ -76,7 +78,7 @@
     .math-puzzle .simple-sum { font-size: 56px; }
     .math-puzzle .keypad button { font-size: 30px; }
   }
-  @media (max-width: 1000px) { padding: 8px 24px 24px; .workshop-grid { gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(310px, 1fr); } .activity-panel { padding: 22px; } .factory-stage { --piece-size: 95px; min-height: 480px; } .robot-container { top: 47%; width: 95%; } .factory-chute { left: 17px; width: 72px; } .conveyor-track { left: 10px; } .draggable-part { width: 95px; height: 95px; } .parts-tray { gap: 5px; } .part-card { width: 35px; height: 35px; border-radius: 8px; padding: 4px; } .factory-progress { padding: 15px 10px; gap: 10px; } }
+  @media (max-width: 1000px) { padding: 8px 24px 24px; .workshop-grid { gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(310px, 1fr); } .activity-panel { padding: 22px; } .factory-stage { --piece-size: 95px; min-height: 480px; } .factory-chute { left: 17px; width: 72px; } .conveyor-track { left: 10px; } .draggable-part { width: 95px; height: 95px; } .parts-tray { gap: 5px; } .part-card { width: 35px; height: 35px; border-radius: 8px; padding: 4px; } .factory-progress { padding: 15px 10px; gap: 10px; } }
   @media (max-width: 365px) { .activity-panel { padding: 18px 14px !important; } }
   @media (max-width: 700px) {
     padding: 4px 16px 20px;
@@ -85,7 +87,7 @@
     .level-label { font-size: 12px; }
     .workshop-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; }
     .factory { border-radius: 19px; }
-    .factory-stage { --piece-drop: 27px; --belt-left: 9px; --belt-right: calc(22px + var(--piece-size)); min-height: 163px; }
+    .factory-stage { --piece-drop: 27px; --belt-left: 9px; --belt-right: calc(22px + var(--piece-size)); --belt-bottom: 10px; --belt-height: 25px; --robot-gap: 8px; min-height: 204px; }
     .factory-floor { height: 18px; }
     .factory-rail { top: 12px; height: 12px; border-width: 2px; }
     .factory-chute { height: 55px; width: 54px; left: 18px; border-width: 2px; }
@@ -93,8 +95,9 @@
     .factory-chute > i { height: 10px; border-width: 2px; margin: 7px 3px 0; }
     .factory-light { top: 36px; right: 13px; padding: 5px; }
     .factory-light i { width: 7px; height: 7px; }
-    .robot-container { width: 145px; top: 44%; }
-    .conveyor { bottom: 10px; height: 25px; border-radius: 11px; border-width: 2px; box-shadow: none; }
+    .robot-assembly { top: 8px; }
+    .robot-container { width: min(100cqw, calc(100cqh * 400 / 420), 145px); }
+    .conveyor { border-radius: 11px; border-width: 2px; box-shadow: none; }
     .belt { height: 8px; top: -5px; border-width: 2px; }
     .rollers { padding: 3px; }
     .rollers > i { height: 17px; width: 17px; border-width: 2px; }
@@ -108,7 +111,8 @@
     .progress-label { font-size: 12px; }
     .activity-panel { padding: 20px; border-radius: 19px; }
     &.piece-ready .factory-stage { min-height: min(68dvh, 540px); }
-    &.piece-ready .robot-container { width: min(90%, 365px); top: 44%; }
+    &.piece-ready .robot-assembly { top: 85px; }
+    &.piece-ready .robot-container { width: min(100cqw, calc(100cqh * 400 / 420), 365px); }
     &.piece-ready .factory-chute { width: 80px; height: 80px; }
     &.piece-ready .factory-chute > span { height: 39px; }
     &.piece-ready .conveyor-track { left: 13px; right: calc(13px + var(--piece-size) * 2); bottom: 41px; }

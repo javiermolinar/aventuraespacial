@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { chispaChapter as chapter } from '../../src/adventure/chapters/chispa';
 import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart } from '../../src/adventure/progress';
+import { placeByTap, solveCurrent } from './helpers';
 
 for (const game of ['maths', 'wires', 'practice'] as const) {
   test(`${game} uses the viewport on wide screens and remains usable on phones`, async ({ page }) => {
@@ -12,7 +13,7 @@ for (const game of ['maths', 'wires', 'practice'] as const) {
     }
     await page.addInitScript(({ key, progress }) => localStorage.setItem(key, JSON.stringify(progress)), { key: adventureStorageKey, progress });
     await page.goto(game === 'practice' ? '/games/robot-lab.html?level=1' : '/games/adventure.html');
-    for (const [width, height] of [[1920, 1080], [2560, 1440], [1440, 900], [768, 1024], [390, 844], [844, 390]]) {
+    for (const [width, height] of [[1920, 1080], [2560, 1440], [1440, 900], [1001, 778], [1000, 778], [768, 1024], [721, 778], [701, 778], [700, 778], [390, 844], [844, 390]]) {
       await page.setViewportSize({ width, height });
       // Dynamic viewport units settle after the resize event, not setViewportSize's return.
       await page.evaluate(async () => { await document.fonts.ready; await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))); });
@@ -36,6 +37,7 @@ for (const game of ['maths', 'wires', 'practice'] as const) {
         const robot = (await page.locator('.robot-container').boundingBox())!;
         const belt = (await page.locator('.conveyor').boundingBox())!;
         expect(robot.x + robot.width / 2).toBeCloseTo(belt.x + belt.width / 2, 0);
+        expect(belt.y - (robot.y + robot.height)).toBeCloseTo(width <= 700 ? 8 : 16, 0);
         await page.locator('.keypad button').first().scrollIntoViewIfNeeded();
         await expect(page.locator('.keypad button').first()).toBeInViewport();
       }
@@ -44,3 +46,33 @@ for (const game of ['maths', 'wires', 'practice'] as const) {
     }
   });
 }
+
+test('resizing keeps the robot above the belt and fallen pieces accessible', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/games/robot-lab.html?level=1');
+  await solveCurrent(page);
+  await page.clock.fastForward(9_000);
+  await expect(page.getByText('¡Al suelo! Recoge la pieza.')).toBeVisible();
+  for (const [width, height] of [[1280, 720], [1001, 778], [1000, 778], [721, 778], [701, 778], [700, 778], [390, 844], [844, 390], [1280, 720]]) {
+    await page.setViewportSize({ width, height });
+    await page.clock.runFor(32);
+    // Container dimensions settle over successive frames when crossing a breakpoint.
+    await expect(async () => {
+      // Read a single layout frame so a resize cannot occur between rectangle reads.
+      const [robot, assembly, belt, piece, stage] = await page.evaluate(() =>
+        ['.robot-container', '.robot-assembly', '.conveyor', '.draggable-part', '.factory-stage']
+          .map(selector => document.querySelector(selector)!.getBoundingClientRect().toJSON())
+      );
+      expect(robot.x + robot.width / 2).toBeCloseTo(belt.x + belt.width / 2, 0);
+      expect(belt.y - (robot.y + robot.height)).toBeCloseTo(width <= 700 ? 8 : 16, 0);
+      expect(robot.y).toBeGreaterThanOrEqual(assembly.y - 1);
+      expect(robot.width / robot.height).toBeCloseTo(400 / 420, 2);
+      expect(piece.x).toBeGreaterThan(belt.x + belt.width);
+      expect(piece.x + piece.width).toBeLessThanOrEqual(stage.x + stage.width);
+      expect(piece.y + piece.height).toBeLessThanOrEqual(stage.y + stage.height);
+    }).toPass({ timeout: 5_000 });
+    await page.screenshot({ path: `artifacts/robot-resize-floor-${width}x${height}.png`, fullPage: true });
+  }
+  await placeByTap(page);
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
+});
