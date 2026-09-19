@@ -2,6 +2,7 @@ import { ArrowRight, Check } from 'lucide-react';
 import { useState } from 'react';
 import { levelExamples, levels, loadProgress, operationLabel } from './game';
 import { RobotPortrait } from './games/robot-lab/RobotArtwork';
+import { ConnectionsPicker } from './games/connections/ConnectionsPicker';
 import './styles/landing.css';
 import './styles/shape-game-picker.css';
 import './styles/time-chef-picker.css';
@@ -26,6 +27,7 @@ export default function Practice() {
           <h3>{level.name}</h3><p>{level.description}</p><div className="level-card-bottom"><strong>{operationLabel(levelExamples[index])}</strong><span className="play-arrow"><ArrowRight size={20} /></span></div>
         </a>)}</div>
       </section>
+      <ConnectionsPicker />
       <section className="shape-game-picker" aria-labelledby="shape-game-title">
         <div className="shape-game-art" aria-hidden="true"><span /><span /><span /><span /><span /><span /></div>
         <div><span className="shape-game-category">FORMAS Y ESPACIO</span><h2 id="shape-game-title">¡Todo encaja!</h2><p>Arrastra, gira y encaja todas las piezas en la caja. Seis retos, sin cronómetro.</p></div>

@@ -4,10 +4,43 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { PipePuzzle } from './PipePuzzle';
 import { radioInterlude, waterInterlude } from '../../adventure/chapters/interludes';
 import { chispaChapter } from '../../adventure/chapters/chispa';
+import { connectionGames } from './levels';
+import { pipeFlow, pipeGoals } from './pipes';
 
 afterEach(cleanup);
 
 describe('connection puzzle themes', () => {
+  it.each(['water', 'radio'] as const)('%s marks reached destinations independently, only after testing and with an outward connection', theme => {
+    const layout = connectionGames[theme].levels[2].layout;
+    const rotations = [...layout.solution];
+    // This T still carries flow to both destination cells, but its outlet
+    // to the first destination points the wrong way.
+    rotations[layout.goal.index] = (rotations[layout.goal.index] + 1) % 4;
+    const flow = pipeFlow(layout, rotations);
+    expect(flow.solved).toBe(false);
+    expect(pipeGoals(layout).every(goal => flow.wet.includes(goal.index))).toBe(true);
+    const onCheck = vi.fn();
+    const props = { layout, sound: false, theme, onRotate: vi.fn(), onNext: vi.fn(), onCheck };
+    const { container, rerender } = render(<PipePuzzle {...props} rotations={rotations} />);
+    expect(container.querySelectorAll('.pipe-destination-check')).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Probar' }));
+    expect(onCheck).toHaveBeenLastCalledWith(false);
+    expect(screen.getByRole('img', { name: theme === 'water' ? /^Depósito 1 vacío/ : /^Radio 1 apagada/ })).toBeTruthy();
+    const connected = screen.getByRole('img', { name: theme === 'water' ? /^Depósito 2 lleno/ : /^Radio 2 conectada, sin corriente/ });
+    expect(connected.querySelector('.pipe-destination-check')).toBeTruthy();
+    expect(connected.querySelector('text')?.textContent).toBe('2');
+    expect(container.querySelectorAll('.pipe-destination-check')).toHaveLength(1);
+    expect(screen.getByRole('status').textContent).toContain('Destinos conectados: 1 de 2');
+    expect(screen.queryByRole('button', { name: 'Continuar' })).toBeNull();
+    fireEvent.click(screen.getAllByRole('button', { name: /^(Tubo|Cable), fila/ })[0]);
+    expect(container.querySelectorAll('.pipe-destination-check')).toHaveLength(0);
+    rerender(<PipePuzzle {...props} rotations={layout.solution} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Probar' }));
+    expect(onCheck).toHaveBeenLastCalledWith(true);
+    expect(container.querySelectorAll('.pipe-destination-check')).toHaveLength(2);
+    if (theme === 'radio') expect(screen.getAllByRole('img', { name: /^Radio \d encendida/ })).toHaveLength(2);
+  });
+
   it('handles touch taps without compatibility clicks, suppresses duplicate clicks, and keeps keyboard activation', () => {
     const onRotate = vi.fn();
     render(<PipePuzzle layout={radioInterlude.layout} rotations={radioInterlude.layout.initial} sound={false} onRotate={onRotate} onNext={vi.fn()} />);

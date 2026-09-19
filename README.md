@@ -14,7 +14,9 @@ npm run dev
 Open the URL printed by Vite, normally `http://localhost:5173`.
 
 - `/index.html`: the adventure itself. Start or continue over the full-screen artwork; **Practicar mates** has its own **Práctica libre** section above the chapter selector.
-- `/practice.html`: the eleven maths levels, robot collection, shape-packing, laser and clock games.
+- `/practice.html`: the eleven maths levels, robot collection, water-pipe and cable puzzles, shape-packing, laser and clock games.
+- `/games/connections.html?theme=water`: **La ruta del agua**, six pipe puzzles progressing from 3 × 3 to 5 × 5 boards.
+- `/games/connections.html?theme=radio`: **Enciende la radio**, six cable puzzles. In both connection games, levels 1–2 introduce rotation; levels 3–6 require a complete network with T-junctions, loops and up to four destinations. Every piece must connect to the source and every opening must be sealed. Flow and connected destinations appear only after **Probar**, and editing hides the result until the next test. The top help icon offers an optional hint; the level menu handles navigation. Tap, drag, keyboard rotation, restart and separate browser saves are supported. The harder boards use new save IDs so old route completions do not mark them solved; the two introductory saves are retained.
 - `/games/time-chef.html`: **El chef del tiempo**, four recipes per menu: one with a hint, then three to practise analog clocks and 24-hour alarms.
 - `/games/shape-box.html`: **¡Todo encaja!**, twelve square/rectangular shape-packing puzzles with drag-and-drop and quarter-turn rotation.
 - `/games/laser-rats.html`: **La patrulla láser**, five logic puzzles followed by generated boards with verified safe discoveries, laser robots, fog and walls.

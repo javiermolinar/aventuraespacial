@@ -31,6 +31,9 @@
   .pipe-actions .text-button { font-size: 16px; }
   .pipe-actions .primary { width: 100%; background: #f0cd8e; border-color: #ffdda1; color: #202737; box-shadow: 0 3px 0 #aa834d; }
   .pipe-actions .primary:hover { background: #ffdfa4; }
+  .pipe-actions.has-test { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pipe-test { grid-column: 1 / -1; }
+  .pipe-actions.has-test .text-button { justify-self: end; }
   &.theme-radio {
     .pipe-legend { color: #e8d6aa; }
     .pipe-board-frame { padding-bottom: max(42px, 9%); }

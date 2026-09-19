@@ -40,6 +40,25 @@ test.describe('GitHub Pages project deployment', () => {
     if (server) await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   });
 
+  test('connection games load and navigate below the project prefix', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('response', response => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
+    page.on('request', request => { if (!request.url().startsWith(origin + prefix)) errors.push(`Outside project path: ${request.url()}`); });
+    for (const [theme, title] of [['water', 'La ruta del agua'], ['radio', 'Enciende la radio']]) {
+      await page.goto(origin + prefix + 'practice.html');
+      await page.getByRole('region', { name: title }).getByRole('link', { name: 'Jugar' }).click();
+      await expect(page).toHaveURL(origin + prefix + `games/connections.html?theme=${theme}`);
+      await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+      await page.getByRole('button', { name: /^Reto 6:/ }).click();
+      await page.reload();
+      await expect(page.locator('.pipe-tile')).toHaveCount(25);
+      await page.getByRole('link', { name: 'Salir', exact: true }).click();
+      await expect(page).toHaveURL(origin + prefix + 'practice.html');
+    }
+    expect(errors).toEqual([]);
+  });
+
   test('all entry pages, navigation, illustrations and music work below /aventuraespacial/', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));

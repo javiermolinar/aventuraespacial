@@ -17,6 +17,7 @@ export default defineConfig({
         shapeBox: resolve(import.meta.dirname, 'games/shape-box.html'),
         timeChef: resolve(import.meta.dirname, 'games/time-chef.html'),
         laserRats: resolve(import.meta.dirname, 'games/laser-rats.html'),
+        connections: resolve(import.meta.dirname, 'games/connections.html'),
       },
     },
   },

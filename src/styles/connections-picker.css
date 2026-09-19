@@ -1,0 +1,20 @@
+.connections-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+.connections-card { --card-accent: #327982; --card-tile: #c9e1e2; --card-flow: #77e1e6; padding: 25px; background: #eaf5f4; border: 1.5px solid #c5dedc; border-radius: 24px; }
+.connections-card-radio { --card-accent: #607549; --card-tile: #d8dfc7; --card-flow: #ffe4a0; background: #f1f3e7; border-color: #d6ddc6; }
+.connections-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.connections-card-category { font-size: 10px; font-weight: 900; letter-spacing: 1.2px; color: var(--card-accent); }
+.connections-card-badge { background: #ffffffb3; padding: 5px 9px; border-radius: 20px; color: var(--card-accent); font-size: 11px; font-weight: 850; white-space: nowrap; }
+.connections-card-art { display: flex; align-items: center; gap: 18px; margin: 16px 0 10px; }
+.connections-card-art > svg { width: min(75%, 280px); height: 95px; flex-shrink: 1; }
+.connections-art-grid { fill: var(--card-tile); }
+.connections-art-rim { fill: none; stroke: var(--card-accent); stroke-width: 13; stroke-linejoin: round; stroke-linecap: round; }
+.connections-art-flow { fill: none; stroke: var(--card-flow); stroke-width: 5; }
+.connections-card-art circle { fill: var(--card-flow); stroke: var(--card-accent); stroke-width: 3; }
+.connections-card-art > span { color: var(--card-accent); display: grid; place-items: center; background: #ffffffa3; width: 55px; height: 55px; border-radius: 17px; transform: rotate(5deg); }
+.connections-card h2 { font-size: 28px; font-weight: 900; letter-spacing: -.5px; }
+.connections-card p { font-size: 15px; line-height: 1.6; color: #65746a; margin-top: 6px; max-width: 380px; }
+.connections-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; }
+.connections-card-bottom > span { font-size: 12px; line-height: 1.8; color: var(--card-accent); }
+.connections-card .primary { background: var(--card-accent); border-color: var(--card-accent); box-shadow: 0 3px 0 #254b4433; font-size: 16px; min-height: 48px; padding: 10px 18px; }
+.connections-card .primary:hover { background: #355951; border-color: #355951; }
+@media (max-width: 700px) { .connections-picker { grid-template-columns: minmax(0, 1fr); gap: 18px; } .connections-card { padding: 20px; } .connections-card h2 { font-size: 25px; } }
