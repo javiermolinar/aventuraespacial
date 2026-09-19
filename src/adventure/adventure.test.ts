@@ -3,7 +3,7 @@ import { chispaChapter as chapter } from './chapters/chispa';
 import { chispaV1Chapter, chispaV2Chapter, chispaV3Chapter, chispaV5Chapter } from './chapters/chispa-migration';
 import { chispaV4Chapter } from './chapters/chispa-v4';
 import { destinations, validateChapter, type Chapter } from './types';
-import { adventureStorageKey, earnPart, loadAdventure, moveTo, newAdventure, placePart, rotatePipe, saveAdventure, validateProgress, type AdventureProgress } from './progress';
+import { adventureStorageKey, earnPart, expirePart, loadAdventure, moveTo, newAdventure, placePart, rotatePipe, saveAdventure, validateProgress, type AdventureProgress } from './progress';
 import { needsExchange } from '../lib/maths';
 import { normalizePlayerName, personalize, playerNameMaxLength } from './personalization';
 
@@ -74,6 +74,18 @@ describe('chapter authoring', () => {
 });
 
 describe('adventure construction', () => {
+  it('loses only the pending reward and allows the same operation to earn it again', () => {
+    const placed = placePart(earnPart(firstBuild(), chapter), chapter);
+    const earned = earnPart(placed, chapter);
+    const expired = expirePart(earned, chapter);
+    expect(expired).toEqual({ ...earned, ready: false });
+    expect(validateProgress(expired, chapter)).toBe(true);
+    expect(placePart(expired, chapter)).toBe(expired);
+    expect(expirePart(expired, chapter)).toBe(expired);
+    expect(earnPart(expired, chapter)).toEqual(earned);
+    const finished = finishBuild(expired);
+    expect(expirePart(finished, chapter)).toBe(finished);
+  });
   it('decouples all maths stages from Chispa and generates six operations', () => {
     for (let level = 0; level < 7; level++) {
       const p = firstBuild(level);

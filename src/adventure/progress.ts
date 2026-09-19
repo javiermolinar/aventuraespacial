@@ -171,6 +171,12 @@ export function earnPart(progress: AdventureProgress, chapter: Chapter): Adventu
   return scene.type === 'build' && progress.placedCount < scene.targetPlacedParts ? { ...progress, ready: true } : progress;
 }
 
+export function expirePart(progress: AdventureProgress, chapter: Chapter): AdventureProgress {
+  const scene = chapter.scenes[progress.sceneId];
+  if (scene.type !== 'build' || !progress.ready || progress.placedCount >= scene.targetPlacedParts) return progress;
+  return { ...progress, ready: false };
+}
+
 export function placePart(progress: AdventureProgress, chapter: Chapter): AdventureProgress {
   const scene = chapter.scenes[progress.sceneId];
   if (scene.type !== 'build' || !progress.ready || progress.placedCount >= scene.targetPlacedParts) return progress;

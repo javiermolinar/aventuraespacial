@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Check, Move } from 'lucide-react';
+import { Check, Move, Timer } from 'lucide-react';
 import { parts, type PartId } from '../../game';
 import { Robot, PartIcon } from './Robot';
 import type { RobotDesign } from './design';
+import { conveyorArrivalMs, conveyorTravelMs, useConveyor } from './useConveyor';
 
 // Hit areas are in the robot SVG's 400 × 420 coordinate system.
 const targets: Record<PartId, { x: number; y: number; width: number; height: number }> = {
@@ -15,12 +16,15 @@ const targets: Record<PartId, { x: number; y: number; width: number; height: num
   rightLeg: { x: 214, y: 307, width: 58, height: 72 },
 };
 
-export function Factory({ placed, selected, ready, color, design, complete, activeParts, onPlace }: {
-  placed: PartId[]; selected: PartId; ready: boolean; color: string; design: RobotDesign; complete: boolean; activeParts: typeof parts; onPlace: () => void;
+export function Factory({ placed, selected, ready, color, design, complete, activeParts, onPlace, onExpire, travelMs, paused = false }: {
+  placed: PartId[]; selected: PartId; ready: boolean; color: string; design: RobotDesign; complete: boolean; activeParts: typeof parts; onPlace: () => void; onExpire: () => void; travelMs: number; paused?: boolean;
 }) {
-  const [armed, setArmed] = useState(false);
   const [missed, setMissed] = useState(false);
+  const conveyor = useConveyor({ ready, selected, paused, onExpire, travelMs });
+  const armed = conveyor.caught;
   const targetRef = useRef<HTMLButtonElement>(null);
+  const pieceRef = useRef<HTMLButtonElement>(null);
+  const instructionsId = useId();
   const factoryRef = useRef<HTMLDivElement>(null);
   const hasDragged = useRef(false);
   const reducedMotion = useReducedMotion();
@@ -28,8 +32,9 @@ export function Factory({ placed, selected, ready, color, design, complete, acti
   const selectedName = parts.find(part => part.id === selected)!.name;
   const count = activeParts.filter(part => placed.includes(part.id)).length;
 
-  useEffect(() => { setArmed(false); setMissed(false); }, [selected, ready]);
+  useEffect(() => { setMissed(false); }, [selected, ready]);
   useLayoutEffect(() => {
+    if (ready) pieceRef.current?.focus({ preventScroll: true });
     if (ready && window.matchMedia('(max-width: 700px)').matches) {
       factoryRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
     }
@@ -44,24 +49,38 @@ export function Factory({ placed, selected, ready, color, design, complete, acti
         <Robot placed={placed} selected={selected} ready={ready} color={color} design={design} complete={complete} />
         {ready && <button ref={targetRef} className="part-target" style={{ left: `${target.x / 4}%`, top: `${target.y / 4.2}%`, width: `${target.width / 4}%`, height: `${target.height / 4.2}%` }} aria-label={`Encajar ${selectedName}`} onClick={() => { if (armed) onPlace(); else setMissed(true); }} />}
       </div>
-      <div className={`conveyor ${ready ? 'running' : ''}`} aria-hidden="true"><div className="belt" /><div className="rollers">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div><span className="conveyor-leg leg-left" /><span className="conveyor-leg leg-right" /></div>
-      {ready && <motion.div className="falling-piece" key={selected} initial={reducedMotion ? false : { y: -480, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ y: { type: 'spring', stiffness: 100, damping: 11, mass: 1.2 }, opacity: { duration: 0.15 } }}>
-        <motion.button className={`draggable-part ${armed ? 'armed' : ''}`} drag dragSnapToOrigin dragMomentum={false} dragTransition={{ bounceStiffness: 500, bounceDamping: 25 }} aria-label={`Arrastrar ${selectedName}`} aria-pressed={armed}
-          onPointerDown={() => { hasDragged.current = false; }}
-          onDragStart={() => { hasDragged.current = true; setArmed(true); setMissed(false); }}
+      <div className={`conveyor ${conveyor.running ? 'running' : ''}`} style={{ '--conveyor-pace': travelMs / conveyorTravelMs } as CSSProperties} aria-hidden="true"><div className="belt" /><div className="rollers">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div><span className="conveyor-leg leg-left" /><span className="conveyor-leg leg-right" /></div>
+      {ready && <div className="conveyor-track"><motion.div className="falling-piece" key={selected} style={{ left: reducedMotion ? 0 : conveyor.position }} initial={reducedMotion ? false : { y: -480, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ y: { duration: conveyorArrivalMs / 1000, ease: 'easeOut' }, opacity: { duration: 0.15 } }}>
+        <motion.button ref={pieceRef} className={`draggable-part ${armed ? 'armed' : ''}`} drag dragSnapToOrigin dragMomentum={false} dragTransition={{ bounceStiffness: 500, bounceDamping: 25 }} aria-label={`Arrastrar ${selectedName}`} aria-pressed={armed} aria-describedby={instructionsId}
+          onPointerDown={() => { hasDragged.current = false; conveyor.grab(); setMissed(false); }}
+          onPointerCancel={() => { conveyor.release(); setMissed(false); }}
+          onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') hasDragged.current = false; }}
+          onDragStart={() => { hasDragged.current = true; conveyor.grab(); setMissed(false); }}
           onDragEnd={event => {
+            if (event.type === 'pointercancel' || event.type === 'touchcancel') { conveyor.release(); return; }
             const point = 'changedTouches' in event ? event.changedTouches[0] : event;
             const rect = targetRef.current?.getBoundingClientRect();
             if (rect && point.clientX >= rect.left && point.clientX <= rect.right && point.clientY >= rect.top && point.clientY <= rect.bottom) onPlace();
-            else { setMissed(true); setArmed(false); }
+            else { setMissed(true); conveyor.release(); }
           }}
-          onClick={() => { if (!hasDragged.current) { setArmed(true); setMissed(false); } }}>
+          onClick={event => {
+            if (!hasDragged.current && conveyor.grab()) {
+              setMissed(false);
+              if (event.detail === 0) targetRef.current?.focus({ preventScroll: true });
+            }
+          }}>
           <PartIcon id={selected} color={color} design={design} /><span className="drag-grip" aria-hidden="true"><Move size={16} /></span>
         </motion.button>
-      </motion.div>}
+      </motion.div></div>}
       {complete && <div className="confetti" aria-hidden="true">{Array.from({ length: 16 }, (_, index) => <i key={index} style={{ left: `${8 + (index * 17) % 85}%`, top: `${8 + (index * 13) % 66}%`, background: ['#b5a3e8', '#efc775', '#87b99d', '#e9a188'][index % 4], animationDelay: `${index * 0.08}s`, rotate: `${index * 31}deg` }} />)}</div>}
       {missed && <div className="factory-feedback" role="status">{armed ? 'Toca su silueta.' : 'Lleva la pieza a su silueta.'}</div>}
     </div>
+    {ready && <div className={`conveyor-status ${armed ? 'caught' : ''}`}>
+      {armed ? <Check size={18} aria-hidden="true" /> : <Timer size={18} aria-hidden="true" />}
+      <span aria-live="polite">{armed ? '¡La tienes! Encájala.' : '¡Atrápala antes de que se vaya!'}</span>
+      {!armed && <span className="conveyor-seconds" aria-hidden="true">{conveyor.seconds.toLocaleString('es')} s</span>}
+      <span id={instructionsId} className="sr-only">Tienes {(travelMs / 1000).toLocaleString('es')} segundos para atraparla. Arrastra la pieza o tócala y después toca su silueta. Con teclado, pulsa Enter o Espacio para atraparla y otra vez para encajarla.</span>
+    </div>}
     <div className="factory-progress"><div className="parts-tray" aria-label="Piezas del robot">{activeParts.map((part, index) => <div key={part.id} className={`part-card ${part.id === selected && !complete ? 'selected' : ''} ${placed.includes(part.id) ? 'placed' : ''}`} aria-label={`${part.shortName}${placed.includes(part.id) ? ', colocada' : ''}`}><PartIcon id={part.id} color={color} design={design} />{placed.includes(part.id) && <span className="part-check"><Check size={13} /></span>}<span className="sr-only">Pieza {index + 1}</span></div>)}</div><span className="progress-label" role="progressbar" aria-label="Piezas colocadas" aria-valuenow={count} aria-valuemin={0} aria-valuemax={activeParts.length}>{count} / {activeParts.length}</span></div>
   </section>;
 }

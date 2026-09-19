@@ -3,6 +3,7 @@ import { motion, MotionConfig } from 'motion/react';
 import { ArrowLeft, ArrowRight, Check, Hand, PartyPopper, RotateCcw } from 'lucide-react';
 import { getOperations, levels, loadProgress, operationLabel, parts, resultOf, saveProgress, type PartId } from '../../game';
 import { Factory } from './Factory';
+import { conveyorDuration } from './useConveyor';
 import { MathPuzzle } from '../../components/maths/MathPuzzle';
 import { SiteShell } from '../../components/SiteShell';
 import { BackgroundMusic } from '../../components/BackgroundMusic';
@@ -24,6 +25,7 @@ export default function RobotLab() {
   const [placed, setPlaced] = useState<PartId[]>(level === 0 ? ['leftLeg', 'rightLeg'] : []);
   const [saveFailed, setSaveFailed] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [pieceExpired, setPieceExpired] = useState(false);
   const completedRef = useRef(false);
   const config = levels[level];
   const activeParts = parts.slice(0, config.pieceCount);
@@ -43,6 +45,7 @@ export default function RobotLab() {
     setPlaced(level === 0 ? ['leftLeg', 'rightLeg'] : []);
     completedRef.current = false;
     setAnnouncement('');
+    setPieceExpired(false);
   };
 
   const placePart = () => {
@@ -75,7 +78,11 @@ export default function RobotLab() {
       {saveFailed && <div className="save-warning" role="status">No se puede guardar el progreso en este navegador.</div>}
       <div className="page-heading"><h1>{complete ? `¡Hola, ${config.robot}!` : `Construye a ${config.robot}`}</h1><span className="level-label">Nivel {level + 1}</span></div>
       <div className="workshop-grid">
-        <Factory placed={placed} selected={selectedPart.id} ready={ready} color={config.color} design={config.design} complete={complete} activeParts={activeParts} onPlace={placePart} />
+        <Factory placed={placed} selected={selectedPart.id} ready={ready} color={config.color} design={config.design} complete={complete} activeParts={activeParts} onPlace={placePart} travelMs={conveyorDuration(level)} onExpire={() => {
+          setEarned(previous => previous.filter(id => id !== selectedPart.id));
+          setPieceExpired(true);
+          setAnnouncement('');
+        }} />
         <section className="activity-panel" aria-label="Resuelve la operación">
           <>
             {complete ? <motion.div key="complete" className="completion-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -83,7 +90,10 @@ export default function RobotLab() {
               <a autoFocus className="primary" href={level < levels.length - 1 ? `./robot-lab.html?level=${level + 2}` : '../practice.html'}>Otro robot<ArrowRight size={23} /></a><button className="text-button" onClick={replay}><RotateCcw size={18} />Otra vez</button>
             </motion.div> : ready ? <motion.div key={`earned-${selectedPart.id}`} className="earned-panel" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <span className="success-label"><Check size={22} />{operationLabel(selectedOperation)} = {resultOf(selectedOperation)}</span><Hand className="drag-instruction-icon" size={62} /><h2>Coloca {selectedPart.name}</h2><ArrowLeft className="point-to-factory" size={38} />
-            </motion.div> : <motion.div key={`puzzle-${round}-${selectedIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}><MathPuzzle operation={selectedOperation} partName={selectedPart.name} sound={progress.sound} onSolved={() => { setEarned(previous => previous.includes(selectedPart.id) ? previous : [...previous, selectedPart.id]); setAnnouncement(`¡Has conseguido ${selectedPart.name}!`); }} /></motion.div>}
+            </motion.div> : <motion.div key={`puzzle-${round}-${selectedIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
+              {pieceExpired && <p className="conveyor-retry" role="status">¡Se fue la pieza! Resuelve otra vez para recuperarla.</p>}
+              <MathPuzzle operation={selectedOperation} partName={selectedPart.name} sound={progress.sound} onSolved={() => { setPieceExpired(false); setEarned(previous => previous.includes(selectedPart.id) ? previous : [...previous, selectedPart.id]); setAnnouncement(`¡Has conseguido ${selectedPart.name}!`); }} />
+            </motion.div>}
           </>
         </section>
       </div>
