@@ -9,24 +9,22 @@ export function conveyorDuration(level: number) {
   return Math.max(3_000, conveyorTravelMs - Math.max(0, level) * 500);
 }
 
-/** One clock drives travel and expiry. Catching, hidden tabs and story review pause it. */
-export function useConveyor({ ready, selected, paused, onExpire, travelMs = conveyorTravelMs }: {
-  ready: boolean; selected: string; paused: boolean; onExpire: () => void; travelMs?: number;
+/** One clock drives travel to the floor. Catching, hidden tabs and story review pause it. */
+export function useConveyor({ ready, selected, paused, travelMs = conveyorTravelMs }: {
+  ready: boolean; selected: string; paused: boolean; travelMs?: number;
 }) {
   const progress = useMotionValue(0);
   const position = useTransform(progress, value => `${value * 100}%`);
   const elapsed = useRef(-conveyorArrivalMs);
-  const expired = useRef(false);
+  const [onFloor, setOnFloor] = useState(false);
   const held = useRef(false);
   const [caught, setCaught] = useState(false);
   const [seconds, setSeconds] = useState(travelMs / 1000);
   const [visible, setVisible] = useState(() => !document.hidden);
-  const expireRef = useRef(onExpire);
-  useLayoutEffect(() => { expireRef.current = onExpire; });
 
   useLayoutEffect(() => {
     elapsed.current = -conveyorArrivalMs;
-    expired.current = false;
+    setOnFloor(false);
     held.current = false;
     progress.set(0);
     setCaught(false);
@@ -40,7 +38,7 @@ export function useConveyor({ ready, selected, paused, onExpire, travelMs = conv
   }, []);
 
   useEffect(() => {
-    if (!ready || paused || caught || !visible || expired.current) return;
+    if (!ready || paused || caught || !visible || onFloor) return;
     let previous = performance.now();
     let frame: number;
     const tick = (now: number) => {
@@ -51,18 +49,17 @@ export function useConveyor({ ready, selected, paused, onExpire, travelMs = conv
       progress.set(fraction);
       setSeconds(Math.min(travelMs / 1000, Math.ceil((1 - fraction) * travelMs / 1000)));
       if (fraction === 1) {
-        expired.current = true;
-        expireRef.current();
+        setOnFloor(true);
       } else frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [ready, selected, paused, caught, visible, travelMs, progress]);
+  }, [ready, selected, paused, caught, visible, onFloor, travelMs, progress]);
 
   return {
-    position, seconds, caught, running: ready && !caught && !paused && visible,
+    position, seconds, caught, onFloor, running: ready && !caught && !paused && visible && !onFloor,
     grab: () => {
-      if (!ready || paused || expired.current) return false;
+      if (!ready || paused) return false;
       held.current = true;
       setCaught(true);
       return true;

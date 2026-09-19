@@ -16,11 +16,11 @@ const PipePuzzle = lazy(() => import('../games/connections/PipePuzzle').then(mod
 const PackingPuzzle = lazy(() => import('../games/shape-box/ShapeBox').then(module => ({ default: module.PackingPuzzle })));
 
 /** Adapts authored scenes to independent activities; games never receive the campaign. */
-export default function NarrativeView({ chapter, progress, scene, introduction, reviewId, reviewScene, assetPrefix, sound, onNext, onComplete, onReviewNext, onEarn, onPlace, onExpire, onRotate, onPackingChange }: {
+export default function NarrativeView({ chapter, progress, scene, introduction, reviewId, reviewScene, assetPrefix, sound, onNext, onComplete, onReviewNext, onEarn, onPlace, onRotate, onPackingChange }: {
   chapter: Chapter; progress: AdventureProgress; scene: Scene; introduction?: Introduction;
   reviewId: string | null; reviewScene: ReadingScene | null; assetPrefix: './' | '../'; sound: boolean;
   onNext: (id: string) => void; onComplete: () => void; onReviewNext: () => void;
-  onEarn: () => void; onPlace: () => void; onExpire: () => void; onRotate: (index: number, turns: number) => void;
+  onEarn: () => void; onPlace: () => void; onRotate: (index: number, turns: number) => void;
   onPackingChange: (state: PiecesState) => void;
 }) {
   const liveScene = useRef<HTMLDivElement>(null);
@@ -40,7 +40,7 @@ export default function NarrativeView({ chapter, progress, scene, introduction, 
         <p className="build-instruction">{personalize(scene.instruction, progress.playerName)}</p>
         <DeferredContent key={progress.sceneId}>
           <BuildActivity config={{ robot: chapter.robot, targetPlacedParts: scene.targetPlacedParts, mathsLevel: progress.mathsLevel, completion: personalize(scene.completion, progress.playerName) }}
-            state={{ operations: progress.operations, placedCount: progress.placedCount, ready: progress.ready }} sound={sound} paused={Boolean(reviewScene)} onExpire={onExpire}
+            state={{ operations: progress.operations, placedCount: progress.placedCount, ready: progress.ready }} sound={sound} paused={Boolean(reviewScene)}
             onEarn={onEarn} onPlace={() => { playSound(progress.placedCount === 5 ? 'complete' : 'place', sound); onPlace(); }} onComplete={() => onNext(scene.next)} />
         </DeferredContent>
       </section> : scene.type === 'pipes' ? <article className={`pipe-console theme-${scene.theme ?? 'water'}`} key={progress.sceneId}>

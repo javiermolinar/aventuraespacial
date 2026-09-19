@@ -6,7 +6,8 @@
   .level-label { font-size: 14px; color: #8c809c; font-weight: 750; white-space: nowrap; flex-shrink: 0; }
   .workshop-grid { display: grid; flex: 1; grid-template-columns: minmax(0, 1.15fr) minmax(340px, 1fr); gap: clamp(18px, 2vw, 36px); align-items: stretch; }
   .factory { background: #eaf0e6; border: 2px solid #dee6d8; border-radius: 25px; min-width: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; scroll-margin-top: 10px; }
-  .factory-stage { min-height: 510px; flex: 1; position: relative; background-image: linear-gradient(#dce6d544 1px, transparent 1px), linear-gradient(90deg, #dce6d544 1px, transparent 1px); background-size: 34px 34px; }
+  .factory-stage { --piece-size: 110px; --piece-drop: 76px; --belt-left: 15px; --belt-right: calc(30px + var(--piece-size)); min-height: 510px; flex: 1; position: relative; background-image: linear-gradient(#dce6d544 1px, transparent 1px), linear-gradient(90deg, #dce6d544 1px, transparent 1px); background-size: 34px 34px; }
+  .factory-floor { position: absolute; inset: auto 0 0; height: 28px; border-top: 2px solid #bcc9b4; background: #d5dfcb; }
   .factory-rail { position: absolute; top: 21px; left: 0; right: 0; height: 18px; border-block: 3px solid #a7b6a2; background: #c3cebd; display: flex; justify-content: space-around; align-items: center; }
   .factory-rail i { width: 5px; height: 5px; background: #8b9b87; border-radius: 50%; }
   .factory-chute { position: absolute; top: 0; left: 30px; width: 92px; height: 91px; background: #b2beb0; border: 3px solid #889985; border-top: 0; border-radius: 0 0 10px 10px; z-index: 2; }
@@ -16,11 +17,11 @@
   .factory-light { position: absolute; right: 19px; top: 58px; border: 2px solid #b7c3ad; border-radius: 20px; padding: 7px; background: #dce4d5; display: flex; gap: 7px; }
   .factory-light i { width: 11px; height: 11px; border-radius: 50%; background: #b1bc9e; border: 1px solid #96a780; }
   .factory-light i.lit { background: #9ccf7a; box-shadow: 0 0 12px #a0d37d; }
-  .robot-container { width: min(84%, calc(70dvh - 175px), 850px); position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); }
+  .robot-container { width: min(84%, calc(70dvh - 175px), 850px); max-width: calc(100% - var(--piece-size) - 16px); position: absolute; left: calc((100% + var(--belt-left) - var(--belt-right)) / 2); top: 46%; transform: translate(-50%, -50%); }
   .part-target { position: absolute; background: transparent; border: 0; border-radius: 15px; padding: 0; z-index: 3; touch-action: manipulation; }
   .part-target:focus-visible { outline: 4px solid #8c60d0; outline-offset: 3px; }
   .piece-selected .part-target { outline: 3px dashed #9a7bcc; outline-offset: 5px; background: #c3a7e615; }
-  .conveyor { position: absolute; bottom: 28px; left: 15px; right: 15px; height: 58px; background: #aebbac; border: 3px solid #81957e; border-radius: 18px; box-shadow: 0 5px 0 #d6dfce; }
+  .conveyor { position: absolute; bottom: 28px; left: var(--belt-left); right: var(--belt-right); height: 58px; background: #aebbac; border: 3px solid #81957e; border-radius: 18px; box-shadow: 0 5px 0 #d6dfce; }
   .belt { position: absolute; top: -6px; left: 7px; right: 7px; height: 12px; border: 3px solid #75886e; border-radius: 7px; background: repeating-linear-gradient(90deg, #b1bc9f 0 18px, #8c9c7d 18px 22px); }
   .rollers { height: 100%; display: flex; align-items: center; justify-content: space-around; padding: 8px; overflow: hidden; }
   .rollers > i { height: 28px; width: 28px; flex-shrink: 0; border: 3px solid #85987f; background: #d3ddc9; border-radius: 50%; position: relative; }
@@ -31,8 +32,9 @@
   .conveyor-leg { position: absolute; top: 52px; width: 17px; height: 28px; background: #a4b399; border-inline: 3px solid #839579; }
   .conveyor-leg.leg-left { left: 35px; }
   .conveyor-leg.leg-right { right: 35px; }
-  .conveyor-track { --piece-size: 110px; position: absolute; left: 21px; right: calc(21px + var(--piece-size)); bottom: 90px; height: var(--piece-size); z-index: 5; pointer-events: none; }
-  .falling-piece { position: absolute; left: 0; bottom: 0; width: var(--piece-size); height: var(--piece-size); }
+  .conveyor-track { position: absolute; left: 21px; right: calc(21px + var(--piece-size) * 2); bottom: 90px; height: var(--piece-size); z-index: 5; pointer-events: none; }
+  .falling-piece { position: absolute; left: 0; bottom: 0; margin-left: 0; width: var(--piece-size); height: var(--piece-size); transition: bottom .45s cubic-bezier(.4, 0, .7, 1.25), margin-left .35s ease-out; }
+  .falling-piece.on-floor { bottom: calc(-1 * var(--piece-drop)); margin-left: var(--piece-size); }
   .draggable-part { position: relative; width: 110px; height: 110px; padding: 12px; border-radius: 19px; border: 2px solid #ba9cdb; background: #fffcf4; box-shadow: 0 6px 0 #bba9cf88, 0 9px 23px #5c496324; cursor: grab; touch-action: none; user-select: none; }
   .draggable-part { pointer-events: auto; }
   .draggable-part:active { cursor: grabbing; }
@@ -46,7 +48,6 @@
   .conveyor-status > svg { flex-shrink: 0; }
   .conveyor-status.caught { background: #e2efdb; color: #49633e; }
   .conveyor-seconds { flex-shrink: 0; min-width: 32px; font-variant-numeric: tabular-nums; }
-  .conveyor-retry { margin: 0 auto 18px; max-width: 640px; padding: 12px 16px; border-radius: 12px; background: #fff4d8; color: #72571f; font-weight: 800; }
   .parts-tray { display: flex; justify-content: center; gap: 9px; }
   .part-card { width: 47px; height: 47px; padding: 6px; background: #e8ece2; border-radius: 11px; position: relative; border: 1.5px solid transparent; }
   .part-card > svg { width: 100%; height: 100%; opacity: .28; }
@@ -75,7 +76,7 @@
     .math-puzzle .simple-sum { font-size: 56px; }
     .math-puzzle .keypad button { font-size: 30px; }
   }
-  @media (max-width: 1000px) { padding: 8px 24px 24px; .workshop-grid { gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(310px, 1fr); } .activity-panel { padding: 22px; } .factory-stage { min-height: 480px; } .robot-container { top: 47%; width: 95%; } .factory-chute { left: 17px; width: 72px; } .conveyor-track { --piece-size: 95px; left: 10px; } .draggable-part { width: 95px; height: 95px; } .parts-tray { gap: 5px; } .part-card { width: 35px; height: 35px; border-radius: 8px; padding: 4px; } .factory-progress { padding: 15px 10px; gap: 10px; } }
+  @media (max-width: 1000px) { padding: 8px 24px 24px; .workshop-grid { gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(310px, 1fr); } .activity-panel { padding: 22px; } .factory-stage { --piece-size: 95px; min-height: 480px; } .robot-container { top: 47%; width: 95%; } .factory-chute { left: 17px; width: 72px; } .conveyor-track { left: 10px; } .draggable-part { width: 95px; height: 95px; } .parts-tray { gap: 5px; } .part-card { width: 35px; height: 35px; border-radius: 8px; padding: 4px; } .factory-progress { padding: 15px 10px; gap: 10px; } }
   @media (max-width: 365px) { .activity-panel { padding: 18px 14px !important; } }
   @media (max-width: 700px) {
     padding: 4px 16px 20px;
@@ -84,7 +85,8 @@
     .level-label { font-size: 12px; }
     .workshop-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; }
     .factory { border-radius: 19px; }
-    .factory-stage { min-height: 163px; }
+    .factory-stage { --piece-drop: 27px; --belt-left: 9px; --belt-right: calc(22px + var(--piece-size)); min-height: 163px; }
+    .factory-floor { height: 18px; }
     .factory-rail { top: 12px; height: 12px; border-width: 2px; }
     .factory-chute { height: 55px; width: 54px; left: 18px; border-width: 2px; }
     .factory-chute > span { height: 23px; }
@@ -92,7 +94,7 @@
     .factory-light { top: 36px; right: 13px; padding: 5px; }
     .factory-light i { width: 7px; height: 7px; }
     .robot-container { width: 145px; top: 44%; }
-    .conveyor { bottom: 10px; height: 25px; left: 9px; right: 9px; border-radius: 11px; border-width: 2px; box-shadow: none; }
+    .conveyor { bottom: 10px; height: 25px; border-radius: 11px; border-width: 2px; box-shadow: none; }
     .belt { height: 8px; top: -5px; border-width: 2px; }
     .rollers { padding: 3px; }
     .rollers > i { height: 17px; width: 17px; border-width: 2px; }
@@ -109,7 +111,7 @@
     &.piece-ready .robot-container { width: min(90%, 365px); top: 44%; }
     &.piece-ready .factory-chute { width: 80px; height: 80px; }
     &.piece-ready .factory-chute > span { height: 39px; }
-    &.piece-ready .conveyor-track { left: 13px; right: calc(13px + var(--piece-size)); bottom: 41px; }
+    &.piece-ready .conveyor-track { left: 13px; right: calc(13px + var(--piece-size) * 2); bottom: 41px; }
     .conveyor-status { font-size: 12px; gap: 6px; }
     &.piece-ready .activity-panel { background: transparent; border: 0; padding: 0; }
     .earned-panel { padding: 7px 0; gap: 8px; }
@@ -122,6 +124,7 @@
     .celebration-icon { width: 75px; height: 75px; }
   }
 }
+@media (prefers-reduced-motion: reduce) { .robot-lab .falling-piece { transition: none; } }
 @keyframes factory-belt { to { background-position-x: 22px; } }
 @keyframes factory-roller { to { transform: rotate(360deg); } }
 @keyframes factory-confetti { 0% { opacity: 0; transform: translateY(-25px) rotate(-20deg) scale(.7); } 35% { opacity: 1; } 100% { opacity: .8; transform: translateY(20px) rotate(45deg); } }

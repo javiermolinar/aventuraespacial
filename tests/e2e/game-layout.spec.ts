@@ -33,6 +33,9 @@ for (const game of ['maths', 'wires', 'practice'] as const) {
         await page.getByRole('button', { name: 'Ayuda', exact: true }).scrollIntoViewIfNeeded();
         await expect(page.getByRole('button', { name: 'Ayuda', exact: true })).toBeInViewport();
       } else {
+        const robot = (await page.locator('.robot-container').boundingBox())!;
+        const belt = (await page.locator('.conveyor').boundingBox())!;
+        expect(robot.x + robot.width / 2).toBeCloseTo(belt.x + belt.width / 2, 0);
         await page.locator('.keypad button').first().scrollIntoViewIfNeeded();
         await expect(page.locator('.keypad button').first()).toBeInViewport();
       }

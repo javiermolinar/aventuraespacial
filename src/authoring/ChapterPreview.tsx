@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { levels } from '../game';
 import { chapterCatalog } from '../adventure/chapters/catalog';
-import { earnPart, expirePart, moveTo, placePart, rotatePipe, updatePacking, type AdventureProgress } from '../adventure/progress';
+import { earnPart, moveTo, placePart, rotatePipe, updatePacking, type AdventureProgress } from '../adventure/progress';
 import { playerNameMaxLength } from '../adventure/personalization';
 import type { Chapter, Character } from '../adventure/types';
 import NarrativeView from '../adventure/NarrativeView';
@@ -50,7 +50,6 @@ function PreviewRun({ chapter, initialProgress, onRestart }: { chapter: Chapter;
         reviewId={null} reviewScene={null} onReviewNext={() => {}}
         onNext={id => setProgress(previous => moveTo(previous, chapter, id))} onComplete={() => setCompleted(true)}
         onEarn={() => setProgress(previous => earnPart(previous, chapter))} onPlace={() => setProgress(previous => placePart(previous, chapter))}
-        onExpire={() => setProgress(previous => expirePart(previous, chapter))}
         onPackingChange={state => setProgress(previous => updatePacking(previous, chapter, state))}
         onRotate={(index, turns) => setProgress(previous => rotatePipe(previous, chapter, index, turns))} />}
     </main>

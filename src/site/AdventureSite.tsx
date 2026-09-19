@@ -40,7 +40,7 @@ export default function AdventureSite(options: AdventureOptions) {
         onContinue={() => story.chooseChapter(chapter.id)} onRestart={() => story.prepare()} onSelect={story.chooseChapter} /> : scene && progress && <DeferredContent key={chapter.id}>
         <NarrativeScreen chapter={chapter} progress={progress} scene={scene} introduction={introduction} reviewId={story.reviewId} reviewScene={reviewScene}
           assetPrefix={assetPrefix} sound={sound.enabled} onNext={story.next} onComplete={story.finish} onReviewNext={story.reviewNext}
-          onEarn={story.earn} onPlace={story.place} onExpire={story.expire} onRotate={story.rotate} onPackingChange={story.pack} />
+          onEarn={story.earn} onPlace={story.place} onRotate={story.rotate} onPackingChange={story.pack} />
       </DeferredContent>}
     </main>
     {setupChapterId && <DeferredContent key={setupChapterId}><AdventureSetupDialog initialName={setupProfile.playerName}

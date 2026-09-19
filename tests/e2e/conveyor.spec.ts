@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { chispaChapter as chapter } from '../../src/adventure/chapters/chispa';
 import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart } from '../../src/adventure/progress';
 import { readAdventure } from './adventure-saves';
-import { placeByTap, readOperation, solveCurrent } from './helpers';
+import { dragPiece, placeByTap, solveCurrent } from './helpers';
 
 for (const [level, seconds] of [[1, 8], [4, 6.5], [11, 3]]) {
   test(`practice level ${level} gives ${seconds} seconds to catch the piece`, async ({ page }) => {
@@ -17,23 +17,22 @@ for (const [level, seconds] of [[1, 8], [4, 6.5], [11, 3]]) {
     await page.clock.fastForward(seconds * 1000 - 1_000);
     await expect(piece).toBeVisible();
     await page.clock.fastForward(2_000);
-    await expect(page.getByText('¡Se fue la pieza! Resuelve otra vez para recuperarla.')).toBeVisible();
+    await expect(page.getByText('¡Al suelo! Recoge la pieza.')).toBeVisible();
   });
 }
 
-test('a missed practice piece repeats the whole operation and preserves placed parts', async ({ page }) => {
+test('a missed practice piece stays earned on the floor and can be placed with the keyboard', async ({ page }) => {
   await page.clock.install();
   await page.goto('/games/robot-lab.html?level=4');
   await solveCurrent(page);
   await placeByTap(page);
-  const operation = await solveCurrent(page);
-  await page.clock.fastForward(9_000);
-  await expect(page.getByText('¡Se fue la pieza! Resuelve otra vez para recuperarla.')).toBeVisible();
-  expect(await readOperation(page)).toEqual(operation);
-  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
-  await expect(page.getByRole('button', { name: 'Comprobar', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: /^Arrastrar / })).toHaveCount(0);
   await solveCurrent(page);
+  await page.clock.fastForward(9_000);
+  await expect(page.getByText('¡Al suelo! Recoge la pieza.')).toBeVisible();
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
+  await expect(page.getByRole('button', { name: 'Comprobar', exact: true })).toHaveCount(0);
+  await expect(page.locator('.conveyor-seconds')).toHaveCount(0);
+  await page.clock.fastForward(20_000);
   const piece = page.getByRole('button', { name: /^Arrastrar / });
   await expect(piece).toBeFocused();
   await piece.press('Enter');
@@ -68,30 +67,50 @@ test('the piece travels across the belt, stops under the pointer and resumes aft
   await page.clock.runFor(1_000);
   expect((await piece.boundingBox())!.x).toBeGreaterThan(caught.x + 20);
   await page.clock.fastForward(6_000);
-  await expect(page.getByRole('heading', { name: 'Consigue la cabeza' })).toBeVisible();
+  await expect(page.getByText('¡Al suelo! Recoge la pieza.')).toBeVisible();
+  await expect(page.locator('.falling-piece')).toHaveCSS('margin-left', '110px');
+  await expect(page.locator('.falling-piece')).toHaveCSS('bottom', '-76px');
+  const landed = (await piece.boundingBox())!;
+  const belt = (await page.locator('.conveyor').boundingBox())!;
+  expect(landed.x).toBeGreaterThan(belt.x + belt.width);
+  expect(landed.y + landed.height).toBeGreaterThan(belt.y + belt.height);
+  await page.screenshot({ path: 'artifacts/conveyor-desktop-floor.png', fullPage: true });
+  await dragPiece(page, false);
+  await page.clock.runFor(1_000);
+  await expect(page.getByText('¡Al suelo! Recoge la pieza.')).toBeVisible();
+  await dragPiece(page);
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
 });
 
-test('a real touch drag catches and places a moving piece on a phone', async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'no-preference' });
-  const page = await context.newPage();
-  await page.goto('http://127.0.0.1:4173/games/robot-lab.html?level=1');
-  await solveCurrent(page);
-  await expect(page.locator('.conveyor-seconds')).toHaveText('6 s');
-  await page.screenshot({ path: 'artifacts/conveyor-mobile.png', fullPage: true });
-  const source = (await page.getByRole('button', { name: /^Arrastrar / }).boundingBox())!;
-  const target = (await page.getByRole('button', { name: /^Encajar / }).boundingBox())!;
-  const session = await context.newCDPSession(page);
-  const start = { x: source.x + source.width / 2, y: source.y + source.height / 2 };
-  const end = { x: target.x + target.width / 2, y: target.y + target.height / 2 };
-  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...start, id: 1 }] });
-  for (let step = 1; step <= 20; step++) {
-    await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: start.x + (end.x - start.x) * step / 20, y: start.y + (end.y - start.y) * step / 20, id: 1 }] });
-  }
-  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await context.close();
-});
+for (const fromFloor of [false, true]) {
+  test(`a real touch drag places a ${fromFloor ? 'fallen' : 'moving'} piece on a phone`, async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'no-preference' });
+    const page = await context.newPage();
+    await page.goto('http://127.0.0.1:4173/games/robot-lab.html?level=1');
+    await solveCurrent(page);
+    if (fromFloor) {
+      await expect(page.getByText('¡Al suelo! Recoge la pieza.')).toBeVisible({ timeout: 12_000 });
+      await expect(page.locator('.conveyor-seconds')).toHaveCount(0);
+      await expect(page.locator('.falling-piece')).toHaveCSS('margin-left', '95px');
+      await expect(page.locator('.falling-piece')).toHaveCSS('bottom', '-27px');
+    } else await expect(page.locator('.conveyor-seconds')).toBeVisible();
+    await page.screenshot({ path: `artifacts/conveyor-mobile${fromFloor ? '-floor' : ''}.png`, fullPage: true });
+    const source = (await page.getByRole('button', { name: /^Arrastrar / }).boundingBox())!;
+    const target = (await page.getByRole('button', { name: /^Encajar / }).boundingBox())!;
+    const session = await context.newCDPSession(page);
+    const start = { x: source.x + source.width / 2, y: source.y + source.height / 2 };
+    const end = { x: target.x + target.width / 2, y: target.y + target.height / 2 };
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...start, id: 1 }] });
+    for (let step = 1; step <= 20; step++) {
+      await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: start.x + (end.x - start.x) * step / 20, y: start.y + (end.y - start.y) * step / 20, id: 1 }] });
+    }
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await context.close();
+  });
+
+}
 
 test('a cancelled touch over the matching outline returns the piece without placing it', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
@@ -128,7 +147,7 @@ test('reduced motion keeps the piece still while the visible timer counts down',
   await expect(page.getByText('¡La tienes! Encájala.')).toBeVisible();
 });
 
-test('story review pauses the belt, and missing a piece persists without undoing the robot', async ({ page }) => {
+test('story review pauses the belt and reload preserves the earned piece after a fall', async ({ page }) => {
   let progress = newAdventure(chapter, 6);
   for (const id of ['plan', 'workshop', 'build-start']) progress = moveTo(progress, chapter, id);
   progress = earnPart(placePart(earnPart(progress, chapter), chapter), chapter);
@@ -143,12 +162,12 @@ test('story review pauses the belt, and missing a piece persists without undoing
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Arrastrar el cuerpo' })).toBeVisible();
   await page.clock.fastForward(6_000);
-  await expect(page.getByRole('heading', { name: 'Consigue el cuerpo' })).toBeVisible();
-  expect(await readAdventure(page)).toMatchObject({ ready: false, placedCount: 1, operations: progress.operations, sceneId: progress.sceneId });
+  await expect(page.getByText('¡Al suelo! Recoge la pieza.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Arrastrar el cuerpo' })).toBeVisible();
+  expect(await readAdventure(page)).toMatchObject({ ready: true, placedCount: 1, operations: progress.operations, sceneId: progress.sceneId });
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Consigue el cuerpo' })).toBeVisible();
-  expect(await readOperation(page)).toEqual(progress.operations[1]);
-  await solveCurrent(page);
+  await expect(page.getByRole('button', { name: 'Arrastrar el cuerpo' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Comprobar', exact: true })).toHaveCount(0);
   await placeByTap(page);
   expect((await readAdventure(page)).placedCount).toBe(2);
 });

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { chapterCatalog, playableChapter, type ChapterEntry } from './chapters/catalog';
 import { chapterUnlocked, completeChapter, loadCampaign, recordChapter, saveCampaign, selectChapter } from './campaign';
-import { earnPart, expirePart, moveTo, newAdventure, placePart, rotatePipe, updatePacking, type AdventureProgress } from './progress';
+import { earnPart, moveTo, newAdventure, placePart, rotatePipe, updatePacking, type AdventureProgress } from './progress';
 import type { PiecesState } from '../games/shape-box/puzzle';
 import type { Chapter, Character, ReadingScene } from './types';
 
@@ -72,7 +72,6 @@ export function useAdventureController({ chapter: chapterOverride, catalog: cata
     next: (id: string) => updateProgress(previous => moveTo(previous, chapter, id)),
     finish: () => { setCampaign(previous => completeChapter(previous, catalog, chapter.id)); setView('home'); },
     earn: () => updateProgress(previous => earnPart(previous, chapter)),
-    expire: () => updateProgress(previous => expirePart(previous, chapter)),
     place: () => updateProgress(previous => placePart(previous, chapter)),
     pack: (state: PiecesState) => updateProgress(previous => updatePacking(previous, chapter, state)),
     rotate: (index: number, turns: number) => updateProgress(previous => rotatePipe(previous, chapter, index, turns)),
