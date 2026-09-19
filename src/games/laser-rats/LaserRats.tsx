@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
-import { ArrowRight, CircleHelp, Cloud, Hand, Radar, RotateCcw, Sparkles, X } from 'lucide-react';
+import { ArrowRight, CircleHelp, Cloud, Hand, RotateCcw, Sparkles, X } from 'lucide-react';
 import { SiteShell } from '../../components/SiteShell';
 import { BackgroundMusic } from '../../components/BackgroundMusic';
 import { soundtracks } from '../../music';
@@ -10,10 +10,9 @@ import { useRobotDrag } from './useRobotDrag';
 import { RatFace } from './RatFace';
 import { LaserRobot } from './LaserRobot';
 import { lessons } from './puzzles';
-import { cellName, directions, explore, initialState, placeRobot, placementError, radar, robotNames, type Puzzle, type RobotKind } from './rules';
+import { adjacentRats, cellName, initialState, placeRobot, placementError, robotNames, scan, type Puzzle, type RobotKind } from './rules';
 import './laser-rats.css';
 
-const compassPositions = [0, 1, 2, 3, 5, 6, 7, 8];
 const shortDirections: Record<RobotKind, string> = { row: 'Izquierda y derecha', column: 'Arriba y abajo', diagonal: 'Las cuatro diagonales' };
 function RobotGlyph({ kind }: { kind: RobotKind }) {
   return <span className={`laser-robot-glyph kind-${kind}`} aria-hidden="true"><LaserRobot kind={kind} /></span>;
@@ -59,11 +58,13 @@ export default function LaserRats() {
   const drag = useRobotDrag(deploy, revision);
   const activeRobot = drag.view?.robot ?? (mode === 'scan' ? null : mode);
   const remainingRobots = puzzle.robots.filter((_, robot) => state.positions[robot] === undefined).length;
+  const opening = state.discovered.length === 0;
   function activate(cell: number) {
     if (!playing) return;
+    if (opening && cell !== puzzle.start) { setMessage(`Empieza en ${cellName(puzzle.start, puzzle.size)}, la casilla señalada.`); return; }
     if (mode !== 'scan') { deploy(mode, cell); return; }
-    const result = explore(puzzle, state, cell), next = result.state;
-    setPuzzle(result.puzzle); setState(next); setSelected(cell);
+    const next = scan(puzzle, state, cell);
+    setState(next); setSelected(cell);
     setEffects(value => ({ id: value.id + 1, fresh: next.discovered.filter(c => !state.discovered.includes(c)), hits: [] }));
     setMessage('');
     playSound(next.status === 'lost' ? 'rat' : state.discovered.includes(cell) ? 'tap' : 'scan', sound.enabled);
@@ -98,16 +99,16 @@ export default function LaserRats() {
                 const wall = exposed && puzzle.walls.includes(cell), caught = state.cleared.includes(cell), rat = !playing && puzzle.rats.includes(cell) && !caught;
                 const robotId = puzzle.robots.findIndex((_, id) => state.positions[id] === cell);
                 const robot = robotId >= 0 ? puzzle.robots[robotId] : undefined;
-                const cellCounts = known && !wall && !rat ? radar(puzzle, state, cell) : [];
-                const showClues = playing && cellCounts.some(Boolean);
-                const clues = cellCounts.flatMap((count, i) => count ? [`${directions[i].name}: ${count}`] : []);
-                const label = `${cellName(cell, puzzle.size)}. ${rat ? 'Rata.' : wall ? 'Pared.' : robot ? `Robot de ${robotNames[robot].toLowerCase()}.` : caught ? 'Rata eliminada. Casilla segura.' : known ? 'Casilla segura.' : exposed ? 'Casilla vacía.' : 'Sin explorar.'}${known && !wall && !rat ? ` Radar: ${clues.join('; ') || 'sin ratas en ninguna dirección'}.` : ''}`;
+                const showClues = playing && known && !wall && !rat;
+                const adjacent = showClues ? adjacentRats(puzzle, state, cell) : 0;
+                const start = opening && cell === puzzle.start;
+                const label = `${cellName(cell, puzzle.size)}. ${rat ? 'Rata.' : wall ? 'Pared.' : robot ? `Robot de ${robotNames[robot].toLowerCase()}.` : caught ? 'Rata eliminada. Casilla segura.' : known ? 'Casilla segura.' : start ? 'Inicio seguro. Toca para empezar.' : exposed ? 'Casilla vacía.' : 'Sin explorar.'}${known && !wall && !rat ? ` Ratas vecinas: ${adjacentRats(puzzle, state, cell)}.` : ''}`;
                 return <button key={cell} type="button" ref={element => { buttons.current[cell] = element; }} tabIndex={cell === focused ? 0 : -1}
-                  className={`laser-cell ${known ? 'is-known' : 'is-fog'} ${wall ? 'is-wall' : ''} ${rat ? 'has-rat' : ''} ${caught ? 'is-cleared' : ''} ${selected === cell ? 'is-selected' : ''} ${state.hit === cell ? 'is-hit' : ''} ${activeRobot !== null && known && !wall && !robot && playing ? 'can-place' : ''} ${robot ? 'has-robot' : ''} ${showClues ? 'has-clues' : ''} ${drag.view?.moved && drag.view.cell === cell ? placementError(puzzle, state, drag.view.robot, cell) ? 'drop-invalid' : 'drop-valid' : ''}`}
+                  className={`laser-cell ${known ? 'is-known' : 'is-fog'} ${start ? 'is-start' : ''} ${wall ? 'is-wall' : ''} ${rat ? 'has-rat' : ''} ${caught ? 'is-cleared' : ''} ${selected === cell ? 'is-selected' : ''} ${state.hit === cell ? 'is-hit' : ''} ${activeRobot !== null && known && !wall && !robot && playing ? 'can-place' : ''} ${robot ? 'has-robot' : ''} ${showClues ? 'has-clues' : ''} ${drag.view?.moved && drag.view.cell === cell ? placementError(puzzle, state, drag.view.robot, cell) ? 'drop-invalid' : 'drop-valid' : ''}`}
                   aria-label={label} aria-pressed={selected === cell} aria-disabled={!playing} data-cell={cellName(cell, puzzle.size)} data-drop-cell={cell} data-robot={robot} data-robot-id={robotId >= 0 ? robotId : undefined}
                   onFocus={() => setFocused(cell)} onKeyDown={event => moveFocus(event, cell)} onClick={() => activate(cell)}>
-                  {wall ? <span className="laser-wall" aria-hidden="true"><i /><i /><i /></span> : robot ? <RobotGlyph kind={robot} /> : rat ? <span className="laser-rat" aria-hidden="true"><RatFace /></span> : caught ? <span className="laser-cleared-mark" aria-hidden="true"><RatFace cleared /></span> : <span className="laser-cell-center" aria-hidden="true">{known ? selected === cell ? <Radar /> : '·' : <Cloud />}</span>}
-                  {showClues && <span className="laser-cell-clues" aria-hidden="true">{cellCounts.map((count, i) => count > 0 && <span className="laser-direction-count" key={i} style={{ gridArea: `${Math.floor(compassPositions[i] / 3) + 1} / ${compassPositions[i] % 3 + 1}` }}><span>{directions[i].arrow}</span><strong>{count}</strong></span>)}</span>}
+                  {wall ? <span className="laser-wall" aria-hidden="true"><i /><i /><i /></span> : robot ? <RobotGlyph kind={robot} /> : rat ? <span className="laser-rat" aria-hidden="true"><RatFace /></span> : caught ? <span className="laser-cleared-mark" aria-hidden="true"><RatFace cleared /></span> : !showClues && <span className="laser-cell-center" aria-hidden="true">{start ? <Sparkles /> : known ? '·' : <Cloud />}</span>}
+                  {showClues && <strong className={`laser-adjacent-count count-${adjacent}`} aria-hidden="true">{adjacent}</strong>}
                   {effects.fresh.includes(cell) && <span key={`reveal-${effects.id}`} className="laser-reveal-pulse" aria-hidden="true" />}
                   {effects.hits.includes(cell) && <span key={`hit-${effects.id}`} className="laser-caught-pop" aria-hidden="true"><RatFace /><span>✦</span></span>}
                 </button>;
@@ -119,7 +120,7 @@ export default function LaserRats() {
               return <line key={`${revision}-${Object.keys(state.positions).length}-${i}`} pathLength={1} x1={start % puzzle.size + .5} y1={Math.floor(start / puzzle.size) + .5} x2={end % puzzle.size + .5} y2={Math.floor(end / puzzle.size) + .5} />;
             })}</svg>
           </div>
-          <p className="sr-only" id="laser-board-instructions">{mode === 'scan' ? 'Toca para explorar. Si hay una rata, termina la ronda.' : 'Elige una casilla descubierta: el robot disparará al llegar.'} Usa las flechas para moverte por el tablero y Enter o Espacio para activar una casilla. Escape vuelve al radar.</p>
+          <p className="sr-only" id="laser-board-instructions">{mode === 'scan' ? 'Toca para explorar. Si hay una rata, termina la ronda.' : 'Elige una casilla descubierta: el robot disparará al llegar.'} Usa las flechas para moverte por el tablero y Enter o Espacio para activar una casilla. Escape vuelve a explorar.</p>
         </section>
         <section className="laser-counters" aria-label="Progreso de la misión">
           <div><span className="laser-stat-label">Ratas eliminadas</span><strong key={state.cleared.length} className={`laser-rat-count ${state.cleared.length ? 'is-updated' : ''}`} data-testid="rats-cleared">{state.cleared.length}<small> / {puzzle.rats.length}</small></strong></div>
@@ -130,7 +131,7 @@ export default function LaserRats() {
           <p className="laser-drag-hint"><Hand size={16} aria-hidden="true" />{remainingRobots ? 'Arrastra al tablero' : 'Todos colocados'}</p>
           {remainingRobots > 0 && <div className="laser-tools">
           {puzzle.robots.map((kind, id) => ({ kind, id })).filter(({ id }) => state.positions[id] === undefined).map(({ kind, id }) =>
-            <button key={id} className={`laser-tool kind-${kind} ${activeRobot === id ? 'is-active' : ''}`} disabled={!playing} aria-pressed={mode === id}
+            <button key={id} className={`laser-tool kind-${kind} ${activeRobot === id ? 'is-active' : ''}`} disabled={!playing || opening} aria-pressed={mode === id}
               aria-label={`Colocar robot de ${robotNames[kind].toLowerCase()}${puzzle.robots.filter(type => type === kind).length > 1 ? ` ${puzzle.robots.slice(0, id + 1).filter(type => type === kind).length}` : ''}`}
               data-reserve-kind={kind} data-reserve-id={id} {...drag.handlers} onPointerDown={event => drag.start(event, id)}
               onClick={() => { setMode(value => value === id ? 'scan' : id); setMessage(''); }}>
@@ -140,25 +141,25 @@ export default function LaserRats() {
           </div>}
         </section>
 
+        {(!playing || message) && <div className={`laser-status ${!playing ? `is-${state.status}` : ''}`} role="status" aria-live="polite" aria-atomic="true">
+          {!playing ? <>
+            {state.status === 'won' && <span className="laser-celebration" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} style={{ '--star': i } as CSSProperties}>✦</i>)}</span>}
+            <div>{state.status === 'won' ? <Sparkles aria-hidden="true" /> : <CircleHelp aria-hidden="true" />}<span><strong>{outcome}</strong><p>{state.status === 'won' ? '¡Todas las ratas fuera! Buen trabajo, patrulla.' : state.loss === 'rat' ? 'Mira dónde estaban las ratas y prueba otra estrategia.' : 'Cada robot se coloca una sola vez. Prueba otras posiciones.'}</p></span></div>
+            <button ref={resultButton} className="primary" disabled={generator.busy} onClick={() => state.status === 'won' ? lesson >= 0 && lesson < lessons.length - 1 ? load(lessons[lesson + 1]) : generator.generate() : load(puzzle)}>
+              {generator.busy ? 'Preparando…' : state.status === 'won' ? <>Siguiente reto<ArrowRight size={18} /></> : <>Otra vez<RotateCcw size={18} /></>}
+            </button>
+          </> : <p>{message}</p>}
+        </div>}
       </div>
-      {(!playing || message) && <div className={`laser-status ${!playing ? `is-${state.status}` : ''}`} role="status" aria-live="polite" aria-atomic="true">
-        {!playing ? <>
-          {state.status === 'won' && <span className="laser-celebration" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} style={{ '--star': i } as CSSProperties}>✦</i>)}</span>}
-          <div>{state.status === 'won' ? <Sparkles aria-hidden="true" /> : <CircleHelp aria-hidden="true" />}<span><strong>{outcome}</strong><p>{state.status === 'won' ? '¡Todas las ratas fuera! Buen trabajo, patrulla.' : state.loss === 'rat' ? 'Mira dónde estaban las ratas y prueba otra estrategia.' : 'Cada robot se coloca una sola vez. Prueba otras posiciones.'}</p></span></div>
-          <button ref={resultButton} className="primary" disabled={generator.busy} onClick={() => state.status === 'won' ? lesson >= 0 && lesson < lessons.length - 1 ? load(lessons[lesson + 1]) : generator.generate() : load(puzzle)}>
-            {generator.busy ? 'Preparando…' : state.status === 'won' ? <>Siguiente reto<ArrowRight size={18} /></> : <>Otra vez<RotateCcw size={18} /></>}
-          </button>
-        </> : <p>{message}</p>}
-      </div>}
       {generator.error && <p className="laser-generation-error" role="alert">{generator.error}</p>}
       <dialog ref={instructions} className="laser-instructions" aria-labelledby="laser-instructions-title" onClick={event => { if (event.target === event.currentTarget) instructions.current?.close(); }}>
         <div className="laser-instructions-heading"><h2 id="laser-instructions-title">Cómo se juega</h2><button className="icon-button" onClick={() => instructions.current?.close()} aria-label="Cerrar instrucciones"><X size={22} /></button></div>
         <div className="laser-instructions-robots">{(['row', 'column', 'diagonal'] as const).map(kind => <div key={kind}><LaserRobot kind={kind} /><strong>{robotNames[kind]}</strong><span>{shortDirections[kind]}</span></div>)}</div><ol>
-        <li>La primera casilla que explores siempre es segura. Después, si haces clic en una rata, pierdes. Puedes leer las pistas y explorar sin límite.</li>
-        <li>Los números aparecen dentro de cada casilla descubierta, junto a una flecha que indica la dirección. Cuentan las ratas de toda esa dirección, hasta el borde. No se muestran los ceros.</li>
+        <li>Empieza en la casilla señalada con una estrella: es segura. Después, si haces clic en una rata, pierdes. Puedes leer las pistas y explorar sin límite.</li>
+        <li>El número de cada casilla cuenta las ratas que quedan en sus ocho vecinas, como en el buscaminas. En los bordes del tablero hay menos vecinas. Un cero abre las casillas vecinas automáticamente. Las paredes no extienden esa apertura.</li>
         <li>Coloca cada robot una sola vez, en una casilla descubierta y libre. Dispara al llegar y se queda fijo: no puedes moverlo ni retirarlo.</li>
-        <li>El láser elimina ratas y descubre casillas. Atraviesa otros robots y se detiene en la primera pared. El radar sí cuenta a través de las paredes.</li>
-        <li>Explorar descubre también las paredes de las ocho casillas vecinas. Las ratas vecinas siguen ocultas.</li>
+        <li>El láser elimina ratas y descubre casillas. Atraviesa otros robots y se detiene en la primera pared.</li>
+        <li>Alterna explorar y disparar. Las ratas eliminadas dejan casillas seguras con nuevas pistas. Todos los números se actualizan y los nuevos ceros abren más espacio. Explorar también descubre las paredes vecinas.</li>
         <li>Arrastra un robot de la reserva a una casilla descubierta. Después de disparar permanece en esa casilla. También puedes tocar el robot y luego su destino, o usar Enter y las flechas. Escape cancela la selección.</li>
         <li>Elimina todas las ratas con los robots disponibles. Puedes repetir las veces que quieras. Salir o recargar reinicia el reto.</li>
       </ol></dialog>

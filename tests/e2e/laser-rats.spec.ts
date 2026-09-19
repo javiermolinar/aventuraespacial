@@ -19,11 +19,12 @@ test('practice navigation, no hidden information, placement restrictions, losing
   await expect(page.locator('.laser-cell-clues')).toHaveCount(0);
   await expect(page.locator('.laser-cell.is-known')).toHaveCount(0);
   await expect(page.locator('.laser-direction-count')).toHaveCount(0);
+  await openCell(page, 'A4');
   await openCell(page, 'C3');
-  await expect(square(page, 'C3').locator('.laser-direction-count')).toHaveText(['↑1', '↓1']);
-  await expect(square(page, 'C2').locator('.laser-direction-count')).toHaveCount(0);
-  await expect(square(page, 'C2')).toHaveClass(/is-fog/);
-  await expect(page.locator('.laser-direction-count')).toHaveCount(2);
+  await expect(square(page, 'C3').locator('.laser-adjacent-count')).toHaveText('0');
+  await expect(square(page, 'C2').locator('.laser-adjacent-count')).toHaveText('1');
+  await expect(square(page, 'C2')).toHaveClass(/is-known/);
+  await expect(page.locator('.laser-direction-count, .laser-radar-panel, .laser-map-hint, .is-clue-neighbor, [aria-label*="Radar"]')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Explorar|Una pista|Otro tablero/ })).toHaveCount(0);
   await expect(page.getByText('Crear un reto a tu medida', { exact: true })).toHaveCount(0);
   await expect(page.locator('.laser-status')).toHaveCount(0);
@@ -34,7 +35,7 @@ test('practice navigation, no hidden information, placement restrictions, losing
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(help).toBeFocused();
   await robot(page, 'columnas').click();
-  await square(page, 'C2').click();
+  await square(page, 'C1').click();
   await expect(page.locator('.laser-status')).toContainText('Primero descubre');
   await expect(page.getByTestId('robots-left')).toHaveText('2 / 2');
   await square(page, 'C1').click();
@@ -48,18 +49,18 @@ test('practice navigation, no hidden information, placement restrictions, losing
   await expect(page).toHaveURL(/practice.html$/);
 });
 
-test('all handcrafted proof paths are playable with keyboard', async ({ page }) => {
+test('all handcrafted proof paths are playable with keyboard and advance in order', async ({ page }) => {
   await page.goto('/games/laser-rats.html');
   for (const [index, puzzle] of lessons.entries()) {
-    await page.getByRole('combobox', { name: 'Reto' }).selectOption(String(index));
+    if (index > 0) await page.getByRole('button', { name: 'Siguiente reto' }).click();
+    await expect(page.getByRole('combobox', { name: 'Reto' })).toHaveValue(String(index));
     const proof = certify(puzzle);
     expect(proof.status).toBe('solved');
     if (proof.status !== 'solved') return;
     await openCell(page, cellName(proof.certificate.opening, puzzle.size));
-    for (const scan of proof.certificate.scans) await square(page, cellName(scan.cell, puzzle.size)).press('Enter');
-    for (const shot of proof.certificate.shots) {
-      await page.locator(`[data-reserve-id="${shot.robot}"]`).press('Enter');
-      await square(page, cellName(shot.cell, puzzle.size)).press('Space');
+    for (const step of proof.certificate.steps) {
+      if (step.type === 'shot') await page.locator(`[data-reserve-id="${step.robot}"]`).press('Enter');
+      await square(page, cellName(step.cell, puzzle.size)).press('Space');
     }
     await expect(page.locator('.laser-status')).toContainText('¡Misión cumplida!');
     await expect(page.getByTestId('rats-cleared')).toHaveText(`${puzzle.rats.length} / ${puzzle.rats.length}`);
@@ -73,33 +74,38 @@ test('finishing the lessons generates another board and retry preserves it', asy
   const puzzle = lessons.at(-1)!, proof = certify(puzzle);
   expect(proof.status).toBe('solved');
   if (proof.status !== 'solved') return;
-    await openCell(page, cellName(proof.certificate.opening, puzzle.size));
-  for (const scan of proof.certificate.scans) await square(page, cellName(scan.cell, puzzle.size)).click();
-  for (const shot of proof.certificate.shots) {
-    await page.locator(`[data-reserve-id="${shot.robot}"]`).click();
-    await square(page, cellName(shot.cell, puzzle.size)).click();
+  await openCell(page, cellName(proof.certificate.opening, puzzle.size));
+  for (const step of proof.certificate.steps) {
+    if (step.type === 'shot') await page.locator(`[data-reserve-id="${step.robot}"]`).click();
+    await square(page, cellName(step.cell, puzzle.size)).click();
   }
   await page.getByRole('button', { name: 'Siguiente reto' }).click();
   await expect(page.getByRole('combobox', { name: 'Reto' })).toHaveValue('generated');
   await expect(page.locator('.laser-cell')).toHaveCount(49);
   await expect(page.getByTestId('rats-cleared')).toHaveText('0 / 10');
   await expect(page.getByTestId('robots-left')).toHaveText('3 / 3');
-  await openCell(page, 'C3');
-  const reading = await square(page, 'C3').getAttribute('aria-label');
+  const opening = (await page.locator('.is-start').getAttribute('data-cell'))!;
+  await openCell(page, opening);
+  const reading = await square(page, opening).getAttribute('aria-label');
   await page.getByRole('button', { name: 'Reiniciar tablero' }).click();
   await expect(page.locator('.laser-cell.is-known')).toHaveCount(0);
   await expect(page.locator('.laser-cell.is-selected')).toHaveCount(0);
-  await openCell(page, 'C3');
-  await expect(square(page, 'C3')).toHaveAccessibleName(reading!);
+  await openCell(page, opening);
+  await expect(square(page, opening)).toHaveAccessibleName(reading!);
   expect(errors).toEqual([]);
 });
 
-test('the first click can open a rat cell safely, then ordinary rat clicks lose', async ({ page }) => {
+test('only the marked opening starts a round, then ordinary rat clicks lose', async ({ page }) => {
   await page.goto('/games/laser-rats.html');
-  await openCell(page, 'C1');
+  await square(page, 'C1').click();
+  await expect(page.locator('.laser-cell.is-known')).toHaveCount(0);
+  await expect(page.locator('.laser-status')).toContainText('Empieza en A4');
+  await expect(square(page, 'A4')).toHaveAccessibleName('A4. Inicio seguro. Toca para empezar.');
+  await openCell(page, 'A4');
+  await openCell(page, 'C3');
   await expect(page.locator('.laser-status.is-lost')).toHaveCount(0);
   await expect(page.getByTestId('rats-cleared')).toHaveText('0 / 4');
-  await square(page, 'C5').click();
+  await square(page, 'C1').click();
   await expect(page.locator('.laser-status')).toContainText('¡Había una rata!');
 });
 
@@ -110,13 +116,14 @@ test('music is opt-in and stops with the shared sound switch', async ({ page }) 
   await page.getByRole('button', { name: 'Activar sonido', exact: true }).click();
   await expect.poll(() => audio.evaluate(el => (el as HTMLAudioElement).paused)).toBe(false);
   await expect(audio).toHaveAttribute('src', '../music/cipher.mp3');
-  await square(page, 'B3').click();
+  await square(page, 'A4').click();
   await page.getByRole('button', { name: 'Desactivar sonido', exact: true }).click();
   await expect.poll(() => audio.evaluate(el => (el as HTMLAudioElement).paused)).toBe(true);
 });
 
 test('dragging consumes a finite piece, invalid drops are harmless, and placed robots stay fixed', async ({ page }) => {
   await page.goto('/games/laser-rats.html');
+  await openCell(page, 'A4');
   await openCell(page, 'C3');
   const reserve = (kind: string) => page.locator(`[data-reserve-kind="${kind}"]`);
   async function dragTo(source: ReturnType<typeof reserve>, destination: ReturnType<typeof square>) {
@@ -183,6 +190,7 @@ test.describe('touch and responsive layout', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   test('a real touch drag places one piece and a cancelled touch leaves the reserve unchanged', async ({ page }) => {
     await page.goto('/games/laser-rats.html');
+    await openCell(page, 'A4');
     await openCell(page, 'C3');
     const source = page.locator('[data-reserve-kind="column"]');
     await source.scrollIntoViewIfNeeded();

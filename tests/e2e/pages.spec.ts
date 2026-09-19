@@ -107,10 +107,9 @@ test.describe('GitHub Pages project deployment', () => {
     expect(proof.status).toBe('solved');
     if (proof.status !== 'solved') return;
     await page.locator(`[data-cell="${cellName(proof.certificate.opening, puzzle.size)}"]`).click();
-    for (const scan of proof.certificate.scans) await page.locator(`[data-cell="${cellName(scan.cell, puzzle.size)}"]`).click();
-    for (const shot of proof.certificate.shots) {
-      await page.locator(`[data-reserve-id="${shot.robot}"]`).click();
-      await page.locator(`[data-cell="${cellName(shot.cell, puzzle.size)}"]`).click();
+    for (const step of proof.certificate.steps) {
+      if (step.type === 'shot') await page.locator(`[data-reserve-id="${step.robot}"]`).click();
+      await page.locator(`[data-cell="${cellName(step.cell, puzzle.size)}"]`).click();
     }
     await page.getByRole('button', { name: 'Siguiente reto' }).click();
     await expect(page.getByRole('combobox', { name: 'Reto' })).toHaveValue('generated');

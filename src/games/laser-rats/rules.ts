@@ -36,7 +36,7 @@ export interface Observation {
   remaining: number;
   safe: number[];
   walls: number[];
-  clues: { cell: number; counts: number[] }[];
+  clues: { cell: number; adjacent: number }[];
 }
 export const cellName = (cell: number, size: number) => `${String.fromCharCode(65 + cell % size)}${Math.floor(cell / size) + 1}`;
 export const cellIndex = (name: string, size: number) => (Number(name.slice(1)) - 1) * size + name.charCodeAt(0) - 65;
@@ -65,11 +65,32 @@ export function laserPaths(size: number, walls: readonly number[], cell: number,
 function nearbyWalls(puzzle: Puzzle, cell: number) {
   return puzzle.walls.filter(w => Math.max(Math.abs(w % puzzle.size - cell % puzzle.size), Math.abs(Math.floor(w / puzzle.size) - Math.floor(cell / puzzle.size))) <= 1);
 }
+export function neighbors(size: number, cell: number): number[] {
+  return directions.flatMap(({ dx, dy }) => {
+    const x = cell % size + dx, y = Math.floor(cell / size) + dy;
+    return x >= 0 && x < size && y >= 0 && y < size ? [y * size + x] : [];
+  });
+}
+export function adjacentRats(puzzle: Puzzle, state: GameState, cell: number): number {
+  return neighbors(puzzle.size, cell).filter(c => puzzle.rats.includes(c) && !state.cleared.includes(c)).length;
+}
+/** Expand zero clues, including old clues that became zero after a shot.
+ * Walls are revealed but never expand, and live rats are never discovered. */
+function reveal(puzzle: Puzzle, state: GameState, seeds: number[]): number[] {
+  const discovered = new Set(state.discovered), visited = new Set<number>();
+  const queue = [...seeds];
+  while (queue.length) {
+    const cell = queue.shift()!;
+    if (visited.has(cell) || (puzzle.rats.includes(cell) && !state.cleared.includes(cell))) continue;
+    visited.add(cell); discovered.add(cell);
+    if (puzzle.walls.includes(cell)) continue;
+    nearbyWalls(puzzle, cell).forEach(wall => discovered.add(wall));
+    if (adjacentRats(puzzle, state, cell) === 0) queue.push(...neighbors(puzzle.size, cell));
+  }
+  return [...discovered];
+}
 export function initialState(_puzzle: Puzzle): GameState {
   return { discovered: [], cleared: [], positions: {}, status: 'playing', beams: [] };
-}
-export function radar(puzzle: Puzzle, state: GameState, cell: number): number[] {
-  return directions.map((_, i) => ray(puzzle.size, cell, i).filter(c => puzzle.rats.includes(c) && !state.cleared.includes(c)).length);
 }
 export function observe(puzzle: Puzzle, state: GameState): Observation {
   // Only discovered, unoccupied-by-rat cells can contribute clues. Looking at
@@ -77,31 +98,19 @@ export function observe(puzzle: Puzzle, state: GameState): Observation {
   const safe = state.discovered.filter(c => !puzzle.rats.includes(c) || state.cleared.includes(c));
   return { size: puzzle.size, remaining: puzzle.rats.length - state.cleared.length, safe,
     walls: safe.filter(c => puzzle.walls.includes(c)),
-    clues: safe.filter(c => !puzzle.walls.includes(c)).map(cell => ({ cell, counts: radar(puzzle, state, cell) })) };
+    clues: safe.filter(c => !puzzle.walls.includes(c)).map(cell => ({ cell, adjacent: adjacentRats(puzzle, state, cell) })) };
 }
 export function scan(puzzle: Puzzle, state: GameState, cell: number): GameState {
   if (state.status !== 'playing' || !inside(puzzle.size, cell)) return state;
   if (puzzle.rats.includes(cell) && !state.cleared.includes(cell)) return { ...state, status: 'lost', loss: 'rat', hit: cell, beams: [] };
-  const discovered = [...new Set([...state.discovered, cell, ...nearbyWalls(puzzle, cell)])];
+  const discovered = reveal(puzzle, state, [cell]);
   return { ...state, discovered, beams: [] };
 }
-/** Only the player's first exploration is protected. Relocate a rat without
- * changing the counts; subsequent clicks use the ordinary losing scan rule. */
-export function explore(puzzle: Puzzle, state: GameState, cell: number): { puzzle: Puzzle; state: GameState } {
-  let nextPuzzle = puzzle;
-  if (state.status === 'playing' && state.discovered.length === 0 && inside(puzzle.size, cell) && puzzle.rats.includes(cell)) {
-    const destination = cells(puzzle.size).find(c => c !== cell && !puzzle.rats.includes(c) && !puzzle.walls.includes(c));
-    if (destination === undefined) return { puzzle, state };
-    nextPuzzle = { ...puzzle, start: cell, rats: puzzle.rats.map(rat => rat === cell ? destination : rat) };
-  }
-  return { puzzle: nextPuzzle, state: scan(nextPuzzle, state, cell) };
-}
-
 export function placementError(puzzle: Puzzle, state: GameState, robot: number, cell: number): string | null {
   if (state.status !== 'playing') return 'La ronda ha terminado.';
   if (!Number.isInteger(robot) || robot < 0 || robot >= puzzle.robots.length) return 'Ese robot no está disponible.';
   if (state.positions[robot] !== undefined) return 'Ese robot ya está colocado y no puede moverse.';
-  if (!inside(puzzle.size, cell) || !state.discovered.includes(cell)) return 'Primero descubre esa casilla con el radar.';
+  if (!inside(puzzle.size, cell) || !state.discovered.includes(cell)) return 'Primero descubre esa casilla.';
   if (puzzle.walls.includes(cell)) return 'No puedes colocar un robot en una pared.';
   if (Object.values(state.positions).includes(cell)) return 'Esa casilla ya tiene un robot.';
   return null;
@@ -109,8 +118,8 @@ export function placementError(puzzle: Puzzle, state: GameState, robot: number, 
 export function placeRobot(puzzle: Puzzle, state: GameState, robot: number, cell: number): GameState {
   if (placementError(puzzle, state, robot, cell)) return state;
   const beams = laserPaths(puzzle.size, puzzle.walls, cell, puzzle.robots[robot]);
-  const discovered = [...new Set([...state.discovered, ...beams.flat()])];
   const cleared = [...new Set([...state.cleared, ...beams.flat().filter(c => puzzle.rats.includes(c))])];
+  const discovered = reveal(puzzle, { ...state, cleared }, [...state.discovered, ...beams.flat()]);
   const positions = { ...state.positions, [robot]: cell };
   const status = cleared.length === puzzle.rats.length ? 'won' : puzzle.robots.every((_, robot) => positions[robot] !== undefined) ? 'lost' : 'playing';
   return { discovered, cleared, positions, status, loss: status === 'lost' ? 'robots' : undefined, beams };

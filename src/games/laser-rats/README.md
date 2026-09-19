@@ -1,148 +1,148 @@
 # La patrulla láser
 
 Standalone Spanish logic game at `/games/laser-rats.html`, linked from practice.
-Five fixed lessons introduce straight lines, intersecting clues and
-diagonals, a 7 × 7 board with walls, three separate row robots, and a final four-piece challenge.
+Nine fixed lessons introduce laser geometry, walls, separate robot pieces,
+interleaved exploration and firing, and a final four-piece challenge.
 
-## Rules
+## Explore, fire, explore again
 
-- Every cell starts hidden; no cell is selected and no clues are displayed.
-  The first player exploration is always safe: if it hits a rat, that rat is
-  relocated to a hidden empty cell, preserving rat and wall counts. After that
-  opening, rats never move and clicking one loses.
-- Scanning is unlimited. Clicking a live rat ends the round. Clicking an empty
-  square reveals it and the walls in its eight neighboring cells. A wall click
-  is harmless. Neighboring rats are not revealed.
-- Radar counts remaining rats along all eight straight rays, through walls to
-  the board edge. Only positive numbers appear, inside each discovered square,
-  each beside its direction arrow. Counts sit around the edges in compass order.
-  Neighboring cells stay clear and hidden; the number counts the entire ray. Discovered cells can be read
-  again for free, and their clues update after each shot.
-- Each inventory entry is a separate piece: row (left/right), column (up/down), diagonal
-  (all four diagonals). Each robot is a finite piece, placed once on a discovered empty cell.
-  It fires immediately and stays on that cell permanently: no moving, returning
-  to the reserve, or firing again. Robot positions cannot overlap.
-- Lasers clear every rat on a ray, pass through friendly robots, reveal the
-  cells traversed, and stop at the first wall, revealing that wall. Cleared rat
-  cells become legal deployment positions.
-- Clearing every rat wins, including with the final robot. Otherwise,
-  placing every available robot loses. Both outcomes expose the remaining board.
-  Retries are unlimited. The current round is not persisted.
-- Radar pings, rat surprises, laser sweeps, hit chords and the completion tune
-  are synthesized locally. The bundled Cipher track supplies background music.
-  All audio uses the existing opt-in sound preference. Reveal ripples, traveling
-  beams, disappearing rats and completion stars honor reduced motion.
+- Every cell starts hidden. The starred cell is the safe, validated opening.
+  Clicking another cell before opening it leaves the round unchanged and points
+  the player to the star. Rat positions never move, including on restart.
+- Each discovered non-wall cell displays the number of **remaining rats in its
+  eight neighboring cells**, including diagonal neighbors. A zero automatically
+  reveals its neighbors and expands through connected zero cells. Walls are
+  revealed but never expand the opening. Live rats remain hidden.
+- Clues are shown directly on the board, with no directional radar, adjacency
+  caption, or neighbor highlighting. Help explains the eight-cell neighborhood.
+- Scanning is unlimited. Clicking a live rat loses. Clicking a wall is harmless.
+  Discovering an empty cell also reveals walls in its eight neighboring cells.
+- Each inventory entry is a separate finite piece: row (left/right), column
+  (up/down), or diagonal (all four diagonals). Place it on a discovered empty
+  cell; it fires immediately and stays there permanently. Robots cannot overlap.
+- Lasers clear rats and reveal the traversed cells. They pass through friendly
+  robots and stop at the first wall, revealing that wall. A cleared rat cell can
+  be scanned and used for a later robot.
+- **Every shot updates all clues.** Newly cleared cells supply new clues; old
+  discovered cells whose local count becomes zero also expand automatically.
+  Exploration can stall until a robot opens more of the board. Players do not
+  need to locate every rat before firing.
+- Clearing every rat wins, including on the final shot. Otherwise placing the
+  last available robot loses. The remaining board is exposed on either outcome.
+  Retries are unlimited. The round is not persisted.
 
-Clicks explore by default. Drag a figure from the finite reserve onto a
-discovered empty cell. The reserve count decreases and the figure leaves the tray;
-the robot remains on the board. The tray collapses when empty. Mouse, pen and touch share valid/invalid drop
-previews and edge scrolling. Invalid drops, Escape and cancelled gestures do
-not consume a piece or discover cells. Tap/keyboard selection plus destination
-activation remains available as an accessible alternative. Help lives behind the top question-mark icon.
-There are no hint buttons or configuration forms in the play area. Each robot
-has a distinct silhouette: wide with horizontal cannons, tall with vertical
-cannons, or diamond-shaped with four diagonal cannons. The counter shows one
-rat face per target, changing to crossed eyes and a tongue when cleared.
+Drag a robot from the reserve to a discovered empty cell, or select it and then
+activate the destination. Mouse, pen and touch share valid/invalid drop previews
+and edge scrolling. Escape and cancelled or invalid drops do not consume pieces
+or reveal cells. Keyboard arrows navigate; Enter/Space activate. The reserve
+collapses when empty. Help is behind the question-mark icon.
 
-After the fifth lesson, **Siguiente reto** generates another default 7 × 7 board.
-Further completed boards offer the same continuation. The generator API below
-retains configurable parameters for level design and testing.
+Audio uses the existing opt-in sound preference and bundled Cipher soundtrack.
+Reveal ripples, laser sweeps, rat effects and completion stars honor reduced
+motion. Robot silhouettes identify their firing directions. During play, small
+robot/cleared-rat marks leave the adjacent count readable on their cells.
 
-## Generator and solver
+## Validation and generation
 
-`generatePuzzle({ size, rats, walls, robots, seed })` takes a square
-size of 4–9, 1–24 rats, a wall count leaving room for a safe start, a nonempty
-list of 1–12 entries drawn from `row`, `column`, `diagonal`. Repeated types
-are allowed: `["row", "row", "row"]` supplies three separate row pieces. Each
-piece uses its inventory index as a stable ID; positions and solver shots use
-that ID, so placing one never consumes or moves another of the same type.
+`generatePuzzle({ size, rats, walls, robots, seed })` accepts square sizes 4–9,
+1–24 rats, walls leaving a safe opening, and 1–12 robot pieces. Repeated types
+are supported. Inventory indices are stable piece IDs throughout rules, planning,
+and replay. The default is 7 × 7, 10 rats, 3 walls, and one of each robot type.
+A fixed seed reproduces a layout for the same options and generator version.
 
-The default is 7 × 7 / 10 rats / 3 walls / all three robots.
-A seed reproduces the same board for the same options and generator version.
-Each generated round chooses a fresh seed. Call the API with a fixed seed to
-reproduce a board during development.
-There are finitely many boards for fixed parameters, so freshness is not a
-mathematical uniqueness guarantee.
+After the last lesson, **Siguiente reto** generates another board. A worker keeps
+this off the UI thread, with a 15-second timeout and cancellation on restart or
+lesson change. Generation failure retains the current round and allows retry.
+Normally at most 120 candidates and 18,000 search nodes per candidate are used.
+Requested counts and inventory are never silently reduced.
 
-Validation deliberately separates private layout from public knowledge:
+1. Candidate creation samples walls and targets reachable from possible robot
+   positions, preserving exact counts and a safe opening.
+2. `observe` exposes discovered safe cells, known walls, remaining-rat count,
+   and adjacent clues. `deduce` receives **only this public observation**.
+3. Zero/full cardinality groups and subtraction between two original clues prove
+   safe cells or rats. Neighbor groups and the public total are the only count
+   constraints. Combined-clue chains are deliberately bounded.
+4. Certification scans only cells proved safe and records their explanations.
+   Automatic zero expansion uses the same rules as the UI.
+5. At a deduction stall, `knownShots` considers only discovered empty origins
+   and unused pieces with at least one **guaranteed hit**. Individual rat
+   positions need not be known: if three of four neighbors contain rats,
+   covering two of them guarantees a hit. A ray's guaranteed prefix stops at a
+   known wall or a cell that might hide one. Discovered empty cells and their
+   neighbors are known wall-free unless a wall is shown; deduced rats also
+   cannot be walls. Other unseen cells may block a beam.
+   Candidate selection/ranking uses public knowledge, never hidden rat positions.
+6. Each candidate shot is replayed through the game rules and deduction resumes
+   with the resulting clues. Bounded backtracking accounts for occupied origins,
+   used pieces, remaining targets, and revealed cells. Once the full remaining
+   map is inferred, a cheaper complete-map laser planner finishes the search.
+7. A returned certificate has ordered **`steps`**, each a proved-safe scan or a
+   shot with a guaranteed hit count. Replay `steps` in order. `scans` and `shots`
+   are summary projections, not two independent replay phases.
 
-1. **Candidate:** seeded shuffling chooses walls and a possible fixed firing position
-   for each robot. Rat positions are sampled from their reachable rays, excluding
-   walls and firing origins. A safe start is chosen. Exact counts are preserved;
-   the candidate still must pass public-clue deductions and plan replay.
-2. **Observation:** the rules provide only discovered safe cells, known walls,
-   public remaining-rat count and radar readings. `deduce` accepts this object,
-   not the hidden `Puzzle`.
-3. **Elementary logic:** binary rat variables obey a cardinality equation for
-   each ray and the total. Zero/full groups force safe/rat cells. Subtracting
-   a subset from another original clue permits overlapping-clue deductions.
-   Comparisons between already-combined clues are excluded to avoid long chains.
-4. **Safe discoveries:** reveal only cells proved safe, retain their explanations,
-   and repeat. Stalled or inconsistent candidates are rejected. No speculative
-   rat assignment can authorize a click.
-5. **Laser planning:** after every rat has been logically located, bounded
-   backtracking searches legal deployments on the inferred map. It tracks robot
-   occupancy, used pieces, wall occlusion and cleared rat cells. A piece ID can
-   appear at most once in a plan. Equivalent unused pieces are searched in index
-   order to avoid redundant permutations. It tries shorter plans first and memoizes failed states.
-6. **Replay:** run every planned shot through the actual game rules. Only a won
-   round is returned, accompanied by safe-discovery proofs and its shot sequence.
+A certificate establishes a winning route from the **marked opening** with no
+speculative rat clicks and with at least one guaranteed hit per shot. It is conservative:
+blind exploratory shots and deductions beyond the supported rules may work but
+are not certified. `no-plan` is not an impossibility proof; `search-limit` is
+separate. Backtracking explores actual shot outcomes; it does not prove that
+all strategic choices are equally good or that a winning choice is forced by
+public clues in every possible hidden layout. Finite robot placement remains a
+planning challenge. Do not present this as a guarantee that every legal move wins.
 
-This is a **conservative two-phase certificate**, not a complete solver for
-all fair games. It first discovers all non-rat cells logically, then plans shots.
-It may reject boards that need early laser exploration, more advanced deductions,
-or interleaved scanning and firing. `no-plan` means no plan
-was certified by this search, not a proof of impossibility. Search-limit failures
-are reported separately. A certificate records a safe opening and a no-guess route from that opening.
-The player can choose any first cell instead. We deliberately do not revalidate
-that choice or a first-click rat relocation: safety is guaranteed, but a no-guess
-solution from every chosen opening is not. The certificate also does not imply
-that every later legal decision preserves a solution or that a child finds it easy.
+## Lessons
 
-Generation normally allows 120 candidates, with at most 18,000 search nodes per
-candidate. A worker keeps the UI responsive and is terminated after 15 seconds.
-Failure retains the current game and allows another attempt.
-Switching lessons or restarting cancels pending generation so stale results cannot
-replace the chosen board.
+- **Sigue las líneas**, A4: a zero opening and complementary row/column robots.
+- **Cruces y diagonales**, A1: adjacent clues with diagonal coverage.
+- **Al otro lado del muro**, D4: walls block beams. One
+  winning sequence is diagonal E5 → column D4 → row C4.
+- **Tres robots de filas**, C3: three distinct row pieces stay where placed.
+- **Abre camino**, C5: the opening locates no individual rats and proves no
+  safe next scan. Its three adjacent rats among four non-wall neighbors
+  guarantee a row robot at C5 will hit at least one. It actually clears three
+  rats and opens new clue cells. Continue with diagonal A5, scan E3, then
+  column E1 (after the diagonal clears E1).
+- **Paso a paso**, B1: a compact 5 × 5 reinforcement round. Only the row robot
+  has a guaranteed opening hit. Row B1 opens six additional cells; the new
+  numbers support further safe exploration. Column D1 and diagonal D3 finish
+  the four remaining rats once their positions are deduced.
+- **Terreno recuperado**, A4: an 8-rat, 6 × 6 lesson in reusing cleared ground.
+  Row A4 clears C4; walls at C2 and C6 enclose the remaining rats at C3 and C5.
+  After safe exploration, column C4 and diagonal F3 finish in either order.
+  Winning requires placing a robot on a former rat cell, even with the entire
+  map known. The opening shot reveals eleven additional cells.
+- **Piensa dos jugadas**, E6: a 9-rat, 6 × 6 planning lesson. Row E6 reveals nine
+  additional cells, then safe exploration locates all five remaining rats.
+  Diagonal B1 clears three and leaves B3/B4 for column B2. Diagonal C4 also
+  clears three but strands the remaining rats in different columns. All the
+  information needed to compare those finishes is available before committing.
+- **La última patrulla**, F1: four pieces are necessary even on a fully known
+  board. Row F1 → row E4 → diagonal B5 → column G1 wins with safe exploration
+  between shots. Diagonal F3 clears four rats but leaves an impossible remainder for the other
+  pieces. This is a strategic trap, independent of the clue system.
 
-## What the handcrafted boards show
+The diagonal robot covers four rays versus two for the other kinds. Puzzle
+certification is a correctness check, not a measurement of difficulty; the
+lesson progression still needs player testing.
 
-These paths begin by clicking the recorded opening (C3, B4, D4, C3, and D4 respectively).
-
-- **Sigue las líneas:** blank directions open safe positions; row and column
-  robots have clear complementary uses.
-- **Cruces y diagonales:** the validator uses overlapping clues. One certified
-  plan places row at C3, column at D4, and diagonal at D3.
-- **Al otro lado del muro:** the layout is solvable with three fixed robots.
-  A simple path scans E3 → E5, places diagonal at E5 and column at D4, then
-  scans C4 and places the row robot there. All three stay where placed.
-
-- **Tres robots de filas:** C1, C3 and C5 each need a different row piece.
-  All three identical figures stay on their own squares.
-
-- **La última patrulla:** 7 × 7, 12 rats, four walls, two row pieces, one column,
-  and one diagonal. The D4 opening has a certified discovery route with two
-  combined-clue deductions. All four pieces are necessary, even on a fully known
-  map. One winning deployment is row B6 → diagonal A5 → column G4 → row D5,
-  after the safe cells are discovered. A diagonal at F4 clears six rats but
-  leaves an impossible remainder for the two rows and column. This fixed
-  challenge was selected with solver-assisted layout exploration; difficulty
-  still needs player testing. Its arbitrary-first-click limitation is the same
-  as the other lessons.
-
-The diagonal robot has four firing rays versus two for the others. Availability
-does not imply every type must be used; playtesting should decide whether that
-imbalance calls for different maps or a future rule change. Scan count, comparison
-count and certified piece usage are available in certificates as useful tuning
-signals, not established difficulty scores.
+The three bridge lessons retain the same zero-expansion rules. Their layouts
+limit the first shot to revealing at most 40% of the board and require more
+deduction afterward. Each has a single guaranteed-hit opening shot and needs
+all three robot types. They precede the four-piece finale; generated missions
+still begin only after completing that final lesson.
 
 ## Checks
 
-`npx vitest run src/games/laser-rats` covers the game rules, loss/win boundaries,
-replayable certificates, multiple generator seeds and inventories, audio event
-mapping, permanent placement and keyboard behavior. An independent exhaustive 4 × 4 oracle checks
-that every deduction agrees with every rat layout consistent with its clues.
+`npx vitest run src/games/laser-rats` checks local counts, zero expansion, walls,
+clue updates after kills, a mandatory interleaving lesson, ordered proof replay,
+finite inventory, generator seeds, sound mapping, and keyboard behavior. The
+bridge lessons also check limited opening reveals, mandatory cleared-cell reuse,
+and the fully deducible choice between the final two shots. An
+independent exhaustive 4 × 4 oracle checks deductions and guaranteed hits
+against all rat layouts consistent with adjacent clues, including the most
+restrictive hidden walls compatible with the discovered cells.
 
-`npx playwright test tests/e2e/laser-rats.spec.ts` covers practice navigation,
-all lessons, worker generation, reset, hidden information, music, real mouse/touch drags, cancellation, fixed pieces and touch play.
-Production project-prefix coverage also exercises the worker under a subdirectory.
+`npx playwright test tests/e2e/laser-rats.spec.ts` checks navigation, the marked
+opening, clue presentation, progression through all nine certificate playthroughs, generation/retry,
+mouse and touch drags, responsive layout and full missions. Production prefix
+coverage also exercises the generated-board worker under a subdirectory.
