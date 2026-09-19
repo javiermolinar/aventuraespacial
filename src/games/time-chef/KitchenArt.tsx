@@ -19,6 +19,11 @@ export function DishArt({ dish, state = 'ready' }: { dish: Recipe['dish']; state
     <ellipse cx="150" cy="173" rx="119" ry="17" fill="#6d4c2820" />
     <ellipse cx="150" cy="164" rx="112" ry="17" fill="#fffdf8" stroke="#d9c5a5" strokeWidth="3" />
     {burned && <g className="chef-smoke" fill="none" stroke="#958f88" strokeWidth="9" strokeLinecap="round" opacity=".7"><path d="M95 73C63 49 116 41 91 16" /><path d="M151 60C127 40 167 30 147 6" /><path d="M208 73C185 57 230 37 207 17" /></g>}
+    {dish === 'toast' && <g>
+      <path d="M78 96C51 49 111 34 150 50C191 34 250 49 223 96V155Q150 175 78 155Z" fill={food} stroke={burned ? '#392e2b' : '#b87c3c'} strokeWidth="9" strokeLinejoin="round" />
+      <path d="M98 100C81 69 115 61 150 72C185 61 219 69 202 100V143Q150 155 98 143Z" fill={burned ? '#392e2b' : early ? '#f5e9cd' : '#f7ce7f'} />
+      <path d="M128 87L160 83L174 101L142 105Z" fill={burned ? '#82735e' : '#fff0a3'} />
+    </g>}
     {dish === 'pancakes' && <g fill={food} stroke={burned ? '#392e2b' : '#b87c3c'} strokeWidth="3">
       {[0, 1, 2].map(index => <g key={index} transform={`translate(0 ${-index * 18})`}><rect x="64" y="115" width="172" height="33" rx="16" /><ellipse cx="150" cy="115" rx="85" ry="18" /></g>)}
       <path d="M99 76Q155 51 204 80L196 105Q185 116 180 97L152 92Q133 114 125 94Z" fill={burned ? '#392e2b' : '#bb7042'} stroke="none" /><path d="M135 66L166 68L163 80L132 78Z" fill={burned ? '#82735e' : '#ffe394'} stroke="none" />

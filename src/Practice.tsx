@@ -33,7 +33,7 @@ export default function Practice() {
       </section>
       <section className="time-chef-picker" aria-labelledby="time-chef-title">
         <div className="time-chef-picker-art" aria-hidden="true">👨‍🍳<span>08:00</span></div>
-        <div><span className="time-chef-category">EL RELOJ Y LAS 24 HORAS</span><h2 id="time-chef-title">El chef del tiempo</h2><p>Mueve las agujas y pon la alarma. ¡Tres recetas para servir en su punto!</p></div>
+        <div><span className="time-chef-category">EL RELOJ Y LAS 24 HORAS</span><h2 id="time-chef-title">El chef del tiempo</h2><p>Cuatro recetas: una con pista y tres para practicar. ¡Mueve las agujas y sirve en su punto!</p></div>
         <a className="primary" href="./games/time-chef.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
       </section>
       <details className="parent-info"><summary>Para familias</summary><p>Empezamos con sumas y restas sencillas. Las sumas con llevadas se practican por separado en el nivel 4. Las restas con llevadas, más difíciles, tienen su propio nivel 6 y no aparecen en la práctica mixta. Cada operación resuelta da una pieza para construir un robot. No hay cronómetro, vidas ni penalizaciones.</p><p>Los robots terminados se guardan en este navegador, no entre dispositivos. Salir o recargar reinicia el puzzle en curso. El sonido es opcional. También se puede jugar con el teclado: números para responder y tabulador para moverse entre botones. Para colocar una pieza sin arrastrar, selecciónala y después selecciona su silueta.</p></details>

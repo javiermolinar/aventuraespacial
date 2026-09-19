@@ -10,9 +10,10 @@ type Drag = { pointer: number; hand: Hand; start: number; previous: number; rota
  * Omit onChange for display-only use. Drag either hand or use arrow keys.
  * Theme with --clock-* CSS variables on an ancestor.
  */
-export function AnalogClock({ value, onChange, disabled = false, minuteStep = 5, activeHand, onActiveHandChange }: {
+export function AnalogClock({ value, onChange, disabled = false, minuteStep = 5, activeHand, onActiveHandChange, showMinuteGuide = false }: {
   value: number; onChange?: (time: number) => void; disabled?: boolean; minuteStep?: 1 | 5 | 15 | 30;
   activeHand?: ClockHand; onActiveHandChange?: (hand: ClockHand) => void;
+  showMinuteGuide?: boolean;
 }) {
   const svg = useRef<SVGSVGElement>(null);
   const drag = useRef<Drag | null>(null);
@@ -56,8 +57,12 @@ export function AnalogClock({ value, onChange, disabled = false, minuteStep = 5,
     });
   }
   return <svg ref={svg} className={`analog-clock ${onChange ? 'is-interactive' : ''}`} viewBox="0 0 300 300"
-    role={onChange ? 'group' : 'img'} aria-label={onChange ? 'Reloj de agujas' : spokenTime(value)}>
+    role={onChange ? 'group' : 'img'} aria-label={onChange ? 'Reloj de agujas' : spokenTime(Math.floor(value))}>
     <circle cx="150" cy="150" r="146" fill="var(--clock-face, #fffdf6)" stroke="var(--clock-rim, #e7b775)" strokeWidth="7" />
+    {showMinuteGuide && <g aria-hidden="true" pointerEvents="none">
+      {value % 60 > 0 && <path d={'M150 150 L150 14 A136 136 0 ' + (value % 60 > 30 ? 1 : 0) + ' 1 ' + (150 + 136 * Math.sin(value % 60 * Math.PI / 30)) + ' ' + (150 - 136 * Math.cos(value % 60 * Math.PI / 30)) + ' Z'} fill="var(--clock-minute, #147e89)" opacity=".12" />}
+      {[[150, 69, '0 / 60'], [231, 150, '15'], [150, 231, '30'], [69, 150, '45']].map(([x, y, label]) => <text key={label} x={x} y={y} textAnchor="middle" dominantBaseline="central" fill="var(--clock-minute, #147e89)" fontSize="14" fontWeight="850">{label}</text>)}
+    </g>}
     {Array.from({ length: 60 }, (_, index) => <line key={index} x1="150" y1={index % 5 ? 15 : 12} x2="150" y2={index % 5 ? 19 : 24} stroke={index % 5 ? 'var(--clock-minor-tick, #d9cdb9)' : 'var(--clock-major-tick, #8b7660)'} strokeWidth={index % 5 ? 1.5 : 3} transform={`rotate(${index * 6} 150 150)`} />)}
     {(['minute', 'hour'] as const).map(hand => <g key={hand} className={`clock-hand clock-hand-${hand}`} transform={`rotate(${angles[hand]} 150 150)`}
       role={onChange ? 'slider' : undefined} tabIndex={interactive ? 0 : undefined}

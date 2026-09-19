@@ -19,13 +19,14 @@ const [time, setTime] = useState(8 * 60 + 30);
 
 ## Contract
 
-- `value`: integer minutes since midnight, from `0` through `1439`. Use `normalizeTime` for external values. This is not an elapsed duration or a date/time-zone value.
+- `value`: minutes since midnight, from `0` up to (but not including) `1440`. Use integers for inputs and digital displays; display-only analog clocks also accept fractional minutes for animation. Use `normalizeTime` for external values. This is not an elapsed duration or a date/time-zone value.
 - `onChange?`: receives the proposed time, normalized into that range. Omit for display-only use.
 - `disabled?`: disables interaction without changing the displayed value.
 - `minuteStep?`: `1 | 5 | 15 | 30`, defaults to `5`. Incremental changes preserve any existing off-step offset.
 - `DigitalClock.label?`: accessible name of the input group; defaults to `Reloj digital de 24 horas`.
 - `AnalogClock.activeHand?`: `'hour' | 'minute'`. When supplied on an interactive clock, the numbers become tap/click/keyboard buttons that set this hand directly. Omit to retain drag-only numbers.
 - `AnalogClock.onActiveHandChange?`: reports which hand starts a drag, so a parent-provided hand picker can follow it.
+- `AnalogClock.showMinuteGuide?`: shades the elapsed part of the hour and labels 0/60, 15, 30, and 45 minutes. Intended for hints and demonstrations; defaults to off. Fractional values animate both hands smoothly while the accessible time is rounded down to a whole minute.
 
 The analog clock is a 12-hour face. Games must supply day-period context or controls themselves if an answer distinguishes morning from evening. The digital clock always displays 24-hour time. Rendering one does not reveal the other's representation unless the parent chooses to do so.
 
