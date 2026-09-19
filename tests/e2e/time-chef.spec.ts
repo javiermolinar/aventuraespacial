@@ -23,7 +23,12 @@ async function arc(page: Page, hand: 'hour' | 'minute', startAngle: number, endA
     if (touch) await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [next] });
     else await page.mouse.move(next.x, next.y);
   }
-  if (touch) await touch.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] });
+  if (touch) {
+    await touch.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] });
+    // Raw CDP drags can leave Chromium's 180 ms post-fling tap suppression active.
+    // Model lifting the finger before starting another gesture, rather than retrying a lost tap.
+    await page.waitForTimeout(300);
+  }
   else { if (cancel) await page.keyboard.press('Escape'); await page.mouse.up(); }
 }
 
@@ -113,8 +118,7 @@ test.describe('mobile touch', () => {
     await arc(page, 'minute', 0, 180, touch);
     await expect(hourHand(page)).toHaveAttribute('transform', 'rotate(255 150 150)');
     const ready = page.getByRole('button', { name: '¡Listo!' });
-    // Settle the touch viewport before capture; tapping must not also scroll.
-    // Chromium can otherwise dispatch the tap using the previous scroll offset.
+    // Capture the viewport with the submit button visible, without a full-page resize.
     await ready.scrollIntoViewIfNeeded();
     await expect(ready).toBeInViewport();
     await page.screenshot({ path: 'artifacts/time-chef-visual-hint.png' });
