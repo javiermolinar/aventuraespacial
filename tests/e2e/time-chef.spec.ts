@@ -112,10 +112,13 @@ test.describe('mobile touch', () => {
     await arc(page, 'hour', 180, 240, touch);
     await arc(page, 'minute', 0, 180, touch);
     await expect(hourHand(page)).toHaveAttribute('transform', 'rotate(255 150 150)');
-    // Keep the emulated touch viewport unchanged between the drag and tap.
-    // Full-page capture can resize it and invalidate Chromium's touch coordinates.
+    const ready = page.getByRole('button', { name: '¡Listo!' });
+    // Settle the touch viewport before capture; tapping must not also scroll.
+    // Chromium can otherwise dispatch the tap using the previous scroll offset.
+    await ready.scrollIntoViewIfNeeded();
+    await expect(ready).toBeInViewport();
     await page.screenshot({ path: 'artifacts/time-chef-visual-hint.png' });
-    await page.getByRole('button', { name: '¡Listo!' }).tap();
+    await ready.tap();
     await expect(page.getByRole('status')).toHaveText('¡En su punto!');
   });
   test('touch hands work across twelve and cancel; all screen widths fit', async ({ page }) => {
