@@ -1,0 +1,6 @@
+.laser-rats-picker { display: grid; grid-template-columns: 90px 1fr auto; align-items: center; gap: 24px; padding: 26px; margin-top: 24px; background: #eaf0e9; border: 1.5px solid #c7d8cf; border-radius: 24px; }
+.laser-rats-picker-art { width: 80px; height: 80px; background: #303c54; color: #d7e8d3; border-radius: 18px; display: grid; place-items: center; font-size: 43px; transform: rotate(-5deg); }
+.laser-rats-category { color: #618374; font-size: 10px; font-weight: 900; letter-spacing: 1.2px; }
+.laser-rats-picker h2 { font-size: 28px; font-weight: 900; margin: 5px 0; }
+.laser-rats-picker p { font-size: 15px; color: #63756b; line-height: 1.5; }
+@media (max-width: 700px) { .laser-rats-picker { grid-template-columns: 55px minmax(0, 1fr); gap: 16px; padding: 18px; } .laser-rats-picker-art { width: 55px; height: 60px; font-size: 31px; } .laser-rats-picker h2 { font-size: 23px; } .laser-rats-picker > a { grid-column: 1 / -1; } }

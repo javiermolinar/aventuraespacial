@@ -6,6 +6,7 @@ import { soundtracks } from './music';
 import './styles/landing.css';
 import './styles/shape-game-picker.css';
 import './styles/time-chef-picker.css';
+import './styles/laser-rats-picker.css';
 
 /** Standalone games preserve the existing practice collection and level URLs. */
 export default function Practice() {
@@ -30,6 +31,11 @@ export default function Practice() {
         <div className="shape-game-art" aria-hidden="true"><span /><span /><span /><span /><span /><span /></div>
         <div><span className="shape-game-category">FORMAS Y ESPACIO</span><h2 id="shape-game-title">¡Todo encaja!</h2><p>Arrastra, gira y encaja todas las piezas en la caja. Seis retos, sin cronómetro.</p></div>
         <a className="primary" href="./games/shape-box.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
+      </section>
+      <section className="laser-rats-picker" aria-labelledby="laser-rats-title">
+        <div className="laser-rats-picker-art" aria-hidden="true">✣</div>
+        <div><span className="laser-rats-category">LÓGICA Y ESPACIO</span><h2 id="laser-rats-title">La patrulla láser</h2><p>Descubre casillas seguras y coloca tus robots. ¡Que no quede ninguna rata!</p></div>
+        <a className="primary" href="./games/laser-rats.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
       </section>
       <section className="time-chef-picker" aria-labelledby="time-chef-title">
         <div className="time-chef-picker-art" aria-hidden="true">👨‍🍳<span>08:00</span></div>

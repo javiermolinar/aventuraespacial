@@ -17,6 +17,7 @@ Open the URL printed by Vite, normally `http://localhost:5173`.
 - `/practice.html`: the seven maths levels, robot collection, shape-packing and clock games, family information, and music credits.
 - `/games/time-chef.html`: **El chef del tiempo**, four recipes per menu: one with a hint, then three to practise analog clocks and 24-hour alarms.
 - `/games/shape-box.html`: **¡Todo encaja!**, twelve square/rectangular shape-packing puzzles with drag-and-drop and quarter-turn rotation.
+- `/games/laser-rats.html`: **La patrulla láser**, five logic puzzles followed by generated boards with verified safe discoveries, laser robots, fog and walls.
 - `/games/robot-lab.html?level=1`: the maths-only robot factory. Levels are numbered 1–7.
 - `/games/adventure.html`: retained direct entry to the same adventure. The normal home/start/play flow stays on `/index.html` without another landing page.
 
@@ -87,6 +88,12 @@ Drag either hand directly, or focus it and use keyboard arrows; there are no han
 
 The theme-independent [`src/components/clocks/`](src/components/clocks/README.md) components own only clock display/input and time helpers. Recipes, scoring, hints, day-period choices, and kitchen artwork live in `src/games/time-chef/`. Other games can reuse either clock in display-only or interactive mode and theme it with CSS variables.
 
+## Laser patrol
+
+**La patrulla láser** combines safe-cell deduction with row, column and diagonal laser robots in the adventure's spaceship. Every cell starts hidden. The first click is safe; a rat there is relocated to another hidden empty cell. Later rat clicks end the round; scanning is unlimited. Each robot is a finite figure dragged from the reserve onto a discovered empty cell. It fires once and stays permanently in place; it cannot be moved or removed. The reserve shows how many pieces remain. Radar sees through walls; lasers reveal their paths, clear every rat they reach and stop at walls. Positive counts appear inside each discovered square, next to direction arrows arranged around its edges. They count the whole ray, including through walls. Distinct robot silhouettes and a counter of rat faces make the pieces and progress recognizable. Clicking explores by default; instructions live behind a top help icon. Robot controls, retry and keyboard/touch input work on desktop and phones. Music, radar pings, laser sounds and rat reactions share the sound switch; animations respect reduced motion.
+
+Five fixed puzzles teach lines, intersecting clues, placement around walls, and separate pieces of the same type, then offer a harder four-robot challenge. Inventories can contain repeated robot types, such as three row robots. **Siguiente reto** continues with generated boards after the fifth lesson. The generator API accepts board size, rat and wall counts, available robot types and a reproducible seed; these controls stay out of the play area. Each generated board carries a replayed no-guess solution from its recorded opening (an arbitrary first click or rat relocation is not revalidated): elementary deductions discover safe cells, then bounded backtracking finds a legal laser plan. Generation runs in a cancellable worker and rejects unverified candidates. These guarantees do not establish child-appropriate difficulty; the validator deliberately rejects some solvable boards that need more advanced or interleaved reasoning. See [the rules and solver notes](src/games/laser-rats/README.md).
+
 ## Static build
 
 ```sh
@@ -94,7 +101,7 @@ npm run build
 npm run preview
 ```
 
-Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All six HTML pages are built explicitly. No SPA rewrite is required; Vite's `base: './'` and relative navigation/assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
+Deploy the entire `dist/` directory to any static host, including Cloudflare Pages, Netlify, or GitHub Pages. All seven HTML pages are built explicitly. No SPA rewrite is required; Vite's `base: './'` and relative navigation/assets support deployment under a subdirectory. Serve the build over HTTP(S), not `file://`.
 
 ### GitHub Pages
 
@@ -103,7 +110,7 @@ Deploy the entire `dist/` directory to any static host, including Cloudflare Pag
 - Pages source: **GitHub Actions** in **Settings → Pages**.
 - `.github/workflows/pages.yml` runs on pushes and pull requests to `main`, and can be started manually.
 - The workflow uses Node.js 22, installs with `npm ci`, validates chapters/artwork, runs unit/component tests, builds the site, and runs Chromium tests for the development-only preview and production build. CI retries browser tests twice and retains failure diagnostics for seven days.
-- `tests/e2e/pages.spec.ts` also serves the built site under `/aventuraespacial/` to check all five entry pages, navigation, illustrations and music without a root-path fallback.
+- `tests/e2e/pages.spec.ts` also serves the built site under `/aventuraespacial/` to check all seven entry pages, navigation, illustrations, music and the puzzle generator without a root-path fallback.
 - Only a successful `main` build is uploaded and deployed to the `github-pages` environment. Pull requests run checks without deployment permissions. Actions are pinned to commit SHAs.
 - The generated `dist/` directory is uploaded as a Pages artifact; no `gh-pages` branch, custom server, personal access token or repository secret is needed.
 

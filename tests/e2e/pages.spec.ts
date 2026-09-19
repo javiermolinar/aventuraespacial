@@ -4,6 +4,9 @@ import { createServer, type Server } from 'node:http';
 import { createReadStream, statSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { extname, resolve, sep } from 'node:path';
+import { lessons } from '../../src/games/laser-rats/puzzles';
+import { certify } from '../../src/games/laser-rats/solver';
+import { cellName } from '../../src/games/laser-rats/rules';
 
 /** Serve only the production directory under the real Pages project prefix; no SPA fallback. */
 test.describe('GitHub Pages project deployment', () => {
@@ -74,6 +77,25 @@ test.describe('GitHub Pages project deployment', () => {
     await page.getByRole('region', { name: 'El chef del tiempo' }).getByRole('link', { name: 'Jugar' }).click();
     await expect(page).toHaveURL(origin + prefix + 'games/time-chef.html');
     await expect(page.getByRole('heading', { name: 'El chef del tiempo' })).toBeVisible();
+    await page.getByRole('link', { name: 'Salir', exact: true }).click();
+    await expect(page).toHaveURL(origin + prefix + 'practice.html');
+    await page.getByRole('region', { name: 'La patrulla láser' }).getByRole('link', { name: 'Jugar' }).click();
+    await expect(page).toHaveURL(origin + prefix + 'games/laser-rats.html');
+    await expect(page.getByRole('heading', { name: 'La patrulla láser' })).toBeVisible();
+    await expect.poll(() => page.locator('.laser-backdrop img').evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await page.getByRole('combobox', { name: 'Reto' }).selectOption(String(lessons.length - 1));
+    const puzzle = lessons.at(-1)!, proof = certify(puzzle);
+    expect(proof.status).toBe('solved');
+    if (proof.status !== 'solved') return;
+    await page.locator(`[data-cell="${cellName(proof.certificate.opening, puzzle.size)}"]`).click();
+    for (const scan of proof.certificate.scans) await page.locator(`[data-cell="${cellName(scan.cell, puzzle.size)}"]`).click();
+    for (const shot of proof.certificate.shots) {
+      await page.locator(`[data-reserve-id="${shot.robot}"]`).click();
+      await page.locator(`[data-cell="${cellName(shot.cell, puzzle.size)}"]`).click();
+    }
+    await page.getByRole('button', { name: 'Siguiente reto' }).click();
+    await expect(page.getByRole('combobox', { name: 'Reto' })).toHaveValue('generated');
+    await expect(page.locator('.laser-cell')).toHaveCount(49);
     await page.getByRole('link', { name: 'Salir', exact: true }).click();
     await expect(page).toHaveURL(origin + prefix + 'practice.html');
     await page.getByRole('link', { name: 'Volver al inicio', exact: true }).click();

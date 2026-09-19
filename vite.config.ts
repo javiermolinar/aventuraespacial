@@ -16,6 +16,7 @@ export default defineConfig({
         robotLab: resolve(import.meta.dirname, 'games/robot-lab.html'),
         shapeBox: resolve(import.meta.dirname, 'games/shape-box.html'),
         timeChef: resolve(import.meta.dirname, 'games/time-chef.html'),
+        laserRats: resolve(import.meta.dirname, 'games/laser-rats.html'),
       },
     },
   },
