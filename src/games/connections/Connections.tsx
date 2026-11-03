@@ -4,13 +4,16 @@ import { SiteShell } from '../../components/SiteShell';
 import { useSoundPreference } from '../../services/useSoundPreference';
 import { PipePuzzle } from './PipePuzzle';
 import { connectionDifficulties, connectionGames } from './levels';
+import { advancedConnectionGames, advancedDifficulties } from './advanced-levels';
 import { pipeFlow, type ConnectionTheme } from './pipes';
 import { loadConnectionsProgress, saveConnectionsProgress, type ConnectionsProgress } from './progress';
 import './connections.css';
 
 export default function Connections() {
   const theme: ConnectionTheme = new URLSearchParams(window.location.search).get('theme') === 'radio' ? 'radio' : 'water';
-  const game = connectionGames[theme];
+  const [advanced, setAdvanced] = useState(() => new URLSearchParams(window.location.search).get('mode') === 'advanced');
+  const game = (advanced ? advancedConnectionGames : connectionGames)[theme];
+  const currentKey = advanced ? 'advancedCurrent' : 'current';
   const sound = useSoundPreference();
   const [progress, setProgress] = useState(loadConnectionsProgress);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -18,7 +21,7 @@ export default function Connections() {
   const [attempt, setAttempt] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const board = useRef<HTMLDivElement>(null);
-  const index = progress.current[theme];
+  const index = progress[currentKey][theme];
   const level = game.levels[index];
   const rotations = progress.puzzles[level.id]?.rotations ?? level.layout.initial;
   const solved = pipeFlow(level.layout, rotations).solved && (!level.layout.network || progress.puzzles[level.id]?.tested === true);
@@ -27,14 +30,22 @@ export default function Connections() {
   const Icon = theme === 'radio' ? Radio : Droplets;
 
   useEffect(() => { document.title = `${game.title} · Una aventura espacial`; }, [game.title]);
-  useEffect(() => { (summary ? heading.current : board.current)?.focus({ preventScroll: true }); }, [index, attempt, summary]);
+  useEffect(() => { (summary ? heading.current : board.current)?.focus({ preventScroll: true }); }, [index, attempt, summary, advanced]);
 
   function save(next: ConnectionsProgress) {
     setProgress(next);
     setSaveFailed(!saveConnectionsProgress(next));
   }
   function select(next: number) {
-    save({ ...progress, current: { ...progress.current, [theme]: next } });
+    save({ ...progress, [currentKey]: { ...progress[currentKey], [theme]: next } });
+    setSummary(false);
+  }
+  function changeMode(next: boolean) {
+    const url = new URL(window.location.href);
+    if (next) url.searchParams.set('mode', 'advanced');
+    else url.searchParams.delete('mode');
+    window.history.replaceState(null, '', url);
+    setAdvanced(next);
     setSummary(false);
   }
   function restart() {
@@ -50,14 +61,19 @@ export default function Connections() {
     <main className={`connections-game connections-${theme}`}>
       {(saveFailed || sound.saveFailed) && <p className="save-warning" role="alert">No se puede guardar ahora. Puedes seguir jugando, pero el progreso puede perderse al salir.</p>}
       <header className="connections-heading"><span className="connections-emblem" aria-hidden="true"><Icon size={29} /></span><div><p className="connections-eyebrow">LÓGICA Y CONEXIONES</p><h1>{game.title}</h1></div><span className="connections-count"><Check size={17} aria-hidden="true" />{completed} de {game.levels.length}</span></header>
+      <nav className="connections-modes" aria-label="Versión del juego">
+        <button aria-pressed={!advanced} onClick={() => changeMode(false)}>Original · 6 retos</button>
+        <button aria-pressed={advanced} onClick={() => changeMode(true)}>Avanzada · 6 retos nuevos</button>
+      </nav>
+      {advanced && <p className="connections-mode-description">Hasta seis destinos. Los cruces de cuatro vías unen todas sus salidas y no giran. Conecta cada pieza y cierra todos los extremos.</p>}
       <div className="connections-workspace">
         <aside className="connections-levels" aria-label="Elige un reto">
-          <div className="connections-levels-heading"><h2>Tu recorrido</h2><span>De inicio a experto</span></div>
+          <div className="connections-levels-heading"><h2>Tu recorrido</h2><span>{advanced ? 'De avanzado a maestro' : 'De inicio a experto'}</span></div>
           <ol>{game.levels.map((entry, entryIndex) => {
             const done = progress.puzzles[entry.id]?.completed;
             return <li key={entry.id}><button className={`connection-level ${done ? 'is-complete' : ''}`} aria-current={!summary && entryIndex === index ? 'step' : undefined}
               aria-label={`Reto ${entryIndex + 1}: ${entry.name}${done ? ', completado' : ''}`} onClick={() => select(entryIndex)}>
-              <span className="connection-level-number" aria-hidden="true">{done ? <Check size={19} /> : entryIndex + 1}</span><span className="connection-level-name">{entry.name}<small>{connectionDifficulties[entryIndex]} · {entry.layout.size} × {entry.layout.size}</small></span>
+              <span className="connection-level-number" aria-hidden="true">{done ? <Check size={19} /> : entryIndex + 1}</span><span className="connection-level-name">{entry.name}<small>{(advanced ? advancedDifficulties : connectionDifficulties)[entryIndex]} · {entry.layout.size} × {entry.layout.size}</small></span>
             </button></li>;
           })}</ol>
         </aside>
@@ -66,7 +82,7 @@ export default function Connections() {
             <span className="connections-summary-art" aria-hidden="true"><Icon size={64} /><Sparkles size={28} /></span>
             <h2 id="connections-summary-title" ref={heading} tabIndex={-1}>{allDone ? theme === 'radio' ? '¡Todas las radios suenan!' : '¡Todos los depósitos llenos!' : '¡Buen trabajo!'}</h2>
             <p>Has completado {completed} de {game.levels.length} retos.</p>
-            {allDone ? <><a className="primary" href={`./connections.html?theme=${theme === 'water' ? 'radio' : 'water'}`}>{theme === 'water' ? 'Jugar con cables' : 'Jugar con agua'}<ArrowRight size={20} aria-hidden="true" /></a><button className="text-button" onClick={() => select(0)}>Volver a los retos</button></> : <button className="primary" onClick={() => select(game.levels.findIndex(entry => !progress.puzzles[entry.id]?.completed))}>Seguir practicando<ArrowRight size={20} aria-hidden="true" /></button>}
+            {allDone ? <><a className="primary" href={`./connections.html?theme=${theme === 'water' ? 'radio' : 'water'}${advanced ? '&mode=advanced' : ''}`}>{theme === 'water' ? 'Jugar con cables' : 'Jugar con agua'}<ArrowRight size={20} aria-hidden="true" /></a><button className="text-button" onClick={() => select(0)}>Volver a los retos</button></> : <button className="primary" onClick={() => select(game.levels.findIndex(entry => !progress.puzzles[entry.id]?.completed))}>Seguir practicando<ArrowRight size={20} aria-hidden="true" /></button>}
           </section> : <>
             <PipePuzzle key={`${level.id}-${attempt}`} layout={level.layout} rotations={rotations} sound={sound.enabled} theme={theme} compact boardRef={board} onRestart={restart}
               nextLabel={index === game.levels.length - 1 || allDone ? 'Ver mis retos' : 'Siguiente reto'}

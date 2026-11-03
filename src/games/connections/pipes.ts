@@ -1,6 +1,6 @@
 export type ConnectionTheme = 'water' | 'radio';
 export type Direction = 0 | 1 | 2 | 3; // north, east, south, west
-export type PipeKind = 'straight' | 'elbow' | 'tee';
+export type PipeKind = 'straight' | 'elbow' | 'tee' | 'cross';
 export type PipeEndpoint = { index: number; side: Direction };
 export type PipeLayout = {
   size: number;
@@ -15,7 +15,7 @@ export type PipeLayout = {
 };
 
 export function openings(kind: PipeKind, rotation: number): Direction[] {
-  return (kind === 'tee' ? [0, 1, 2] : kind === 'straight' ? [0, 2] : [0, 1]).map(side => (side + rotation) % 4 as Direction);
+  return (kind === 'cross' ? [0, 1, 2, 3] : kind === 'tee' ? [0, 1, 2] : kind === 'straight' ? [0, 2] : [0, 1]).map(side => (side + rotation) % 4 as Direction);
 }
 
 export const pipeGoals = (layout: PipeLayout) => [layout.goal, ...layout.extraGoals ?? []];
@@ -72,8 +72,8 @@ export function pipeHint(layout: PipeLayout, rotations: number[]): number | null
 }
 
 export function validPipeLayout(layout: PipeLayout): boolean {
-  if (!Number.isInteger(layout.size) || layout.size < 3 || layout.size > 5 ||
-    layout.tiles.length !== layout.size ** 2 || layout.tiles.some(kind => kind !== 'straight' && kind !== 'elbow' && kind !== 'tee') ||
+  if (!Number.isInteger(layout.size) || layout.size < 3 || layout.size > 6 ||
+    layout.tiles.length !== layout.size ** 2 || layout.tiles.some(kind => kind !== 'straight' && kind !== 'elbow' && kind !== 'tee' && kind !== 'cross') ||
     !validRotations(layout.initial, layout.tiles.length) || !validRotations(layout.solution, layout.tiles.length)) return false;
   const endpoints = [layout.source, ...pipeGoals(layout)];
   if (new Set(endpoints.map(endpoint => endpoint.index)).size !== endpoints.length) return false;

@@ -16,5 +16,6 @@
 .connections-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; }
 .connections-card-bottom > span { font-size: 12px; line-height: 1.8; color: var(--card-accent); }
 .connections-card .primary { background: var(--card-accent); border-color: var(--card-accent); box-shadow: 0 3px 0 #254b4433; font-size: 16px; min-height: 48px; padding: 10px 18px; }
+.connections-advanced-link { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; margin-top: 14px; padding: 9px 0; border-top: 1px solid #c5d7c9; color: var(--card-accent); font-size: 14px; font-weight: 850; }
 .connections-card .primary:hover { background: #355951; border-color: #355951; }
 @media (max-width: 700px) { .connections-picker { grid-template-columns: minmax(0, 1fr); gap: 18px; } .connections-card { padding: 20px; } .connections-card h2 { font-size: 25px; } }

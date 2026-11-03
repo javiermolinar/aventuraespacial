@@ -7,6 +7,10 @@
   .connections-eyebrow { font-size: 10px; letter-spacing: 1.7px; font-weight: 900; color: var(--connection-accent); }
   h1 { font-size: clamp(25px, 3vw, 35px); font-weight: 900; letter-spacing: -.8px; }
   .connections-count { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; color: var(--connection-accent); background: var(--connection-soft); padding: 9px 13px; border-radius: 30px; font-size: 14px; font-weight: 850; }
+  .connections-modes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .connections-modes button { min-height: 48px; padding: 10px 15px; border: 1px solid #c9d7ce; border-radius: 14px; background: white; color: #43584c; font-weight: 850; }
+  .connections-modes button[aria-pressed="true"] { background: var(--connection-accent); border-color: var(--connection-accent); color: white; }
+  .connections-mode-description { max-width: 740px; margin-bottom: 20px; color: #5b665f; font-size: 14px; line-height: 1.6; }
   .connections-workspace { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 18px; align-items: start; }
   .connections-levels { padding-top: 12px; }
   .connections-levels-heading { padding: 0 8px 17px; }
@@ -69,6 +73,7 @@
     .connections-levels ol { gap: 5px; }
     .connections-console { padding: 19px 7px; border-radius: 20px; }
     .pipe-puzzle .pipe-board-frame { padding-left: 20px; padding-right: 20px; }
+    .pipe-puzzle .pipe-board-scroll .pipe-board-frame { padding-left: 32px; padding-right: 32px; }
     .pipe-puzzle .pipe-endpoint { width: 22px; }
     .pipe-toolbar, .pipe-puzzle .pipe-status, .pipe-puzzle .pipe-actions { margin-left: 7px; margin-right: 7px; }
     .pipe-puzzle.is-solved .pipe-status { font-size: 19px; }

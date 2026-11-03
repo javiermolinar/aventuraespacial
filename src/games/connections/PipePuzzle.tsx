@@ -67,7 +67,7 @@ export function PipePuzzle({ layout, rotations, sound, theme = 'water', onRotate
   const goalYs = goals.map(goal => (Math.floor(goal.index / layout.size) + .5) * 100 / layout.size);
 
   const turn = (index: number, turns: number) => {
-    if (solved || turns % 4 === 0) return;
+    if (solved || layout.tiles[index] === 'cross' || turns % 4 === 0) return;
     const next = rotations.map((rotation, tile) => tile === index ? ((rotation + turns) % 4 + 4) % 4 : rotation);
     playSound(!layout.network && pipeFlow(layout, next).solved ? 'complete' : 'tap', sound);
     setHint(null);
@@ -77,7 +77,7 @@ export function PipePuzzle({ layout, rotations, sound, theme = 'water', onRotate
   const showHint = () => {
     const index = pipeHint(layout, rotations);
     setHint(index);
-    if (index !== null) buttons.current[index]?.focus({ preventScroll: true });
+    if (index !== null) buttons.current[index]?.focus({ preventScroll: layout.size <= 5 });
   };
 
   return <section className={`pipe-puzzle theme-${theme} ${solved ? 'is-solved' : ''}`} aria-labelledby="pipe-instruction">
@@ -89,18 +89,21 @@ export function PipePuzzle({ layout, rotations, sound, theme = 'water', onRotate
         {onRestart && <button className="icon-button" aria-label="Reiniciar reto" title="Reiniciar reto" onClick={onRestart}><RotateCcw size={22} aria-hidden="true" /></button>}
       </div>
     </div> : <div className="pipe-legend" aria-hidden="true"><span>{radio ? <Battery size={20} /> : <Droplet size={18} />}{radio ? 'Batería' : 'Agua'}</span><span>{goals.length > 1 ? `${goals.length} ${radio ? 'radios' : 'depósitos'}` : radio ? 'Radio' : 'Depósito'}{radio ? <Radio size={20} /> : <ArrowRight size={18} />}</span></div>}
-    <div className="pipe-board-frame">
+    {layout.size > 5 && <p className="pipe-scroll-hint">Si no ves toda la red, desliza el tablero hacia los lados.</p>}
+    <div className={layout.size > 5 ? 'pipe-board-scroll' : undefined} role={layout.size > 5 ? 'region' : undefined} aria-label={layout.size > 5 ? 'Tablero desplazable' : undefined} tabIndex={layout.size > 5 ? 0 : undefined}>
+      {/* Keep 44px cells, 3px gaps, board borders and 32px endpoint gutters. */}
+    <div className="pipe-board-frame" style={layout.size > 5 ? { minWidth: layout.size * 47 + 71 } : undefined}>
       <div className="pipe-board" ref={boardRef} tabIndex={boardRef ? -1 : undefined} role="group" aria-label={`Tablero de ${layout.size} por ${layout.size}`} aria-describedby="pipe-instruction pipe-gesture" style={{ '--pipe-columns': layout.size } as CSSProperties}>
         {layout.tiles.map((kind, index) => {
           const connected = wet.includes(index);
           const ports = openings(kind, rotations[index]).map(side => directionNames[side]).join(' y ');
-          const path = kind === 'tee' ? 'M 50 0 V 100 M 50 50 H 100' : kind === 'straight' ? 'M 50 0 V 100' : 'M 50 0 V 30 Q 50 50 70 50 H 100';
+          const path = kind === 'cross' ? 'M 50 0 V 100 M 0 50 H 100' : kind === 'tee' ? 'M 50 0 V 100 M 50 50 H 100' : kind === 'straight' ? 'M 50 0 V 100' : 'M 50 0 V 30 Q 50 50 70 50 H 100';
           return <button key={index} ref={element => { buttons.current[index] = element; }} type="button"
-            className={`pipe-tile ${connected ? radio ? solved ? 'has-current' : 'is-linked' : 'has-water' : ''} ${hint === index ? 'is-hint' : ''}`}
-            aria-label={`${radio ? 'Cable' : 'Tubo'}, ${positionName(index, layout.size)}: ${ports}.${kind === 'tee' ? ' Unión en T.' : ''}${connected ? radio ? solved ? ' Con corriente.' : ' Unido al cable de la batería, sin corriente.' : ' Con agua.' : ''}${index === layout.source.index ? radio ? ' Conector de la batería.' : ' Entrada de agua.' : goals.some(goal => goal.index === index) ? radio ? ' Conector de radio.' : ' Salida al depósito.' : ''} Girar.`}
-            aria-disabled={solved} data-rotation={rotations[index]} onDragStart={event => event.preventDefault()}
+            className={`pipe-tile ${connected ? radio ? solved ? 'has-current' : 'is-linked' : 'has-water' : ''} ${hint === index ? 'is-hint' : ''} ${kind === 'cross' ? 'is-fixed' : ''}`}
+            aria-label={`${radio ? 'Cable' : 'Tubo'}, ${positionName(index, layout.size)}: ${ports}.${kind === 'cross' ? ' Cruce de cuatro vías. Todas las salidas se unen.' : kind === 'tee' ? ' Unión en T.' : ''}${connected ? radio ? solved ? ' Con corriente.' : ' Unido al cable de la batería, sin corriente.' : ' Con agua.' : ''}${index === layout.source.index ? radio ? ' Conector de la batería.' : ' Entrada de agua.' : goals.some(goal => goal.index === index) ? radio ? ' Conector de radio.' : ' Salida al depósito.' : ''} ${kind === 'cross' ? 'Fijo, no gira.' : 'Girar.'}`}
+            aria-disabled={solved || kind === 'cross'} data-rotation={rotations[index]} onDragStart={event => event.preventDefault()}
             onPointerDown={event => {
-              if (solved || !event.isPrimary || event.button !== 0 || drag.current) return;
+              if (solved || kind === 'cross' || !event.isPrimary || event.button !== 0 || drag.current) return;
               suppressClick.current = null;
               drag.current = { index, pointer: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
               event.currentTarget.setPointerCapture(event.pointerId);
@@ -145,6 +148,7 @@ export function PipePuzzle({ layout, rotations, sound, theme = 'water', onRotate
                 {radio && <g className="cable-connectors">{openings(kind, 0).map(side => <rect key={side} x="41" y="0" width="18" height="10" rx="2" transform={`rotate(${side * 90} 50 50)`} />)}</g>}
               </g>
               {radio && <g className="cable-mounts"><circle cx="12" cy="12" r="2" /><circle cx="88" cy="88" r="2" /></g>}
+              {kind === 'cross' && <circle className="pipe-fixed-dot" cx="50" cy="50" r="6" />}
               {hint === index && <circle className="pipe-hint-dot" cx="83" cy="17" r="7" />}
             </svg>
           </button>;
@@ -167,8 +171,9 @@ export function PipePuzzle({ layout, rotations, sound, theme = 'water', onRotate
         {goals.map((goal, index) => <Destination key={`${goal.index}-${goal.side}`} endpoint={goal} size={layout.size} radio={radio} connected={connectedGoals[index]} powered={solved} number={goals.length > 1 ? index + 1 : undefined} />)}
       </div>
     </div>
+    </div>
     {radio && <p className={compact ? 'sr-only' : 'cable-return-label'}>Cable de vuelta ya conectado.</p>}
-    <p className={compact && !solved && hint === null ? 'sr-only' : 'pipe-status'} role="status">{solved ? <Check size={21} aria-hidden="true" /> : <RotateCw size={19} aria-hidden="true" />}{status}</p>
+    <p className={compact && !solved && hint === null && !checked ? 'sr-only' : 'pipe-status'} role="status">{solved ? <Check size={21} aria-hidden="true" /> : <RotateCw size={19} aria-hidden="true" />}{status}</p>
     {(solved || layout.network || !compact) && <div className={`pipe-actions ${layout.network && !solved ? 'has-test' : ''}`}>{solved ? <button className="primary" onClick={onNext}>{nextLabel}<ArrowRight size={20} /></button> : <>
       {layout.network && <button className="primary pipe-test" onClick={() => {
         setHint(null);

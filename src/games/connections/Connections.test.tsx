@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import Connections from './Connections';
 import { connectionGames } from './levels';
+import { advancedConnectionGames } from './advanced-levels';
 import { connectionsStorageKey, loadConnectionsProgress, saveConnectionsProgress } from './progress';
 
 vi.mock('../../sound', () => ({ playSound: vi.fn() }));
@@ -13,8 +14,8 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
-function solve(index: number, theme: 'water' | 'radio' = 'water', check = true) {
-  const layout = connectionGames[theme].levels[index].layout;
+function solve(index: number, theme: 'water' | 'radio' = 'water', check = true, advanced = false) {
+  const layout = (advanced ? advancedConnectionGames : connectionGames)[theme].levels[index].layout;
   const tiles = screen.getAllByRole('button', { name: /^(Tubo|Cable), fila/ });
   for (let tile = 0; tile < tiles.length; tile++) {
     const turns = (layout.solution[tile] - Number(tiles[tile].getAttribute('data-rotation')) + 4) % 4;
@@ -117,6 +118,58 @@ it('continues in memory when storage is blocked, including level navigation', ()
   expect(screen.getByRole('alert').textContent).toContain('Puedes seguir jugando');
   fireEvent.click(screen.getByRole('button', { name: 'Siguiente reto' }));
   expect(screen.getByRole('button', { name: /^Reto 1:.*completado/ })).toBeTruthy();
+});
+
+it('switches versions without losing either board and resumes the advanced selection', () => {
+  const view = render(<Connections />);
+  solve(0);
+  fireEvent.click(screen.getByRole('button', { name: /^Reto 2:/ }));
+  const original = screen.getAllByRole('button', { name: /^Tubo, fila/ })[0];
+  fireEvent.click(original);
+  const rotation = original.getAttribute('data-rotation');
+  fireEvent.click(screen.getByRole('button', { name: /^Avanzada/ }));
+  expect(window.location.search).toContain('mode=advanced');
+  expect(screen.getByText('0 de 6')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: /^Reto 4:/ }));
+  const tile = screen.getAllByRole('button', { name: /^Tubo, fila/ })[0];
+  fireEvent.click(tile);
+  const advancedRotation = tile.getAttribute('data-rotation');
+  fireEvent.click(screen.getByRole('button', { name: /^Original/ }));
+  expect(window.location.search).not.toContain('mode');
+  expect(screen.getByRole('button', { name: /^Reto 2:/ }).getAttribute('aria-current')).toBe('step');
+  expect(screen.getAllByRole('button', { name: /^Tubo, fila/ })[0].getAttribute('data-rotation')).toBe(rotation);
+  expect(screen.getByText('1 de 6')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: /^Avanzada/ }));
+  view.unmount();
+  render(<Connections />);
+  expect(screen.getByRole('button', { name: /^Reto 4:/ }).getAttribute('aria-current')).toBe('step');
+  expect(screen.getAllByRole('button', { name: /^Tubo, fila/ })[0].getAttribute('data-rotation')).toBe(advancedRotation);
+  expect(loadConnectionsProgress().advancedCurrent).toEqual({ water: 3, radio: 0 });
+});
+
+it.each(['water', 'radio'] as const)('%s: completes all advanced levels and leaves the original version untouched', theme => {
+  window.history.replaceState(null, '', `?theme=${theme}&mode=advanced`);
+  render(<Connections />);
+  const fixed = screen.getAllByRole('button', { name: /Cruce de cuatro vías/ })[0];
+  const rotation = fixed.getAttribute('data-rotation');
+  expect(fixed.getAttribute('aria-disabled')).toBe('true');
+  fireEvent.click(fixed);
+  expect(fixed.getAttribute('data-rotation')).toBe(rotation);
+  for (let index = 0; index < 6; index++) {
+    solve(index, theme, false, true);
+    expect(screen.queryByRole('button', { name: /Siguiente reto|Ver mis retos/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Probar' }));
+    expect(screen.getByRole('button', { name: new RegExp(`^Reto ${index + 1}:.*completado`) })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: index === 5 ? 'Ver mis retos' : 'Siguiente reto' }));
+  }
+  expect(screen.getByText('Has completado 6 de 6 retos.')).toBeTruthy();
+  expect(screen.getByRole('link', { name: theme === 'water' ? 'Jugar con cables' : 'Jugar con agua' }).getAttribute('href')).toContain('mode=advanced');
+  const progress = loadConnectionsProgress();
+  expect(progress.puzzles[connectionGames[theme].levels[0].id]).toBeUndefined();
+  expect(progress.current).toEqual({ water: 0, radio: 0 });
+  expect(progress.advancedCurrent[theme]).toBe(5);
+  fireEvent.click(screen.getByRole('button', { name: /^Original/ }));
+  expect(screen.getByText('0 de 6')).toBeTruthy();
 });
 
 it('rejects corrupt saves without discarding valid entries or touching adventure saves', () => {
