@@ -147,6 +147,7 @@ it('switches versions without losing either board and resumes the advanced selec
   expect(loadConnectionsProgress().advancedCurrent).toEqual({ water: 3, radio: 0 });
 });
 
+// Hundreds of DOM rotations across six boards need more headroom on CI runners.
 it.each(['water', 'radio'] as const)('%s: completes all advanced levels and leaves the original version untouched', theme => {
   window.history.replaceState(null, '', `?theme=${theme}&mode=advanced`);
   render(<Connections />);
@@ -170,7 +171,7 @@ it.each(['water', 'radio'] as const)('%s: completes all advanced levels and leav
   expect(progress.advancedCurrent[theme]).toBe(5);
   fireEvent.click(screen.getByRole('button', { name: /^Original/ }));
   expect(screen.getByText('0 de 6')).toBeTruthy();
-});
+}, 15_000);
 
 it('rejects corrupt saves without discarding valid entries or touching adventure saves', () => {
   localStorage.setItem('adventure-sentinel', 'unchanged');
