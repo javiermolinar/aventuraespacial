@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { columnAnswer, getOperations, levelExamples, levels, loadProgress, needsExchange, needsTens, resultOf, saveProgress } from './game';
+import { levelNumber, levelOrder, levelPace, nextLevel, columnAnswer, getOperations, levelExamples, levels, loadProgress, needsExchange, needsTens, resultOf, saveProgress } from './game';
 
 import { largerFirst } from './lib/maths';
 
@@ -121,6 +121,27 @@ describe('level generation', () => {
         expect(operation.a).toBeGreaterThanOrEqual(operation.b);
       }
     }
+  });
+});
+
+describe('level order', () => {
+  it('presents every level exactly once, with simple subtraction in its place', () => {
+    expect([...levelOrder].sort((a, b) => a - b)).toEqual(levels.map((_, index) => index));
+    const names = levelOrder.map(index => levels[index].name);
+    expect(names[0]).toBe('Primeras cuentas');
+    expect(names[1]).toBe('Restas de una cifra');
+    expect(names.indexOf('Restas de dos cifras')).toBeLessThan(names.indexOf('Restas con llevadas'));
+    expect(names.indexOf('Restas de tres cifras fáciles')).toBeLessThan(names.indexOf('Restas de tres cifras'));
+    expect(names.indexOf('Restas de tres cifras fáciles')).toBeGreaterThan(names.indexOf('Llegan las centenas'));
+  });
+  it('maps stable indices to displayed numbers, belt pace and the next level', () => {
+    expect(levelNumber(0)).toBe(1);
+    expect(levelNumber(11)).toBe(2);
+    expect(levelNumber(10)).toBe(levels.length);
+    expect(levelPace(0)).toBe(0);
+    expect(levelPace(10)).toBe(levels.length - 1);
+    expect(nextLevel(0)).toBe(11);
+    expect(nextLevel(10)).toBeUndefined();
   });
 });
 

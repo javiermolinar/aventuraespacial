@@ -4,8 +4,9 @@ import { adventureStorageKey, earnPart, moveTo, newAdventure, placePart } from '
 import { readAdventure } from './adventure-saves';
 import { dragPiece, placeByTap, solveCurrent } from './helpers';
 
-for (const [level, seconds] of [[1, 8], [4, 6.5], [11, 3]]) {
-  test(`practice level ${level} gives ${seconds} seconds to catch the piece`, async ({ page }) => {
+// URLs use stable level ids; the belt follows the order shown to the player (stage 4 is level 5 on the page).
+for (const [level, seconds] of [[1, 8], [4, 6], [11, 3]]) {
+  test(`practice stage ${level} gives ${seconds} seconds to catch the piece`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.clock.install();
     await page.goto(`/games/robot-lab.html?level=${level}`);

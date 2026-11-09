@@ -1,6 +1,6 @@
 import { ArrowRight, Check } from 'lucide-react';
 import { useState } from 'react';
-import { levelExamples, levels, loadProgress, operationLabel } from './game';
+import { levelExamples, levelNumber, levelOrder, levels, loadProgress, operationLabel } from './game';
 import { RobotPortrait } from './games/robot-lab/RobotArtwork';
 import { ConnectionsPicker } from './games/connections/ConnectionsPicker';
 import './styles/landing.css';
@@ -17,17 +17,18 @@ export default function Practice() {
     <header className="landing-header"><a className="brand-link" href="./index.html"><img src="./favicon.svg" width="42" height="42" alt="" /><span>Una aventura espacial</span></a><a className="practice-home" href="./index.html">Volver al inicio</a></header>
     <main className="landing-main">
       <div className="landing-intro"><span className="landing-sparkle" aria-hidden="true">✦</span><h1>Vamos a jugar.</h1><p>Elige un juego y practica a tu ritmo.</p></div>
-      <section className="collection-section" aria-labelledby="collection-title"><h2 id="collection-title">Tus robots</h2><div className="collected-robots">{levels.map((level, index) => {
+      <section className="collection-section" aria-labelledby="collection-title"><h2 id="collection-title">Tus robots</h2><div className="collected-robots">{levelOrder.map(index => {
+        const level = levels[index];
         const revealed = Boolean(progress.completed[String(index)]);
         return <div className={`collection-robot ${revealed ? 'collected-robot' : 'robot-silhouette'}`} key={level.robot}><div className="collection-portrait" aria-hidden="true"><RobotPortrait color={level.color} design={level.design} complete={revealed} /></div><h3>{level.robot}</h3><span className="sr-only">{revealed ? 'Conseguido' : 'Por descubrir'}</span></div>;
       })}</div></section>
       <section className="game-picker" aria-labelledby="robot-game-title">
         <div className="game-picker-heading"><div className="game-mark" aria-hidden="true">🤖</div><div><h2 id="robot-game-title">El taller de robots</h2><p>Sumas y restas, pieza a pieza.</p></div><span className="game-category">MATEMÁTICAS</span></div>
-        <div className="level-grid">{levels.map((level, index) => <a className="level-card" key={level.robot} href={`./games/robot-lab.html?level=${index + 1}`} aria-label={`Nivel ${index + 1}: ${level.name}`}>
-          <div className="level-card-top"><span>Nivel {index + 1}</span>{progress.completed[String(index)] && <span className="level-completed" aria-label="Completado"><Check size={18} /></span>}</div>
+        <div className="level-grid">{levelOrder.map(index => { const level = levels[index]; return <a className="level-card" key={level.robot} href={`./games/robot-lab.html?level=${index + 1}`} aria-label={`Nivel ${levelNumber(index)}: ${level.name}`}>
+          <div className="level-card-top"><span>Nivel {levelNumber(index)}</span>{progress.completed[String(index)] && <span className="level-completed" aria-label="Completado"><Check size={18} /></span>}</div>
           <div className="level-preview" style={{ background: `${level.color}25` }}><RobotPortrait color={level.color} design={level.design} /></div>
           <h3>{level.name}</h3><p>{level.description}</p><div className="level-card-bottom"><strong>{operationLabel(levelExamples[index])}</strong><span className="play-arrow"><ArrowRight size={20} /></span></div>
-        </a>)}</div>
+        </a>; })}</div>
       </section>
       <section className="ten-lines-picker" aria-labelledby="ten-lines-title">
         <div className="ten-lines-picker-art" aria-hidden="true">{[1, 5, 6, 3, 2, 3, 4, 5, 1].map((value, index) => <span key={index}>{value}</span>)}</div>

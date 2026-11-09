@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { levels } from '../game';
+import { levelNumber, levelOrder, levels } from '../game';
 import { chapterCatalog } from '../adventure/chapters/catalog';
 import { earnPart, moveTo, placePart, rotatePipe, updatePacking, type AdventureProgress } from '../adventure/progress';
 import { playerNameMaxLength } from '../adventure/personalization';
@@ -106,7 +106,7 @@ export default function ChapterPreview() {
         </select></label>
         <label>Nombre<input value={controls.playerName} maxLength={playerNameMaxLength} onChange={event => setControls(previous => ({ ...previous, playerName: event.target.value }))} /></label>
         <label>Personaje<select value={controls.character} onChange={event => setControls(previous => ({ ...previous, character: event.target.value as Character }))}><option value="girl">Niña</option><option value="boy">Niño</option></select></label>
-        <label>Nivel de mates<select value={controls.mathsLevel} onChange={event => setControls(previous => ({ ...previous, mathsLevel: Number(event.target.value) }))}>{levels.map((level, index) => <option key={index} value={index}>{index + 1}. {level.name}</option>)}</select></label>
+        <label>Nivel de mates<select value={controls.mathsLevel} onChange={event => setControls(previous => ({ ...previous, mathsLevel: Number(event.target.value) }))}>{levelOrder.map(index => <option key={index} value={index}>{levelNumber(index)}. {levels[index].name}</option>)}</select></label>
         <button className="secondary" type="submit">Aplicar y reiniciar</button>
         <a href="./index.html">Salir de la vista previa</a>
       </form>

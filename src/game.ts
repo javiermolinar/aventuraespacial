@@ -31,9 +31,17 @@ export const levels = [
   { name: 'Restas de tres cifras fáciles', description: 'Solo restas, sin llevadas', design: 'cobalt', color: '#8fc8d6', robot: 'Azur', pieceCount: 6 },
 ] as const;
 
-/** Belt-speed step for each stage; the appended subtraction stages follow their no-carry counterparts. */
-const paceOverrides: Record<number, number> = { 11: 0, 12: 4, 13: 7 };
-export const levelPace = (level: number) => paceOverrides[level] ?? level;
+/**
+ * Order in which levels are presented, as indices into `levels`. Saved progress, adventure profiles and
+ * `?level=N` links keep using the stable index; only the displayed number and the belt speed follow this order.
+ */
+export const levelOrder = [0, 11, 1, 2, 3, 4, 12, 5, 6, 7, 13, 8, 9, 10] as const;
+/** Number shown to the player (1-based) for a stable level index. */
+export const levelNumber = (level: number) => levelOrder.indexOf(level as typeof levelOrder[number]) + 1;
+/** Belt-speed step: harder levels in the presented order run faster. */
+export const levelPace = (level: number) => Math.max(0, levelNumber(level) - 1);
+/** Stable index of the level presented after this one, if any. */
+export const nextLevel = (level: number): number | undefined => levelOrder[levelNumber(level)];
 
 // Illustrations for the landing cards only, never used to populate a game.
 export const levelExamples: Operation[] = [
