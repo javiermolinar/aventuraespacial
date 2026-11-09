@@ -84,7 +84,7 @@ test('all random levels respect the separated carrying skills and remain playabl
       await dragPiece(page);
       await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', String(index + 1));
     }
-    expect([...operators].sort()).toEqual(level === 3 || level === 8 || level === 10 ? ['+'] : level === 5 || level === 9 ? ['−'] : ['+', '−']);
+    expect([...operators].sort()).toEqual(level === 3 || level === 8 || level === 10 ? ['+'] : level === 5 || level === 9 || level >= 11 ? ['−'] : ['+', '−']);
     await expect(page.getByRole('heading', { name: '¡Lo has conseguido!' })).toBeVisible();
   }
   await page.goto('/practice.html');
