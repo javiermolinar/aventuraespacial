@@ -72,3 +72,22 @@ between the home screen, reading, construction, robot introduction and the cable
 Titles, original filenames and ISRCs verified against the author's catalogue:
 https://incompetech.com/music/royalty-free/pieces.json
 The author's track-page attribution template specifies CC BY 4.0.
+
+---
+
+"The Descent" — Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0 License
+https://creativecommons.org/licenses/by/4.0/
+
+Source and author's attribution statement:
+https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1200094
+Original recording:
+https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Descent.mp3
+Distributed asset: the-descent.mp3
+Original file SHA-256:
+f097d51700b970efffc62499473ea3a31e09aad4172e787978bc9c2a644d53a2
+
+Changes: transcoded from the original MP3 to 96 kbps MP3 with embedded
+metadata removed for local distribution. No musical edits.
+Used quietly during Rayo's alert pages. The peaceful closing pages reuse
+"Dream Culture" (credited above), including the final vocabulary question.

@@ -1,6 +1,7 @@
 import type { Chapter } from '../types';
 import { chispaChapter } from './chispa';
 import { broteChapter } from './brote';
+import { rayoChapter } from './rayo';
 
 export type ChapterEntry = {
   id: string;
@@ -18,7 +19,7 @@ export function playableChapter(chapter: Chapter): ChapterEntry {
 export const chapterCatalog: readonly ChapterEntry[] = [
   playableChapter(chispaChapter),
   playableChapter(broteChapter),
-  { id: 'rayo', robot: { name: 'Rayo', design: 'bolt', color: '#efc775' } },
+  playableChapter(rayoChapter),
   { id: 'tuerca', robot: { name: 'Tuerca', design: 'gear', color: '#d6a3bd' } },
   { id: 'burbuja', robot: { name: 'Burbuja', design: 'bubble', color: '#8fc1ce' } },
   { id: 'cosmo', robot: { name: 'Cosmo', design: 'space', color: '#e9a188' } },

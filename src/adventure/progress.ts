@@ -8,6 +8,7 @@ import { chispaV1Chapter, chispaV2Chapter, chispaV3Chapter, chispaV5Chapter, mig
 import { chispaV4Chapter } from './chapters/chispa-v4';
 import { previousBroteChapter } from './chapters/brote-migration';
 import { pipeFlow, validRotations } from '../games/connections/pipes';
+import { emptyResistorState, evaluateBoard, validResistorState, type ResistorState } from '../games/resistor-board/game';
 
 export const adventureStorageKey = 'matefaciles:adventure:v1';
 export type AdventureProgress = {
@@ -16,9 +17,11 @@ export type AdventureProgress = {
   operations: Operation[]; placedCount: number; ready: boolean;
   pipeRotations?: Record<string, number[]>;
   packingStates?: Record<string, PiecesState>;
+  resistorStates?: Record<string, ResistorState>;
 };
 
 export function newAdventure(chapter: Chapter, mathsLevel: number, character: Character = 'boy', playerName = ''): AdventureProgress {
+  mathsLevel = chapter.mathsLevel ?? mathsLevel;
   const name = normalizePlayerName(playerName);
   if (name.length > playerNameMaxLength) throw new RangeError('Player name is too long');
   return {
@@ -27,18 +30,24 @@ export function newAdventure(chapter: Chapter, mathsLevel: number, character: Ch
   };
 }
 
-function validOperation(value: unknown): value is Operation {
+function validOperation(value: unknown, mathsLevel: number): value is Operation {
   if (!value || typeof value !== 'object') return false;
   const op = value as Operation;
-  return Number.isInteger(op.a) && Number.isInteger(op.b) && op.a >= op.b && op.b >= 0 && op.a < 100 &&
-    (op.operator === '+' || op.operator === '−') && resultOf(op) >= 0 && resultOf(op) < 100;
+  const limit = (mathsLevel >= 7 && mathsLevel <= 10) || mathsLevel === 13 ? 1000 : 100;
+  if (!Number.isInteger(op.a) || !Number.isInteger(op.b) || op.a < op.b || op.b < 0 || op.a >= limit ||
+    (op.operator !== '+' && op.operator !== '−') ||
+    (op.extraAddends !== undefined && (!Array.isArray(op.extraAddends) || op.operator !== '+' || op.extraAddends.length !== 1 || !op.extraAddends.every(n => Number.isInteger(n) && n >= 0 && n < limit)))) return false;
+  if (mathsLevel === 13 && (op.operator !== '−' || op.a < 100 || op.b < 100 ||
+    ![1, 10, 100].every(place => Math.floor(op.a / place) % 10 >= Math.floor(op.b / place) % 10))) return false;
+  return resultOf(op) >= 0 && resultOf(op) < limit;
 }
 
 export function validateProgress(value: unknown, chapter: Chapter): value is AdventureProgress {
   if (!value || typeof value !== 'object') return false;
   const p = value as AdventureProgress;
   if (p.chapterId !== chapter.id || p.chapterVersion !== chapter.version || !Number.isInteger(p.mathsLevel) || !levels[p.mathsLevel] ||
-    !Array.isArray(p.operations) || p.operations.length !== 6 || !p.operations.every(validOperation) ||
+    (chapter.mathsLevel !== undefined && p.mathsLevel !== chapter.mathsLevel) ||
+    !Array.isArray(p.operations) || p.operations.length !== 6 || !p.operations.every(operation => validOperation(operation, p.mathsLevel)) ||
     !Number.isInteger(p.placedCount) || typeof p.ready !== 'boolean' || !Array.isArray(p.history) || p.history.length > Object.keys(chapter.scenes).length ||
     typeof p.sceneId !== 'string' || (p.character !== 'boy' && p.character !== 'girl') ||
     typeof p.playerName !== 'string' || p.playerName.length > playerNameMaxLength || normalizePlayerName(p.playerName) !== p.playerName) return false;
@@ -56,6 +65,14 @@ export function validateProgress(value: unknown, chapter: Chapter): value is Adv
       if (!Object.hasOwn(chapter.scenes, id)) return false;
       const scene = chapter.scenes[id];
       if (scene.type !== 'packing' || !validPiecesState(puzzles[scene.puzzleIndex], state) || (id !== p.sceneId && !p.history.includes(id))) return false;
+    }
+  }
+  if (p.resistorStates !== undefined) {
+    if (!p.resistorStates || typeof p.resistorStates !== 'object' || Array.isArray(p.resistorStates)) return false;
+    for (const [id, state] of Object.entries(p.resistorStates)) {
+      if (!Object.hasOwn(chapter.scenes, id)) return false;
+      const scene = chapter.scenes[id];
+      if (scene.type !== 'resistors' || !validResistorState(state, scene.level) || (id !== p.sceneId && !p.history.includes(id))) return false;
     }
   }
   let expected = [chapter.start];
@@ -169,6 +186,14 @@ export function updatePacking(progress: AdventureProgress, chapter: Chapter, sta
 export function earnPart(progress: AdventureProgress, chapter: Chapter): AdventureProgress {
   const scene = chapter.scenes[progress.sceneId];
   return scene.type === 'build' && progress.placedCount < scene.targetPlacedParts ? { ...progress, ready: true } : progress;
+}
+
+export function updateResistors(progress: AdventureProgress, chapter: Chapter, state: ResistorState): AdventureProgress {
+  const scene = chapter.scenes[progress.sceneId];
+  if (scene.type !== 'resistors' || !validResistorState(state, scene.level)) return progress;
+  const previous = progress.resistorStates?.[progress.sceneId] ?? emptyResistorState();
+  if (previous.tested && evaluateBoard(previous.placements, scene.level).solved) return progress;
+  return { ...progress, resistorStates: { ...progress.resistorStates, [progress.sceneId]: structuredClone(state) } };
 }
 
 export function placePart(progress: AdventureProgress, chapter: Chapter): AdventureProgress {

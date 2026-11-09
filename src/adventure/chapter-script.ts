@@ -1,4 +1,4 @@
-import { validateChapter, type Chapter, type ComprehensionScene, type Illustration, type PipeScene, type PackingScene, type ResponsiveArtwork, type Scene } from './types';
+import { validateChapter, type Chapter, type ComprehensionScene, type Illustration, type PipeScene, type PackingScene, type ResistorScene, type IntroductionArtwork, type Scene } from './types';
 
 export type DialogueQuestion = {
   id: string;
@@ -19,6 +19,7 @@ export type DialoguePage = {
   title: string;
   text: string[];
   image?: Illustration;
+  ambience?: 'alarm' | 'calm';
   questions?: DialogueQuestion[];
   continueLabel?: string;
 };
@@ -34,10 +35,10 @@ export type ChapterScript = {
   artwork: Chapter['artwork'];
   robot: Omit<Chapter['robot'], 'introduction'>;
   intro: DialoguePhase;
-  maths: { id: string; title: string; instruction: string };
-  robotIntroduction: DialoguePhase & { artwork?: ResponsiveArtwork };
+  maths: { id: string; title: string; instruction: string; level?: number };
+  robotIntroduction: DialoguePhase & { artwork?: IntroductionArtwork };
   middle?: DialoguePhase;
-  game: { id: string; text: string[] } & (Omit<PipeScene, 'next' | 'paragraphs' | 'robotIntroduction'> | Omit<PackingScene, 'next' | 'paragraphs' | 'robotIntroduction'>);
+  game: { id: string; text: string[] } & (Omit<PipeScene, 'next' | 'paragraphs' | 'robotIntroduction'> | Omit<PackingScene, 'next' | 'paragraphs' | 'robotIntroduction'> | Omit<ResistorScene, 'next' | 'paragraphs' | 'robotIntroduction'>);
   ending: DialoguePhase & { prompt?: string };
 };
 
@@ -58,6 +59,7 @@ export function defineChapter(script: ChapterScript): Chapter {
       if (!page.title.trim()) throw new Error(`Empty page title: ${page.id}`);
       const reading = {
         title: page.title, image: page.image ?? phase.image, paragraphs: [...page.text],
+        ...(page.ambience ? { ambience: page.ambience } : {}),
         ...(robot ? { robotIntroduction: { artwork: script.robotIntroduction.artwork } } : {}),
       };
       const questions = page.questions ?? [];
@@ -85,7 +87,7 @@ export function defineChapter(script: ChapterScript): Chapter {
   };
 
   dialogue(script.intro);
-  const { id: mathsId, ...maths } = script.maths;
+  const { id: mathsId, level: mathsLevel, ...maths } = script.maths;
   add(mathsId, { ...maths, type: 'build', completion: `¡Has construido a ${script.robot.name}!`, targetPlacedParts: 6, autoAdvance: true, next: '' });
   dialogue(script.robotIntroduction, true);
   if (script.middle) dialogue(script.middle);
@@ -95,7 +97,9 @@ export function defineChapter(script: ChapterScript): Chapter {
 
   const [lastId, last] = entries[entries.length - 1];
   if (last.type === 'build') throw new Error('Chapter must end with dialogue');
-  const ending = { title: last.title, image: last.image, paragraphs: [...last.paragraphs], type: 'ending' as const, prompt: script.ending.prompt };
+  const ending = { title: last.title, image: last.image, paragraphs: [...last.paragraphs], type: 'ending' as const, prompt: script.ending.prompt,
+    ...(last.ambience ? { ambience: last.ambience } : {}),
+  };
   // A final text-only page is the ending itself. Questions get a final completion screen.
   if (last.type === 'story') entries[entries.length - 1] = [lastId, ending];
   else add(`${script.ending.pages.at(-1)!.id}:ending`, ending);
@@ -109,6 +113,7 @@ export function defineChapter(script: ChapterScript): Chapter {
   const chapter: Chapter = {
     id: script.id, version: script.version, title: script.title, subtitle: script.subtitle,
     intro: script.summary, artwork: script.artwork, robot: script.robot,
+    ...(mathsLevel !== undefined ? { mathsLevel } : {}),
     start: entries[0][0], scenes: Object.fromEntries(entries),
   };
   const errors = validateChapter(chapter);

@@ -40,7 +40,8 @@
   .parent-info summary { cursor: pointer; font-size: 14px; font-weight: 750; min-height: 44px; }
   .parent-info p { margin: 11px 0; }
   .parent-info a { color: #7b5cac; }
-  .music-credits { margin-top: 0; }
+  .music-credits { width: min(1160px, 100%); margin: 0 auto; padding: 0 24px 28px; color: #62736a; font-size: 13px; line-height: 1.6; }
+  .music-credits a { color: #3d7553; text-decoration: underline; }
   @media (max-width: 1000px) { .level-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 700px) {
     padding: 0 18px 20px;

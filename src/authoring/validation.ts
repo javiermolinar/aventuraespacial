@@ -1,5 +1,5 @@
 import { validateCatalog, type ChapterEntry } from '../adventure/chapters/catalog';
-import { validateChapter, type Chapter, type ResponsiveArtwork } from '../adventure/types';
+import { validateChapter, type Chapter, type IntroductionArtwork, type ResponsiveArtwork } from '../adventure/types';
 
 export type ArtworkReference = { field: string; url: string };
 export type ChapterReport = { errors: string[]; warnings: string[]; artwork: ArtworkReference[] };
@@ -48,16 +48,20 @@ export function checkChapter(chapter: Chapter, catalog: readonly ChapterEntry[],
       } else artwork.push({ field: `${field}.${orientation}`, url });
     }
   };
+  const introductionArtwork = (field: string, value: IntroductionArtwork) => {
+    if ('landscape' in value) pair(field, value);
+    else for (const character of ['boy', 'girl'] as const) pair(`${field}.${character}`, value[character]);
+  };
   if (!chapter.artwork.ship) errors.push('artwork.ship: required for both characters');
   for (const [location, characters] of Object.entries(chapter.artwork)) {
-    if (!['ship', 'workshop', 'radio', 'journey', 'storage'].includes(location)) errors.push(`Unknown artwork location: ${location}`);
+    if (!['ship', 'workshop', 'radio', 'journey', 'storage', 'sleep'].includes(location)) errors.push(`Unknown artwork location: ${location}`);
     for (const character of ['boy', 'girl'] as const) pair(`artwork.${location}.${character}`, characters[character]);
   }
   if (chapter.robot.introduction) {
     const introduction = chapter.robot.introduction;
     text('robot.introduction.title', introduction.title);
     introduction.paragraphs.forEach((paragraph, index) => text(`robot.introduction.paragraphs.${index}`, paragraph));
-    if (introduction.artwork) pair('robot.introduction.artwork', introduction.artwork);
+    if (introduction.artwork) introductionArtwork('robot.introduction.artwork', introduction.artwork);
   }
   for (const [id, scene] of Object.entries(chapter.scenes)) {
     text(`${id}.title`, scene.title);
@@ -66,9 +70,9 @@ export function checkChapter(chapter: Chapter, catalog: readonly ChapterEntry[],
       text(`${id}.completion`, scene.completion);
       continue;
     }
-    if (!['ship', 'workshop', 'radio', 'journey', 'storage'].includes(scene.image)) errors.push(`${id}: unknown image ${scene.image}`);
+    if (!['ship', 'workshop', 'radio', 'journey', 'storage', 'sleep'].includes(scene.image)) errors.push(`${id}: unknown image ${scene.image}`);
     scene.paragraphs.forEach((paragraph, index) => text(`${id}.paragraphs.${index}`, paragraph));
-    if (scene.robotIntroduction?.artwork) pair(`${id}.artwork`, scene.robotIntroduction.artwork);
+    if (scene.robotIntroduction?.artwork) introductionArtwork(`${id}.artwork`, scene.robotIntroduction.artwork);
     if (scene.type === 'story') scene.choices.forEach(choice => text(`${id}.choices.${choice.id}`, choice.label));
     if (scene.type === 'comprehension') {
       text(`${id}.question`, scene.question);

@@ -30,7 +30,7 @@ it('starts with only Chispa available and rejects invalid catalogues', () => {
   const campaign = newCampaign(chapterCatalog);
   expect(chapterCatalog.map(entry => chapterStatus(campaign, chapterCatalog, entry.id))).toEqual(['available', ...Array(6).fill('locked')]);
   expect(() => validateCatalog([])).toThrow();
-  expect(() => validateCatalog([chapterCatalog[2]])).toThrow();
+  expect(() => validateCatalog([chapterCatalog[3]])).toThrow();
   expect(() => validateCatalog([chapterCatalog[0], chapterCatalog[0]])).toThrow();
   expect(selectChapter(campaign, chapterCatalog, 'brote')).toBe(campaign);
   expect(selectChapter(campaign, chapterCatalog, 'missing')).toBe(campaign);
@@ -72,7 +72,7 @@ it('preserves independent chapter saves and unlocks during replay, selection and
   campaign = recordChapter(campaign, released, toScene(second, 'snack'));
   campaign = completeChapter(campaign, released, 'brote');
   expect(campaign.completed).toEqual([chapter.id, 'brote']);
-  expect(chapterStatus(campaign, released, 'rayo')).toBe('upcoming');
+  expect(chapterStatus(campaign, released, 'rayo')).toBe('available');
 });
 
 it('rejects writes to locked chapters and invalid progress, without touching another run', () => {

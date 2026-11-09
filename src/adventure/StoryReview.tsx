@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { RobotIntroduction } from './RobotIntroduction';
 import { personalize } from './personalization';
-import type { Chapter, ReadingScene } from './types';
+import type { Chapter, Character, ReadingScene } from './types';
 
 /** Reread visited text without rewinding the saved run or repeating activities. */
-export function StoryReview({ chapter, scene, playerName, assetPrefix, onNext }: {
-  chapter: Chapter; scene: ReadingScene; playerName: string; assetPrefix: './' | '../'; onNext: () => void;
+export function StoryReview({ chapter, scene, playerName, character = 'boy', assetPrefix, onNext }: {
+  chapter: Chapter; scene: ReadingScene; playerName: string; character?: Character; assetPrefix: './' | '../'; onNext: () => void;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -21,7 +21,7 @@ export function StoryReview({ chapter, scene, playerName, assetPrefix, onNext }:
   return <div className="story-review">
     {scene.robotIntroduction ? <RobotIntroduction robot={chapter.robot}
       introduction={{ title: scene.title, paragraphs: scene.paragraphs, artwork: scene.robotIntroduction.artwork }}
-      playerName={playerName} assetPrefix={assetPrefix}>{actions}</RobotIntroduction> : <article className="dialogue-dock reading-dock" aria-label="Vuelve a leer la historia">
+      playerName={playerName} character={character} assetPrefix={assetPrefix}>{actions}</RobotIntroduction> : <article className="dialogue-dock reading-dock" aria-label="Vuelve a leer la historia">
       <h1 className="sr-only" ref={heading} tabIndex={-1}>{personalize(scene.title, playerName)}</h1>
       <div className="story-passage">{scene.paragraphs.map((paragraph, index) => <p key={index}>{personalize(paragraph, playerName)}</p>)}</div>
       {actions}

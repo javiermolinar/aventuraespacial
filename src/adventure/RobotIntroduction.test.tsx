@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { RobotIntroduction } from './RobotIntroduction';
 import { chispaChapter, chispaScript } from './chapters/chispa';
+import { rayoChapter, rayoScript } from './chapters/rayo';
 
 const robot = chispaChapter.robot;
 const page = chispaScript.robotIntroduction.pages[0];
@@ -43,4 +44,16 @@ it('falls back to the existing robot after image failure without blocking the st
   expect(screen.getByRole('img', { name: 'Robot terminado' })).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Seguir la historia' }));
   expect(onNext).toHaveBeenCalledOnce();
+});
+
+it.each(['boy', 'girl'] as const)('uses the %s group portrait for Rayo without changing the other introductions', character => {
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+  const page = rayoScript.robotIntroduction.pages[0];
+  const { container } = render(<RobotIntroduction robot={rayoChapter.robot} character={character}
+    introduction={{ title: page.title, paragraphs: page.text, artwork: rayoScript.robotIntroduction.artwork }}
+    playerName="Ada" assetPrefix="./" />);
+  expect(container.querySelector('img')?.getAttribute('src')).toBe(`./adventure/chapters/rayo/rayo-introduction-${character}-landscape.webp`);
+  expect(container.querySelector('source')?.getAttribute('srcset')).toBe(`./adventure/chapters/rayo/rayo-introduction-${character}-portrait.webp`);
+  expect(screen.getByText('—Ayúdame a colocarla, Ada.')).toBeTruthy();
+  expect(screen.queryByRole('img', { name: 'Robot terminado' })).toBeNull();
 });

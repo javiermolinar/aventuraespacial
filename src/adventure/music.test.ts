@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { soundtracks } from '../music';
 import { chispaChapter } from './chapters/chispa';
+import { rayoChapter } from './chapters/rayo';
 import { adventureMusic } from './music';
 
 it('selects distinct local tracks for reading, maths, introduction and games', () => {
@@ -17,6 +18,13 @@ it('selects distinct local tracks for reading, maths, introduction and games', (
 
 it('ships every configured recording locally, including the separate home theme', () => {
   expect(soundtracks.home.file).toBe('wallpaper.mp3');
-  expect(new Set(Object.values(soundtracks).map(track => track.file)).size).toBe(5);
+  expect(new Set(Object.values(soundtracks).map(track => track.file)).size).toBe(6);
   for (const track of Object.values(soundtracks)) expect(existsSync(`public/music/${track.file}`)).toBe(true);
+});
+
+it('uses the new alert track and keeps the same calm music through the final question and completion', () => {
+  expect(adventureMusic(rayoChapter.scenes.alarm)).toBe('the-descent.mp3');
+  expect(adventureMusic(rayoChapter.scenes.damage)).toBe('the-descent.mp3');
+  expect(adventureMusic(rayoChapter.scenes['lights-back'])).toBe('dream-culture.mp3');
+  expect(adventureMusic(rayoChapter.scenes['lights-back:ending'])).toBe('dream-culture.mp3');
 });

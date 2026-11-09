@@ -63,5 +63,6 @@ export default function Practice() {
         <a className="primary" href="./games/time-chef.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
       </section>
     </main>
+    <footer className="music-credits"><p>Música de <a href="https://incompetech.com/">Kevin MacLeod</a>, con licencia <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. <a href="./music/ATTRIBUTION.txt">Temas y créditos</a>.</p></footer>
   </div>;
 }

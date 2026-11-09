@@ -2,7 +2,7 @@ import { useState, type DragEvent } from 'react';
 import { Check, CircleHelp, Play, RotateCcw, Zap } from 'lucide-react';
 import { SiteShell } from '../../components/SiteShell';
 import { useSoundPreference } from '../../services/useSoundPreference';
-import { branchLevels, components, targetFor, type BranchLevelId, emptyPlacements, evaluateBoard, levelPieces, slotIds, type ComponentId, type LevelId, type Placements, type SlotId } from './game';
+import { branchLevels, components, targetFor, type BranchLevelId, evaluateBoard, levelPieces, slotIds, type ComponentId, type LevelId, type SlotId, emptyResistorState, type ResistorState } from './game';
 import './resistor.css';
 
 const slotPositions: Record<1 | 2 | 3, Record<SlotId, { left: string; top: string }>> = {
@@ -34,58 +34,45 @@ function Piece({ id, vertical = false }: { id: ComponentId; vertical?: boolean }
   </span>;
 }
 
-export default function ResistorBoard() {
-  const sound = useSoundPreference();
-  const [placements, setPlacements] = useState<Placements>(emptyPlacements);
-  const [level, setLevel] = useState<LevelId>(() => Math.min(7, Math.max(1, Number(new URLSearchParams(window.location.search).get('level')) || 1)) as LevelId);
-
+/** Controlled puzzle shared by practice and adventure; the host owns progress. */
+export function ResistorPuzzle({ level, state, onChange, onNext }: {
+  level: LevelId; state: ResistorState; onChange: (state: ResistorState) => void; onNext?: () => void;
+}) {
+  const placements = state.placements;
   const [selected, setSelected] = useState<ComponentId | null>(null);
-  const [checkedKey, setCheckedKey] = useState<string | null>(null);
   const [hint, setHint] = useState(false);
-  const key = slotIds.map(slot => placements[slot] ?? '-').join('|');
-  const checked = checkedKey === key;
+  const checked = state.tested;
   const result = evaluateBoard(placements, level);
   const solved = checked && result.solved;
   const broken = checked && result.outcome === 'high';
 
   function place(slot: SlotId, id: ComponentId) {
     if (solved) return;
-    setPlacements(previous => {
-      const next = { ...previous };
+    {
+      const next = { ...placements };
       const source = slotIds.find(candidate => next[candidate] === id);
       const displaced = next[slot];
       if (source) next[source] = displaced;
       next[slot] = id;
-      return next;
-    });
+      onChange({ placements: next, tested: false });
+    }
     setSelected(null);
-    setCheckedKey(null);
     setHint(false);
   }
   function remove(id: ComponentId) {
     if (solved) return;
-    setPlacements(previous => {
-      const next = { ...previous };
+    {
+      const next = { ...placements };
       const source = slotIds.find(slot => next[slot] === id);
       if (source) next[source] = null;
-      return next;
-    });
+      onChange({ placements: next, tested: false });
+    }
     setSelected(null);
-    setCheckedKey(null);
   }
   function reset() {
-    setPlacements(emptyPlacements());
+    onChange(emptyResistorState());
     setSelected(null);
-    setCheckedKey(null);
     setHint(false);
-  }
-  function changeLevel(next: LevelId) {
-    setLevel(next);
-    reset();
-    const url = new URL(window.location.href);
-    if (next === 1) url.searchParams.delete('level');
-    else url.searchParams.set('level', String(next));
-    window.history.replaceState(null, '', url);
   }
   function dragStart(event: DragEvent, id: ComponentId) {
     event.dataTransfer.setData('text/plain', id);
@@ -101,11 +88,7 @@ export default function ResistorBoard() {
   const status = solved ? (level > 1 ? `${branchLevels[level as BranchLevelId].slots.map(slot => result.outs[slot]).join(' + ')} = ${targetFor(level)}` : `5${[placements.A, placements.B].map(id => id && components[id].loss > 0 ? ` − ${components[id].loss}` : '').join('')} = ${targetFor(level)}`) : hint ? (level === 2 ? 'Un camino no puede bajar de 0.' : 'C no llega a la bombilla.') : !checked ? '' :
     result.outcome === 'incomplete' ? 'Faltan piezas.' : result.outcome === 'high' ? `Llegan ${result.arrival}: demasiado.` : `Llegan ${result.arrival}: muy poco.`;
 
-  return <SiteShell soundEnabled={sound.enabled} onToggleSound={sound.toggle}>
-    <main className="resistor-game">
-      <header className="resistor-heading"><span className="resistor-emblem" aria-hidden="true"><Zap size={29} /></span><h1>El circuito impreso</h1>
-        <nav className="resistor-levels" aria-label="Nivel">{([1, 2, 3, 4, 5, 6, 7] as LevelId[]).map(n => <button key={n} aria-pressed={level === n} onClick={() => changeLevel(n)}>{n}</button>)}</nav>
-      </header>
+  return <div className="resistor-game resistor-puzzle">
       <section className="resistor-console" aria-label="Circuito">
         <div className={`pcb-board pcb-level-${Math.min(level, 3)}`}>
           <svg className="pcb-traces" viewBox="0 0 500 400" preserveAspectRatio="none" aria-hidden="true">
@@ -155,8 +138,34 @@ export default function ResistorBoard() {
           </div>
         </div>
         <p className={`resistor-status ${solved ? 'is-solved' : ''}`} role="status">{solved && <Check size={21} />}{status}</p>
-        <div className="resistor-actions"><button className="primary" onClick={() => { setCheckedKey(key); setHint(false); }} disabled={solved || !result.complete}><Play size={19} />Probar</button><button onClick={() => setHint(true)} disabled={solved} aria-label="Pista" title="Pista"><CircleHelp size={20} /></button><button onClick={reset} aria-label="Reiniciar tablero" title="Reiniciar tablero"><RotateCcw size={20} /></button></div>
+        <div className="resistor-actions"><button className="primary" onClick={() => { onChange({ placements, tested: true }); setHint(false); }} disabled={solved || !result.complete}><Play size={19} />Probar</button><button onClick={() => setHint(true)} disabled={solved} aria-label="Pista" title="Pista"><CircleHelp size={20} /></button><button onClick={reset} aria-label="Reiniciar tablero" title="Reiniciar tablero"><RotateCcw size={20} /></button></div>
+        {solved && onNext && <button className="primary resistor-continue" onClick={onNext}>Continuar</button>}
       </section>
+  </div>;
+}
+
+
+export default function ResistorBoard() {
+  const sound = useSoundPreference();
+  const [state, setState] = useState(emptyResistorState);
+  const [level, setLevel] = useState<LevelId>(() => {
+    const requested = Number(new URLSearchParams(window.location.search).get('level'));
+    return (Number.isInteger(requested) && requested >= 1 && requested <= 7 ? requested : 1) as LevelId;
+  });
+  function changeLevel(next: LevelId) {
+    setLevel(next);
+    setState(emptyResistorState());
+    const url = new URL(window.location.href);
+    if (next === 1) url.searchParams.delete('level');
+    else url.searchParams.set('level', String(next));
+    window.history.replaceState(null, '', url);
+  }
+  return <SiteShell soundEnabled={sound.enabled} onToggleSound={sound.toggle}>
+    <main className="resistor-game">
+      <header className="resistor-heading"><span className="resistor-emblem" aria-hidden="true"><Zap size={29} /></span><h1>El circuito impreso</h1>
+        <nav className="resistor-levels" aria-label="Nivel">{([1, 2, 3, 4, 5, 6, 7] as LevelId[]).map(n => <button key={n} aria-pressed={level === n} onClick={() => changeLevel(n)}>{n}</button>)}</nav>
+      </header>
+      <ResistorPuzzle key={level} level={level} state={state} onChange={setState} />
     </main>
   </SiteShell>;
 }

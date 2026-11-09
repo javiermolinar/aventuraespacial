@@ -87,7 +87,7 @@ test('Brote plays from hunger through construction, boxes and food, then unlocks
   await expect(page.locator('.retell-prompt')).toHaveCount(0);
   expect((await readCampaign(page)).completed).toEqual([chispaChapter.id]);
   await page.getByRole('button', { name: 'Terminar capítulo' }).click();
-  await expect(page.getByRole('button', { name: 'Capítulo 3. Rayo. Próximamente.', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Capítulo 3\. Rayo.*Empezar/ })).toBeEnabled();
   expect((await readCampaign(page)).completed).toEqual([chispaChapter.id, chapter.id]);
 });
 

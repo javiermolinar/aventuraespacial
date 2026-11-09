@@ -2,17 +2,17 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 import { RobotPortrait } from '../games/robot-lab/RobotArtwork';
 import { personalize } from './personalization';
-import type { Chapter, RobotIntroduction as Introduction } from './types';
+import type { Chapter, Character, RobotIntroduction as Introduction } from './types';
 import './robot-introduction.css';
 
 /** Illustrated dialogue, also supporting the legacy completed-build introduction. */
-export function RobotIntroduction({ robot, introduction, playerName, assetPrefix, onNext, children }: {
-  robot: Chapter['robot']; introduction: Introduction; playerName: string; assetPrefix: './' | '../'; onNext?: () => void; children?: ReactNode;
+export function RobotIntroduction({ robot, introduction, playerName, character = 'boy', assetPrefix, onNext, children }: {
+  robot: Chapter['robot']; introduction: Introduction; playerName: string; character?: Character; assetPrefix: './' | '../'; onNext?: () => void; children?: ReactNode;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
   const [failed, setFailed] = useState(false);
-  const artwork = introduction.artwork;
+  const artwork = introduction.artwork && ('landscape' in introduction.artwork ? introduction.artwork : introduction.artwork[character]);
   const showArtwork = artwork && !failed;
 
   useEffect(() => {

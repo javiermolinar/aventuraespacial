@@ -1,4 +1,19 @@
 /* Narrative framing belongs to the host, not the reusable games. */
+.adventure-experience.is-resisting { display: flex; flex-direction: column; min-height: 100dvh; }
+.adventure-experience.is-resisting .cinematic-backdrop::after { background: #071122d9; }
+.adventure-experience .resistor-stage { flex: 1; }
+.adventure-experience .adventure-resistors { padding: 20px clamp(16px, 3vw, 48px) 28px; }
+.adventure-resistors .resistor-passage { max-width: 85ch; margin: 0 auto; }
+.adventure-resistors h1 { font-size: clamp(28px, 3vw, 38px); line-height: 1.2; margin-bottom: 14px; }
+.adventure-resistors .resistor-passage p { font-size: 18px; line-height: 1.5; margin-top: 8px; }
+.adventure-resistors #resistor-instructions { color: #e7cf98; font-size: 16px; }
+.adventure-resistors .resistor-puzzle { max-width: 740px; margin: 22px auto; padding: 0; }
+.adventure-experience .adventure-resistors .resistor-console { box-shadow: 0 5px 0 #111b17; }
+.adventure-experience .adventure-resistors .pcb-bulb { width: min(100px, 20%); }
+.adventure-experience .adventure-resistors .bulb-drawing { width: 100%; }
+.adventure-resistors .resistor-skip { display: flex; margin: 0 auto; font-size: 16px; }
+.resistor-puzzle { margin: 0; padding: 0; }
+.resistor-puzzle .resistor-continue { display: flex; justify-content: center; width: 100%; margin-top: 16px; min-height: 48px; background: #efd087; color: #26352d; }
 .adventure-experience.is-packing { display: flex; flex-direction: column; min-height: 100dvh; }
 .adventure-experience.is-packing .cinematic-backdrop::after { background: #071122d9; }
 .adventure-experience .packing-stage { display: flex; flex: 1; }

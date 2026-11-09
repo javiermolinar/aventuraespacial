@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { chapterCatalog, playableChapter, type ChapterEntry } from './chapters/catalog';
 import { chapterUnlocked, completeChapter, loadCampaign, recordChapter, saveCampaign, selectChapter } from './campaign';
-import { earnPart, moveTo, newAdventure, placePart, rotatePipe, updatePacking, type AdventureProgress } from './progress';
+import { earnPart, moveTo, newAdventure, placePart, rotatePipe, updatePacking, updateResistors, type AdventureProgress } from './progress';
+import type { ResistorState } from '../games/resistor-board/game';
 import type { PiecesState } from '../games/shape-box/puzzle';
 import type { Chapter, Character, ReadingScene } from './types';
 
@@ -19,7 +20,7 @@ export function useAdventureController({ chapter: chapterOverride, catalog: cata
   const [saveFailed, setSaveFailed] = useState(loaded.unavailable);
   const [reviewId, setReviewId] = useState<string | null>(null);
   const setupProfile = setupChapterId ? campaign.chapters[setupChapterId] ?? campaign.profile : campaign.profile;
-  const readingHistory = progress?.history.filter(id => !['build', 'pipes', 'packing'].includes(chapter.scenes[id].type)) ?? [];
+  const readingHistory = progress?.history.filter(id => !['build', 'pipes', 'packing', 'resistors'].includes(chapter.scenes[id].type)) ?? [];
   const reviewIndex = reviewId === null ? -1 : readingHistory.indexOf(reviewId);
   const reviewScene = reviewIndex < 0 ? null : chapter.scenes[reviewId!] as ReadingScene;
   const previousId = readingHistory[(reviewScene ? reviewIndex : readingHistory.length) - 1];
@@ -32,6 +33,7 @@ export function useAdventureController({ chapter: chapterOverride, catalog: cata
   const building = view === 'play' && !reviewScene && scene?.type === 'build' && !introduction;
   const piping = view === 'play' && !reviewScene && scene?.type === 'pipes';
   const packing = view === 'play' && !reviewScene && scene?.type === 'packing';
+  const resisting = view === 'play' && !reviewScene && scene?.type === 'resistors';
   const finishedRun = Boolean(progress && scene?.type === 'ending' && campaign.completed.includes(chapter.id));
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export function useAdventureController({ chapter: chapterOverride, catalog: cata
 
   return {
     catalog, campaign, chapter, progress, view, scene, displayedScene, introduction, displayedIntroduction,
-    building, piping, packing, finishedRun, setupChapterId, setupProfile, saveFailed, reset: loaded.reset,
+    building, piping, packing, resisting, finishedRun, setupChapterId, setupProfile, saveFailed, reset: loaded.reset,
     reviewId, reviewScene, previousId,
     chooseChapter, prepare, start,
     cancelSetup: () => setSetupChapterId(null),
@@ -74,6 +76,7 @@ export function useAdventureController({ chapter: chapterOverride, catalog: cata
     earn: () => updateProgress(previous => earnPart(previous, chapter)),
     place: () => updateProgress(previous => placePart(previous, chapter)),
     pack: (state: PiecesState) => updateProgress(previous => updatePacking(previous, chapter, state)),
+    resist: (state: ResistorState) => updateProgress(previous => updateResistors(previous, chapter, state)),
     rotate: (index: number, turns: number) => updateProgress(previous => rotatePipe(previous, chapter, index, turns)),
   };
 }

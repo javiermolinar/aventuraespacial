@@ -7,6 +7,7 @@ import { RobotIntroduction } from './RobotIntroduction';
 import { StoryReview } from './StoryReview';
 import { personalize } from './personalization';
 import { initialState, puzzles, type PiecesState } from '../games/shape-box/puzzle';
+import { emptyResistorState, type ResistorState } from '../games/resistor-board/game';
 import type { AdventureProgress } from './progress';
 import type { Chapter, ReadingScene, RobotIntroduction as Introduction, Scene } from './types';
 import './activity-layout.css';
@@ -14,14 +15,16 @@ import './activity-layout.css';
 const BuildActivity = lazy(() => import('../games/robot-lab/BuildActivity').then(module => ({ default: module.BuildActivity })));
 const PipePuzzle = lazy(() => import('../games/connections/PipePuzzle').then(module => ({ default: module.PipePuzzle })));
 const PackingPuzzle = lazy(() => import('../games/shape-box/ShapeBox').then(module => ({ default: module.PackingPuzzle })));
+const ResistorPuzzle = lazy(() => import('../games/resistor-board/ResistorBoard').then(module => ({ default: module.ResistorPuzzle })));
 
 /** Adapts authored scenes to independent activities; games never receive the campaign. */
-export default function NarrativeView({ chapter, progress, scene, introduction, reviewId, reviewScene, assetPrefix, sound, onNext, onComplete, onReviewNext, onEarn, onPlace, onRotate, onPackingChange }: {
+export default function NarrativeView({ chapter, progress, scene, introduction, reviewId, reviewScene, assetPrefix, sound, onNext, onComplete, onReviewNext, onEarn, onPlace, onRotate, onPackingChange, onResistorChange }: {
   chapter: Chapter; progress: AdventureProgress; scene: Scene; introduction?: Introduction;
   reviewId: string | null; reviewScene: ReadingScene | null; assetPrefix: './' | '../'; sound: boolean;
   onNext: (id: string) => void; onComplete: () => void; onReviewNext: () => void;
   onEarn: () => void; onPlace: () => void; onRotate: (index: number, turns: number) => void;
   onPackingChange: (state: PiecesState) => void;
+  onResistorChange?: (state: ResistorState) => void;
 }) {
   const liveScene = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -33,7 +36,7 @@ export default function NarrativeView({ chapter, progress, scene, introduction, 
   return <>
     {/* Rereading must not unmount the live activity or discard its unsaved answer. */}
     <div className="live-scene" ref={liveScene} hidden={Boolean(reviewScene)} inert={Boolean(reviewScene)}>
-      {introduction ? <RobotIntroduction key={progress.sceneId} robot={chapter.robot} introduction={introduction} playerName={progress.playerName} assetPrefix={assetPrefix} onNext={scene.type === 'build' ? () => onNext(scene.next) : undefined}>
+      {introduction ? <RobotIntroduction key={progress.sceneId} robot={chapter.robot} introduction={introduction} playerName={progress.playerName} character={progress.character} assetPrefix={assetPrefix} onNext={scene.type === 'build' ? () => onNext(scene.next) : undefined}>
         {scene.type !== 'build' ? <DialogueActions scene={scene} playerName={progress.playerName} onNext={onNext} onComplete={onComplete} /> : undefined}
       </RobotIntroduction> : scene.type === 'build' ? <section className="construction-console">
         <h1 tabIndex={-1}>{personalize(scene.title, progress.playerName)}</h1>
@@ -62,12 +65,22 @@ export default function NarrativeView({ chapter, progress, scene, introduction, 
             sound={sound} onChange={onPackingChange} onNext={() => onNext(scene.next)} nextLabel="Continuar" />
         </DeferredContent>
         <button className="text-button packing-skip" onClick={() => onNext(scene.next)}>Saltar</button>
+      </article> : scene.type === 'resistors' ? <article className="adventure-resistors" key={progress.sceneId}>
+        <div className="resistor-passage"><h1 tabIndex={-1}>{personalize(scene.title, progress.playerName)}</h1>
+          {scene.paragraphs.map((paragraph, index) => <p key={index}>{personalize(paragraph, progress.playerName)}</p>)}
+          <p id="resistor-instructions">Toca una pieza y después un hueco para colocarla. También puedes arrastrarla. Pulsa Probar para comprobar el circuito.</p>
+        </div>
+        <DeferredContent>
+          <ResistorPuzzle level={scene.level} state={progress.resistorStates?.[progress.sceneId] ?? emptyResistorState()}
+            onChange={state => onResistorChange?.(state)} onNext={() => onNext(scene.next)} />
+        </DeferredContent>
+        <button className="text-button resistor-skip" onClick={() => onNext(scene.next)}>Saltar</button>
       </article> : <article className="dialogue-dock reading-dock" key={progress.sceneId} aria-label="Lee la historia">
         <h1 className="sr-only" tabIndex={-1}>{personalize(scene.title, progress.playerName)}</h1>
         <div className="story-passage">{scene.paragraphs.map((paragraph, index) => <p key={index}>{personalize(paragraph, progress.playerName)}</p>)}</div>
         <DialogueActions scene={scene} playerName={progress.playerName} onNext={onNext} onComplete={onComplete} />
       </article>}
     </div>
-    {reviewScene && <StoryReview key={reviewId} chapter={chapter} scene={reviewScene} playerName={progress.playerName} assetPrefix={assetPrefix} onNext={onReviewNext} />}
+    {reviewScene && <StoryReview key={reviewId} chapter={chapter} scene={reviewScene} playerName={progress.playerName} character={progress.character} assetPrefix={assetPrefix} onNext={onReviewNext} />}
   </>;
 }

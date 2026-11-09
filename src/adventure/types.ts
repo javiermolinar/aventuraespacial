@@ -1,19 +1,23 @@
 import { puzzles } from '../games/shape-box/puzzle';
 import type { RobotDesign } from '../games/robot-lab/design';
 import { validPipeLayout, type PipeLayout, type ConnectionTheme } from '../games/connections/pipes';
+import { levels } from '../game';
+import type { LevelId as ResistorLevel } from '../games/resistor-board/game';
 
 export type Character = 'boy' | 'girl';
-export type Illustration = 'ship' | 'workshop' | 'radio' | 'journey' | 'storage';
+export type Illustration = 'ship' | 'workshop' | 'radio' | 'journey' | 'storage' | 'sleep';
 export type ResponsiveArtwork = { landscape: string; portrait: string };
 export type CharacterArtwork = Record<Character, ResponsiveArtwork>;
+export type IntroductionArtwork = ResponsiveArtwork | CharacterArtwork;
 export type RobotIntroduction = {
   title: string;
   paragraphs: string[];
-  artwork?: ResponsiveArtwork;
+  artwork?: IntroductionArtwork;
 };
 type Reading = {
   title: string; image: Illustration; paragraphs: string[];
-  robotIntroduction?: { artwork?: ResponsiveArtwork };
+  ambience?: 'alarm' | 'calm';
+  robotIntroduction?: { artwork?: IntroductionArtwork };
 };
 export type StoryScene = Reading & {
   type: 'story';
@@ -41,12 +45,15 @@ export type SequenceScene = Reading & {
 };
 export type PipeScene = Reading & { type: 'pipes'; theme?: ConnectionTheme; layout: PipeLayout; next: string };
 export type PackingScene = Reading & { type: 'packing'; puzzleIndex: number; next: string };
+export type ResistorScene = Reading & { type: 'resistors'; level: ResistorLevel; next: string };
 export type EndingScene = Reading & { type: 'ending'; prompt?: string };
-export type Scene = StoryScene | ComprehensionScene | BuildScene | SequenceScene | PipeScene | PackingScene | EndingScene;
-export type ReadingScene = Exclude<Scene, { type: 'build' | 'pipes' | 'packing' }>;
+export type Scene = StoryScene | ComprehensionScene | BuildScene | SequenceScene | PipeScene | PackingScene | ResistorScene | EndingScene;
+export type ReadingScene = Exclude<Scene, { type: 'build' | 'pipes' | 'packing' | 'resistors' }>;
 export type Chapter = {
   id: string; version: number; title: string; subtitle: string;
   intro: { title: string; description: string };
+  /** An authored difficulty overrides the player's practice level for this chapter. */
+  mathsLevel?: number;
   artwork: { ship: CharacterArtwork } & Partial<Record<Exclude<Illustration, 'ship'>, CharacterArtwork>>;
   robot: { name: string; design: RobotDesign; color: string; introduction?: RobotIntroduction };
   start: string;
@@ -61,6 +68,7 @@ export function destinations(scene: Scene): string[] {
 /** Chapters are small acyclic graphs. Catch broken content during tests/build-time authoring. */
 export function validateChapter(chapter: Chapter): string[] {
   const errors: string[] = [];
+  if (chapter.mathsLevel !== undefined && (!Number.isInteger(chapter.mathsLevel) || !levels[chapter.mathsLevel])) errors.push('Invalid chapter maths level');
   const seen = new Set<string>();
   const visiting = new Set<string>();
   const unique = (ids: string[]) => new Set(ids).size === ids.length;
@@ -88,6 +96,7 @@ export function validateChapter(chapter: Chapter): string[] {
       if (!validTheme || !validTerminals || !validPipeLayout(scene.layout)) errors.push(`Invalid pipe layout: ${id}`);
     }
     if (scene.type === 'packing' && (!Number.isInteger(scene.puzzleIndex) || !puzzles[scene.puzzleIndex])) errors.push(`Invalid packing puzzle: ${id}`);
+    if (scene.type === 'resistors' && (!Number.isInteger(scene.level) || scene.level < 1 || scene.level > 7)) errors.push(`Invalid resistor level: ${id}`);
     if (scene.type === 'ending' && previousTarget !== 6) errors.push(`Incomplete robot at ending: ${id}`);
     for (const next of destinations(scene)) visit(next, previousTarget);
     visiting.delete(id);

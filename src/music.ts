@@ -5,4 +5,5 @@ export const soundtracks = {
   maths: { title: 'Carefree', file: 'carefree.mp3', isrc: 'USUAN1400037' },
   robot: { title: 'Life of Riley', file: 'life-of-riley.mp3', isrc: 'USUAN1400054' },
   game: { title: 'Cipher', file: 'cipher.mp3', isrc: 'USUAN1100844' },
+  alert: { title: 'The Descent', file: 'the-descent.mp3', isrc: 'USUAN1200094' },
 } as const;

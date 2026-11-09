@@ -13,6 +13,21 @@ export const components: Record<ComponentId, { name: string; shortName: string; 
 };
 
 export const emptyPlacements = (): Placements => ({ A: null, B: null, C: null });
+export type ResistorState = { placements: Placements; tested: boolean };
+export const emptyResistorState = (): ResistorState => ({ placements: emptyPlacements(), tested: false });
+
+/** Only unique, available pieces in this board's active slots can be restored. */
+export function validResistorState(value: unknown, level: LevelId): value is ResistorState {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const state = value as ResistorState;
+  if (typeof state.tested !== 'boolean' || !state.placements || typeof state.placements !== 'object' || Array.isArray(state.placements) ||
+    Object.keys(state.placements).length !== slotIds.length || !slotIds.every(slot => Object.hasOwn(state.placements, slot))) return false;
+  const active = level === 1 ? slotIds : branchLevels[level].slots;
+  const pieces = slotIds.map(slot => state.placements[slot]);
+  if (!slotIds.every(slot => state.placements[slot] === null || (active.includes(slot) && levelPieces[level].includes(state.placements[slot]!)))) return false;
+  const used = pieces.filter(piece => piece !== null);
+  return new Set(used).size === used.length && (!state.tested || evaluateBoard(state.placements, level).complete);
+}
 
 const allPieces: ComponentId[] = ['bridge', 'r1', 'r2', 'r3'];
 export const levelPieces: Record<LevelId, ComponentId[]> = {

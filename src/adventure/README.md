@@ -1,14 +1,14 @@
 # Authoring adventure chapters
 
-Published chapter content lives in `chapters/chispa.ts` and `chapters/brote.ts`. Author a `ChapterScript` and pass it to `defineChapter` from `chapter-script.ts`. The compiler generates and validates the `Chapter` consumed by `useAdventureController` and `NarrativeView`; authors do not write scene links.
+Published chapter content lives in `chapters/chispa.ts`, `chapters/brote.ts` and `chapters/rayo.ts`. Author a `ChapterScript` and pass it to `defineChapter` from `chapter-script.ts`. The compiler generates and validates the `Chapter` consumed by `useAdventureController` and `NarrativeView`; authors do not write scene links.
 
 ## Authoring tools
 
 ```sh
 npm run chapter:check
-npm run chapter:new -- rayo
+npm run chapter:new -- tuerca
 npm run dev
-# Open /?chapter-preview=rayo on the development server.
+# Open /?chapter-preview=tuerca on the development server.
 # Preview the published box game at /?chapter-preview=brote&scene=supply-boxes.
 ```
 
@@ -36,20 +36,20 @@ The preview host does not read or write campaign, legacy adventure, practice col
 
 ### Create and publish a draft
 
-`chapter:new -- rayo` writes only `src/adventure/drafts/rayo.ts`. It requires an existing, non-playable catalogue ID, refuses path traversal and unknown IDs, and never overwrites a draft or an existing `chapters/rayo.ts`. The template uses the existing `ChapterScript` format, the catalogue robot metadata, explicit `TODO` text, prototype SVG artwork and a valid water-connection configuration. It does not invent a finished story, change the catalogue, publish anything, or bump an existing version.
+`chapter:new -- tuerca` writes only `src/adventure/drafts/tuerca.ts`. It requires an existing, non-playable catalogue ID, refuses path traversal and unknown IDs, and never overwrites a draft or an existing `chapters/tuerca.ts`. The template uses the existing `ChapterScript` format, the catalogue robot metadata, explicit `TODO` text, prototype SVG artwork and a valid water-connection configuration. It does not invent a finished story, change the catalogue, publish anything, or bump an existing version.
 
 To publish after writing and reviewing the chapter:
 
 1. Replace the TODOs and placeholder artwork. Add questions and optional middle dialogue as needed.
 2. Run `npm run chapter:check`, preview every phase, and review desktop/phone layouts and text.
-3. Move `src/adventure/drafts/rayo.ts` to `src/adventure/chapters/rayo.ts`. Its relative imports remain valid.
-4. In `chapters/catalog.ts`, import the default script and `defineChapter`, then replace the existing Rayo placeholder **in place**:
+3. Move `src/adventure/drafts/tuerca.ts` to `src/adventure/chapters/tuerca.ts`. Its relative imports remain valid.
+4. In `chapters/catalog.ts`, import the default script and `defineChapter`, then replace the existing Tuerca placeholder **in place**:
 
    ```ts
    import { defineChapter } from '../chapter-script';
-   import rayoScript from './rayo';
-   // Replace only the existing { id: 'rayo', robot: ... } entry:
-   playableChapter(defineChapter(rayoScript)),
+   import tuercaScript from './tuerca';
+   // Replace only the existing { id: 'tuerca', robot: ... } entry:
+   playableChapter(defineChapter(tuercaScript)),
    ```
 
 5. Update tests that intentionally describe release availability, run validation and the full test suite, and review save compatibility. Never reorder catalogue IDs or automatically mark the new chapter complete.
@@ -61,10 +61,10 @@ A published chapter and a draft cannot share the same ID. No sample draft is shi
 Scripts follow this fixed order; `middle` can be omitted:
 
 1. `intro`: dialogue pages introducing the problem.
-2. `maths`: ID, title and instruction. The engine supplies six operations and pieces; difficulty comes from player settings.
+2. `maths`: ID, title and instruction. The engine supplies six operations and pieces; difficulty comes from player settings unless `maths.level` specifies a stable practice-level index. Rayo uses index 13: three-digit subtraction without borrowing.
 3. `robotIntroduction`: dialogue pages introducing the completed robot, with optional independent portrait/landscape artwork.
 4. `middle` (optional): dialogue pages leading into the game. Omit it to go directly from the robot introduction to the game.
-5. `game`: one activity configuration. Supports `type: 'pipes'`, `theme: 'radio' | 'water'` and a layout, or `type: 'packing'` and a zero-based `puzzleIndex` from the shared shape-box puzzles. Both include introductory `text`.
+5. `game`: one activity configuration. Supports `type: 'pipes'`, `theme: 'radio' | 'water'` and a layout, or `type: 'packing'` and a zero-based `puzzleIndex` from the shared shape-box puzzles. A resistor activity uses `type: 'resistors'` and a one-based `level` (1–7) from the shared circuit game. All include introductory `text`.
 6. `ending`: dialogue pages and a final retelling `prompt`.
 
 Metadata includes `id`, `version`, `title`, `subtitle`, `summary` (the former metadata `intro`), `artwork` and `robot`. See `chispaScript` for a complete example. Each reading phase has a default `image` and non-empty `pages`. A page can override `image`.
@@ -116,7 +116,7 @@ Keep page IDs unique across the chapter and question IDs unique within a page. C
 
 `defineChapter` rejects empty phases, duplicate IDs, empty passages, invalid answers/orderings, and invalid game layouts. It creates the same runtime scene types described below; do not edit generated scenes as chapter source.
 
-`App` mounts `src/site/AdventureSite` with `entry="home"`, so home, character choice and story share `/index.html`. The direct `games/adventure.html` entry is retained. `chapters/catalog.ts` lists seven robot chapters in story order, independent of practice levels. Chispa and Brote supply playable chapters; later entries contain robot metadata only. Add a compiled chapter to its existing entry when ready, using the same stable ID. A future story title is optional until authored; revealed upcoming cards use the robot name.
+`App` mounts `src/site/AdventureSite` with `entry="home"`, so home, character choice and story share `/index.html`. The direct `games/adventure.html` entry is retained. `chapters/catalog.ts` lists seven robot chapters in story order, independent of practice levels. Chispa, Brote and Rayo supply playable chapters; later entries contain robot metadata only. Add a compiled chapter to its existing entry when ready, using the same stable ID. A future story title is optional until authored; revealed upcoming cards use the robot name.
 
 ## Chapter menu and campaign saves
 
@@ -160,7 +160,7 @@ artwork: {
 },
 ```
 
-Use a 16:9 landscape and a separately composed 9:16 portrait image of the same robot. These images are independent of the player's character. `<picture>` selects by orientation and both entry paths support subdirectory deployment. Keep the robot and important props in the upper two-thirds; reserve quiet space below for the readable HTML title and passage. Do not bake text into the images. Failed image loads show the SVG fallback and never block continuation. Robot introductions without configured artwork use the existing SVG. The supplied Chispa artwork depicts a yellow robot holding a wrench; the lavender assembly model and subsequent wrench-search story remain unchanged.
+Use a 16:9 landscape and a separately composed 9:16 portrait image of the same robot. Chispa uses a shared image pair. Introductions featuring the child can instead use `artwork: { boy: { landscape, portrait }, girl: { landscape, portrait } }`; rendering, rereading and validation retain the selected character. `<picture>` selects by orientation and both entry paths support subdirectory deployment. Keep the robot and important props in the upper two-thirds; reserve quiet space below for the readable HTML title and passage. Do not bake text into the images. Failed image loads show the SVG fallback and never block continuation. Robot introductions without configured artwork use the existing SVG. The supplied Chispa artwork depicts a yellow robot holding a wrench; the lavender assembly model and subsequent wrench-search story remain unchanged.
 
 ## Connection interludes
 
@@ -184,7 +184,15 @@ Connectivity follows only reciprocal openings from the source. The authored solu
 
 `AdventureProgress.packingStates` stores piece rotations and positions by visited scene ID. Validation rejects missing/extra pieces, malformed positions, non-quarter-turn rotations, overlaps, out-of-bounds placements and states for unvisited or non-packing scenes. Completed boards cannot be changed. Older saves without this optional field are unchanged. Back skips packing scenes and preserves the mounted live board; Home/reload restore committed moves, not an in-flight drag or selection. Packing uses the minigame music track. The isolated development preview supports it without touching storage.
 
-`brote.test.ts` covers compilation, six-piece gating and save validation. `tests/e2e/brote.spec.ts` plays the released chapter, solves the shared board with the keyboard, checks rereading, partial/solved reloads and Rayo's upcoming unlock, and captures desktop, phone, tablet and short-landscape layouts.
+`brote.test.ts` covers compilation, six-piece gating and save validation. `tests/e2e/brote.spec.ts` plays the released chapter, solves the shared board with the keyboard, checks rereading, partial/solved reloads and Rayo's playable unlock, and captures desktop, phone, tablet and short-landscape layouts.
+
+## Rayo's nighttime emergency
+
+`chapters/rayo.ts` publishes chapter 3 under the existing `rayo` ID. “Alarma en la oscuridad” begins with a nighttime alarm and a meteorite-damaged electrical system. Six three-digit subtractions without borrowing (stable practice index 13, for example 350 − 120) build Rayo regardless of the incoming profile difficulty. The post-build screen introduces electronics and resistances before the shared resistor-board game. Its four dedicated group illustrations show Rayo at the terminal, the chosen child, Chispa and Brote under dim red emergency lighting. Portrait/landscape images are composed separately. Prompts and provenance are recorded beside the assets in `public/adventure/chapters/rayo/ARTWORK.md`.
+
+The `resistors` scene lazy-loads the controlled `ResistorPuzzle` used by standalone practice. The adventure supplies one board, explicit continuation and **Saltar**, without the practice level picker or shell. `AdventureProgress.resistorStates` stores unique available components in active slots and whether the board was tested. Validation rejects malformed, duplicate and unvisited placements. A tested winning board cannot be changed. Home/reload preserve placements and results; rereading skips activities and keeps the live board mounted. `rayo.test.ts` and `tests/e2e/rayo.spec.ts` cover fixed difficulty, construction gating, vocabulary, saves, artwork, rereading, solving and chapter completion.
+
+Opening pages with `ambience: 'alarm'` use **The Descent** by Kevin MacLeod through the existing opt-in sound toggle and tab-visibility handling. The workshop, maths and robot introduction retain the usual tracks. The closing vocabulary question and completion page use `ambience: 'calm'` to retain **Dream Culture**, alongside separate boy/girl sleeping illustrations under peaceful warm light. The compiler preserves ambience on its generated final completion screen. Chapter IDs and campaign ordering remain unchanged; completing Brote now makes Rayo playable, and completing Rayo reveals Tuerca as upcoming. Existing Chispa/Brote saves need no migration.
 
 ## Names and reusable typing
 
@@ -213,7 +221,7 @@ artwork: {
 }
 ```
 
-Authored URLs are relative to `games/adventure.html`. `SceneArt` adjusts the leading `../` to `./` for the home entry. `BackgroundMusic` accepts the same entry-specific source prefix. This keeps image, audio and practice links correct when the whole site is hosted below a subdirectory. Add optional `artwork.workshop` and `artwork.radio` sets to give those locations their own images. Until supplied, their scenes use `ship` as a chapter establishing shot. This fallback is intentional; the image does not represent changing robot assembly state. The maths workshop illustrates actual assembled parts; the post-build introduction shows only the completed robot.
+Authored URLs are relative to `games/adventure.html`. `SceneArt` adjusts the leading `../` to `./` for the home entry. `BackgroundMusic` accepts the same entry-specific source prefix. This keeps image, audio and practice links correct when the whole site is hosted below a subdirectory. Add optional `artwork.workshop` and `artwork.radio` sets to give those locations their own images. Until supplied, their scenes use `ship` as a chapter establishing shot. This fallback is intentional; the image does not represent changing robot assembly state. The maths workshop illustrates actual assembled parts; the post-build introduction depicts the completed robot and can include the child and earlier companions.
 
 The background uses `<picture>` with `(orientation: portrait)` rather than a width breakpoint. Landscape phones use landscape art. Images are decorative; all facts needed for reading challenges must be present in the text. Keep faces and important props above the lower dialogue area. Never bake text or choices into the artwork.
 
@@ -257,7 +265,7 @@ Chapter version 3 inserts the optional `water-pipes` scene after both greetings 
 
 Chapter version 2 replaces the three partial-build scenes with one complete build. `chapters/chispa-migration.ts` reconstructs the old graph to validate version 1 saves before migrating them. Unfinished robots resume `build-start` with unchanged operations, placed pieces, pending reward, name and character; the post-build conversation replays after completion. A completed old `build-legs` scene opens the full-robot completion screen. Saves at `repair`, `recap` or `ending` keep their current scene, with removed build IDs filtered from history. No migration grants pieces or requires repeating maths. Saves predating character selection or naming default to `character: 'boy'` and `playerName: ''` only when those fields are absent. Saves from paragraph-based reading discard the obsolete `beat` field and open the full current scene. History, maths stage, operands, earned pieces and placed parts are preserved. Invalid characters, malformed/oversized names and invalid scene/construction states are rejected. Structural changes that invalidate saves need an explicit migration or a chapter-version bump; incompatible saves show a fresh-start notice.
 
-Returning home changes only the view, not the progress, so continue also works when localStorage is blocked. Starting a new adventure opens the name/character popup; cancelling never replaces the current game. **Practicar mates** is always available in a separate **Práctica libre** section above the chapter selector, outside the chapter unlock and completion rules. The home screen plays **Wallpaper** and has its own sound toggle. Music pauses during setup and when the browser tab is hidden. Playback remains opt-in and requires an interaction on a fresh visit. Reading uses **Dream Culture**, maths uses **Carefree**, robot introductions and the final ending use **Life of Riley**, and cable/pipe puzzles use **Cipher**. `music.ts` selects a track by activity; `BackgroundMusic` reacts to source changes without restarting the track between ordinary reading pages. All tracks are local, quiet loops with credits on the practice page and in `public/music/ATTRIBUTION.txt`. An unfinished calculation resumes with the same operands but restarts its internal carrying/borrowing steps. Reading answer states and unsubmitted sequence selections are not saved. The practice collection remains independent.
+Returning home changes only the view, not the progress, so continue also works when localStorage is blocked. Starting a new adventure opens the name/character popup; cancelling never replaces the current game. **Practicar mates** is always available in a separate **Práctica libre** section above the chapter selector, outside the chapter unlock and completion rules. The home screen plays **Wallpaper** and has its own sound toggle. Music pauses during setup and when the browser tab is hidden. Playback remains opt-in and requires an interaction on a fresh visit. Reading uses **Dream Culture**, maths uses **Carefree**, robot introductions and the final ending use **Life of Riley**, and cable/pipe/resistor puzzles use **Cipher**. Rayo uses **The Descent** for the opening alert and **Dream Culture** for its peaceful ending. `music.ts` selects a track by activity; `BackgroundMusic` reacts to source changes without restarting the track between ordinary reading pages. All tracks are local, quiet loops with credits on the practice page and in `public/music/ATTRIBUTION.txt`. An unfinished calculation resumes with the same operands but restarts its internal carrying/borrowing steps. Reading answer states and unsubmitted sequence selections are not saved. The practice collection remains independent.
 
 ## Back navigation
 

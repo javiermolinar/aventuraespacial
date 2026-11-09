@@ -97,6 +97,7 @@
 }
 .adventure-experience.is-home .cinematic-stage { min-height: 100svh; }
 .adventure-experience.is-reading .cinematic-stage { padding-top: 18svh; }
+.adventure-experience.is-reading[data-ambience="calm"] .cinematic-stage { padding-top: 35svh; }
 @media (max-height: 550px) and (orientation: landscape) { .adventure-experience.is-reading .cinematic-stage { padding-top: 0; } }
 .adventure-experience.is-building .cinematic-backdrop::after { background: #071122d9; }
 @keyframes dialogue-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
