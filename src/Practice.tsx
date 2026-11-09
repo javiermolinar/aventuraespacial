@@ -8,6 +8,7 @@ import './styles/shape-game-picker.css';
 import './styles/time-chef-picker.css';
 import './styles/laser-rats-picker.css';
 import './styles/ten-lines-picker.css';
+import './styles/resistor-board-picker.css';
 
 /** Standalone games preserve the existing practice collection and level URLs. */
 export default function Practice() {
@@ -32,6 +33,17 @@ export default function Practice() {
         <div className="ten-lines-picker-art" aria-hidden="true">{[1, 5, 6, 3, 2, 3, 4, 5, 1].map((value, index) => <span key={index}>{value}</span>)}</div>
         <div><span className="ten-lines-picker-category">SUMAS Y LÓGICA</span><h2 id="ten-lines-title">Diez líneas</h2><p>Intercambia las fichas y consigue que cada fila y cada columna sume 10.</p></div>
         <a className="primary" href="./games/ten-lines.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
+      </section>
+      <section className="resistor-picker" aria-labelledby="resistor-picker-title">
+        <svg className="resistor-picker-art" viewBox="0 0 120 84" aria-hidden="true">
+          <rect width="120" height="84" rx="14" fill="#175a42" /><rect x="3" y="3" width="114" height="78" rx="11" fill="none" stroke="#d1a85a" strokeWidth="2" />
+          <path d="M16 42H34M34 42V20H72V42M34 42V64H72V42M72 42H86" fill="none" stroke="#d1a85a" strokeWidth="4" strokeLinejoin="round" />
+          <circle cx="34" cy="42" r="5" fill="#edca81" /><circle cx="72" cy="42" r="5" fill="#edca81" />
+          <rect x="45" y="14" width="18" height="12" rx="6" fill="#e8d3a2" stroke="#805f2d" strokeWidth="1.5" /><rect x="45" y="58" width="18" height="12" rx="6" fill="#d9a46d" stroke="#805f2d" strokeWidth="1.5" />
+          <circle cx="99" cy="42" r="11" fill="#ffe184" /><path d="M93 42H97L99 38L102 46L104 42H106" fill="none" stroke="#805f2d" strokeWidth="1.6" />
+        </svg>
+        <div><span className="resistor-picker-category">LÓGICA Y SUMAS</span><h2 id="resistor-picker-title">El circuito impreso</h2><p>Coloca cables y resistencias para que la bombilla reciba justo las chispas que necesita. Siete placas.</p></div>
+        <a className="primary" href="./games/resistor-board.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
       </section>
       <ConnectionsPicker />
       <section className="shape-game-picker" aria-labelledby="shape-game-title">

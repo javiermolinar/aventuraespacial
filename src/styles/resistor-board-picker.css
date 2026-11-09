@@ -1,0 +1,6 @@
+.resistor-picker { display: grid; grid-template-columns: 120px 1fr auto; align-items: center; gap: 24px; padding: 26px; margin-top: 24px; border: 1.5px solid #c5d6c8; border-radius: 24px; background: #ecf3ec; }
+.resistor-picker-art { width: 120px; height: 84px; transform: rotate(-2deg); filter: drop-shadow(0 6px 10px #1c3a2c22); }
+.resistor-picker-category { color: #3d7553; font-size: 10px; font-weight: 900; letter-spacing: 1.2px; }
+.resistor-picker h2 { margin: 5px 0; font-size: 28px; font-weight: 900; }
+.resistor-picker p { color: #62736a; font-size: 15px; line-height: 1.5; }
+@media (max-width: 700px) { .resistor-picker { grid-template-columns: 84px minmax(0, 1fr); gap: 16px; padding: 18px; } .resistor-picker-art { width: 84px; height: 59px; } .resistor-picker h2 { font-size: 23px; } .resistor-picker > a { grid-column: 1 / -1; } }
