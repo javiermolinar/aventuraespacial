@@ -63,19 +63,22 @@ describe('level generation', () => {
       for (let round = 0; round < 100; round++) {
         const operations = getOperations(level, random);
         expect(operations).toHaveLength(levels[level].pieceCount);
-        const additionCount = level === 3 || level === 8 || level === 10 ? levels[level].pieceCount : level === 5 || level === 9 ? 0 : levels[level].pieceCount / 2;
+        const additionCount = level === 3 || level === 8 || level === 10 ? levels[level].pieceCount : level === 5 || level === 9 || level >= 11 ? 0 : levels[level].pieceCount / 2;
         expect(operations.filter(operation => operation.operator === '+')).toHaveLength(additionCount);
         expect(operations.filter(operation => operation.operator === '−')).toHaveLength(levels[level].pieceCount - additionCount);
         distinct.add(JSON.stringify(operations));
         for (const operation of operations) {
           const result = resultOf(operation);
           expect(result).toBeGreaterThanOrEqual(0);
-          expect(result).toBeLessThan(level >= 7 ? 1000 : 100);
+          expect(result).toBeLessThan(level >= 7 && level !== 11 && level !== 12 ? 1000 : 100);
           expect(columnAnswer(operation, 'ones') + columnAnswer(operation, 'tens') * 10).toBe(result);
           expect(operation.a).toBeGreaterThanOrEqual(operation.b);
           if (operation.operator === '−' && level !== 5 && level !== 9) expect(needsExchange(operation)).toBe(false);
           if (level === 10) { expect(operation.extraAddends).toHaveLength(1); expect((operation.a % 10 + operation.b % 10 + operation.extraAddends![0] % 10)).toBeGreaterThanOrEqual(20); }
-          if (level >= 7) { expect(operation.a).toBeGreaterThanOrEqual(100); expect(operation.b).toBeGreaterThanOrEqual(100); }
+          if (level >= 7 && level <= 10 || level === 13) { expect(operation.a).toBeGreaterThanOrEqual(100); expect(operation.b).toBeGreaterThanOrEqual(100); }
+          if (level === 11) { expect(operation.a).toBeLessThan(10); expect(result).toBeGreaterThan(0); }
+          if (level === 12) { expect(operation.a).toBeLessThan(100); expect(operation.b).toBeGreaterThanOrEqual(10); expect(operation.a - operation.b).toBeGreaterThanOrEqual(10); }
+          if (level >= 11) expect(needsExchange(operation)).toBe(false);
           if (level === 0) { expect(result).toBeLessThan(10); expect(operation.a).toBeLessThan(10); expect(needsExchange(operation)).toBe(false); }
           if (level === 1 || level === 4 || level === 7) expect(needsExchange(operation)).toBe(false);
           if (level === 2) {
@@ -96,6 +99,12 @@ describe('level generation', () => {
     expect(needsExchange(levelExamples[5])).toBe(true);
     expect(needsExchange(levelExamples[6])).toBe(false);
   });
+  it('offers subtraction-only practice without borrowing at one, two and three digits', () => {
+    const digits = (n: number) => String(n).length;
+    expect([11, 12, 13].map(level => getOperations(level, seededRandom(level)).every(operation => operation.operator === '−' && !needsExchange(operation) && digits(operation.a) === level - 10 && digits(operation.b) === level - 10))).toEqual([true, true, true]);
+    expect(levelExamples).toHaveLength(levels.length);
+    expect(levelExamples.slice(11).every(example => example.operator === '−' && !needsExchange(example))).toBe(true);
+  });
   it('supports deterministic tests without fixed game rounds or shared mutable operations', () => {
     const operations = getOperations(0, seededRandom(42));
     const again = getOperations(0, seededRandom(42));
@@ -108,7 +117,7 @@ describe('level generation', () => {
     for (let level = 0; level < levels.length; level++) for (const value of [0, 0.999999]) {
       for (const operation of getOperations(level, () => value)) {
         expect(resultOf(operation)).toBeGreaterThanOrEqual(0);
-        expect(resultOf(operation)).toBeLessThan(level >= 7 ? 1000 : 100);
+        expect(resultOf(operation)).toBeLessThan(level >= 7 && level !== 11 && level !== 12 ? 1000 : 100);
         expect(operation.a).toBeGreaterThanOrEqual(operation.b);
       }
     }

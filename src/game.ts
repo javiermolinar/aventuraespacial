@@ -25,7 +25,15 @@ export const levels = [
   { name: 'Sumas de tres cifras', description: 'Llevadas en varias columnas', design: 'nova', color: '#d9ae65', robot: 'Nova', pieceCount: 6 },
   { name: 'Restas de tres cifras', description: 'Cambios entre centenas, decenas y unidades', design: 'titan', color: '#99b4de', robot: 'Titan', pieceCount: 6 },
   { name: 'Tres números, más llevadas', description: 'Sumas de tres números: llevamos 2', design: 'bolt', color: '#e8a4cf', robot: 'Rayo experto', pieceCount: 6 },
+  // Subtraction-only practice without borrowing. Appended so saved progress and adventure profiles keep their indices.
+  { name: 'Restas de una cifra', description: 'Solo restas pequeñas, sin llevadas', design: 'sprout', color: '#9fc7a8', robot: 'Hoja', pieceCount: 6 },
+  { name: 'Restas de dos cifras', description: 'Solo restas, sin llevadas', design: 'spark', color: '#c9b6ee', robot: 'Destello', pieceCount: 6 },
+  { name: 'Restas de tres cifras fáciles', description: 'Solo restas, sin llevadas', design: 'cobalt', color: '#8fc8d6', robot: 'Azur', pieceCount: 6 },
 ] as const;
+
+/** Belt-speed step for each stage; the appended subtraction stages follow their no-carry counterparts. */
+const paceOverrides: Record<number, number> = { 11: 0, 12: 4, 13: 7 };
+export const levelPace = (level: number) => paceOverrides[level] ?? level;
 
 // Illustrations for the landing cards only, never used to populate a game.
 export const levelExamples: Operation[] = [
@@ -36,6 +44,7 @@ export const levelExamples: Operation[] = [
   { a: 324, b: 152, operator: '+' }, { a: 278, b: 156, operator: '+' },
   { a: 402, b: 178, operator: '−' },
   { a: 289, b: 178, operator: '+', extraAddends: [177] },
+  { a: 8, b: 3, operator: '−' }, { a: 47, b: 23, operator: '−' }, { a: 685, b: 241, operator: '−' },
 ];
 
 export function getOperations(level: number, random: Random = Math.random): Operation[] {

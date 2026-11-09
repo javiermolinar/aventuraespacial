@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, MotionConfig } from 'motion/react';
 import { ArrowLeft, ArrowRight, Check, Hand, PartyPopper, RotateCcw } from 'lucide-react';
-import { getOperations, levels, loadProgress, operationLabel, parts, resultOf, saveProgress, type PartId } from '../../game';
+import { getOperations, levelPace, levels, loadProgress, operationLabel, parts, resultOf, saveProgress, type PartId } from '../../game';
 import { Factory } from './Factory';
 import { conveyorDuration } from './useConveyor';
 import { MathPuzzle } from '../../components/maths/MathPuzzle';
@@ -76,7 +76,7 @@ export default function RobotLab() {
       {saveFailed && <div className="save-warning" role="status">No se puede guardar el progreso en este navegador.</div>}
       <div className="page-heading"><h1>{complete ? `¡Hola, ${config.robot}!` : `Construye a ${config.robot}`}</h1><span className="level-label">Nivel {level + 1}</span></div>
       <div className="workshop-grid">
-        <Factory placed={placed} selected={selectedPart.id} ready={ready} color={config.color} design={config.design} complete={complete} activeParts={activeParts} onPlace={placePart} travelMs={conveyorDuration(level)} />
+        <Factory placed={placed} selected={selectedPart.id} ready={ready} color={config.color} design={config.design} complete={complete} activeParts={activeParts} onPlace={placePart} travelMs={conveyorDuration(levelPace(level))} />
         <section className="activity-panel" aria-label="Resuelve la operación">
           <>
             {complete ? <motion.div key="complete" className="completion-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

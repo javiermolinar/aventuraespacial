@@ -119,11 +119,24 @@ export function generateTripleAddition(_operator: Operator, random: Random = Mat
   return { a: values[0], b: values[1], operator: '+', extraAddends: [values[2]] };
 }
 
+/** Subtraction-only stages, never borrowing: one, two and three digits. */
+export function generateSingleDigitSubtraction(_operator: Operator, random: Random = Math.random): Operation {
+  const a = integer(2, 9, random);
+  return operation(a, integer(1, a - 1, random), '−');
+}
+
+export function generateTwoDigitSubtraction(_operator: Operator, random: Random = Math.random): Operation {
+  const aTens = integer(2, 9, random), bTens = integer(1, aTens - 1, random);
+  const aOnes = integer(0, 9, random), bOnes = integer(0, aOnes, random);
+  return operation(aTens * 10 + aOnes, bTens * 10 + bOnes, '−');
+}
+
 export function generateRound(level: number, pieceCount: number, random: Random = Math.random): Operation[] {
-  const generator = [...stageGenerators, generateMixedOperation, generateHundredsOperation, generateHundredsExchange, generateHundredsExchange, generateTripleAddition][level];
+  const generator = [...stageGenerators, generateMixedOperation, generateHundredsOperation, generateHundredsExchange, generateHundredsExchange, generateTripleAddition,
+    generateSingleDigitSubtraction, generateTwoDigitSubtraction, generateHundredsOperation][level];
   if (!generator) throw new RangeError(`Unknown maths stage: ${level}`);
   // Stage 4 teaches addition carries; stage 6 separately teaches subtraction borrowing.
-  const focusedOperator = level === 3 || level === 8 || level === 10 ? '+' : level === 5 || level === 9 ? '−' : undefined;
+  const focusedOperator = level === 3 || level === 8 || level === 10 ? '+' : level === 5 || level === 9 || level >= 11 ? '−' : undefined;
   const operators: Operator[] = Array.from({ length: pieceCount }, (_, index) => focusedOperator ?? (index % 2 ? '−' : '+'));
   for (let i = operators.length - 1; i > 0; i--) {
     const j = integer(0, i, random);
