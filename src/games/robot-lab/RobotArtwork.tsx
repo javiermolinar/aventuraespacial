@@ -19,6 +19,9 @@ function HeadGeometry({ design }: { design: RobotDesign }) {
     case 'bubble': return <circle cx="200" cy="131" r="54" />;
     case 'gear': return <path d="M155 80H245V94H263V169H245V183H155V169H137V94H155Z" />;
     case 'pixel': return <rect x="137" y="80" width="126" height="103" rx="5" />;
+    case 'leaf': return <path d="M137 183V112Q137 80 169 80H263V151Q263 183 231 183Z" />;
+    case 'flash': return <path d="M200 78L226 89L258 94L252 126L264 158L230 170L200 186L170 170L136 158L148 126L142 94L174 89Z" />;
+    case 'azure': return <path d="M137 183V122Q137 100 158 98Q162 80 200 80Q238 80 242 98Q263 100 263 122V183Z" />;
   }
 }
 
@@ -34,6 +37,9 @@ function BodyGeometry({ design }: { design: RobotDesign }) {
     case 'bubble': return <ellipse cx="200" cy="252" rx="60" ry="53" />;
     case 'gear': return <path d="M150 198H250V216H262V283H250V303H150V283H138V216H150Z" />;
     case 'pixel': return <rect x="140" y="198" width="120" height="105" rx="5" />;
+    case 'leaf': return <path d="M150 198H254V275Q254 303 226 303H146V226Q146 198 150 198Z" />;
+    case 'flash': return <path d="M170 198H230L262 224L246 250L262 276L230 303H170L138 276L154 250L138 224Z" />;
+    case 'azure': return <path d="M146 198H254V292Q237 304 220 292Q200 282 180 292Q163 304 146 292Z" />;
   }
 }
 
@@ -48,6 +54,9 @@ function Antenna({ design }: { design: RobotDesign }) {
     case 'space': return <><path d="M200 80V56" fill="none" /><ellipse cx="200" cy="46" rx="23" ry="10" transform="rotate(-20 200 46)" /></>;
     case 'bubble': return <><circle cx="200" cy="71" r="7" /><circle cx="202" cy="52" r="11" /><circle cx="216" cy="31" r="6" /></>;
     case 'gear': return <><path d="M200 80V60" fill="none" /><path d="M193 28H207V36H215V50H207V58H193V50H185V36H193Z" /></>;
+    case 'leaf': return <><path d="M200 80V60" fill="none" /><path d="M200 62Q240 60 238 30Q198 28 200 62Z" /></>;
+    case 'flash': return <><path d="M200 80V72" fill="none" /><path d="M200 22L207 40L225 47L207 54L200 72L193 54L175 47L193 40Z" /></>;
+    case 'azure': return <><path d="M200 80V70" fill="none" /><path d="M200 20Q222 44 214 58Q207 68 200 68Q193 68 186 58Q178 44 200 20Z" /></>;
     case 'pixel': return <><path d="M183 80V55H217V80" fill="none" /><rect x="177" y="33" width="14" height="14" rx="1" /><rect x="209" y="33" width="14" height="14" rx="1" /></>;
   }
 }
@@ -58,6 +67,9 @@ function ChestMark({ design }: { design: RobotDesign }) {
     case 'space': return <path d="M200 228L205 239L217 240L208 248L210 260L200 254L190 260L192 248L183 240L195 239Z" />;
     case 'bubble': return <><circle cx="194" cy="245" r="8" /><circle cx="210" cy="234" r="4" /></>;
     case 'gear': return <><path d="M191 233H209V239H215V251H209V257H191V251H185V239H191Z" /><circle cx="200" cy="245" r="4" fill="#f6c868" /></>;
+    case 'leaf': return <path d="M200 261Q181 246 200 227Q219 246 200 261ZM200 261V232" fillRule="evenodd" />;
+    case 'flash': return <path d="M200 226L206 240L220 245L206 250L200 264L194 250L180 245L194 240Z" />;
+    case 'azure': return <path d="M200 226Q216 244 210 254Q205 262 200 262Q195 262 190 254Q184 244 200 226Z" />;
     case 'pixel': return <><rect x="188" y="233" width="9" height="9" /><rect x="203" y="233" width="9" height="9" /><rect x="188" y="248" width="9" height="9" /><rect x="203" y="248" width="9" height="9" /></>;
     default: return <path d="M203 228L190 246H201L197 260L212 240H201Z" />;
   }
@@ -67,7 +79,7 @@ export function PartShape({ id, color, design }: { id: PartId; color: string; de
   const ink = '#34384b';
   switch (id) {
     case 'head': return <>
-      <g fill={design === 'sprout' ? color : '#f6c868'} stroke={ink} strokeWidth="3" strokeLinejoin="round"><Antenna design={design} /></g>
+      <g fill={design === 'sprout' || design === 'leaf' ? color : '#f6c868'} stroke={ink} strokeWidth="3" strokeLinejoin="round"><Antenna design={design} /></g>
       <rect x="122" y="110" width="18" height="39" rx="8" fill={color} stroke={ink} strokeWidth="3" />
       <rect x="260" y="110" width="18" height="39" rx="8" fill={color} stroke={ink} strokeWidth="3" />
       <g fill={color} stroke={ink} strokeWidth="3" strokeLinejoin="round"><HeadGeometry design={design} /></g>

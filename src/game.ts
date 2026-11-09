@@ -26,9 +26,9 @@ export const levels = [
   { name: 'Restas de tres cifras', description: 'Cambios entre centenas, decenas y unidades', design: 'titan', color: '#99b4de', robot: 'Titan', pieceCount: 6 },
   { name: 'Tres números, más llevadas', description: 'Sumas de tres números: llevamos 2', design: 'bolt', color: '#e8a4cf', robot: 'Rayo experto', pieceCount: 6 },
   // Subtraction-only practice without borrowing. Appended so saved progress and adventure profiles keep their indices.
-  { name: 'Restas de una cifra', description: 'Solo restas pequeñas, sin llevadas', design: 'sprout', color: '#9fc7a8', robot: 'Hoja', pieceCount: 6 },
-  { name: 'Restas de dos cifras', description: 'Solo restas, sin llevadas', design: 'spark', color: '#c9b6ee', robot: 'Destello', pieceCount: 6 },
-  { name: 'Restas de tres cifras fáciles', description: 'Solo restas, sin llevadas', design: 'cobalt', color: '#8fc8d6', robot: 'Azur', pieceCount: 6 },
+  { name: 'Restas de una cifra', description: 'Solo restas pequeñas, sin llevadas', design: 'leaf', color: '#8fc48e', robot: 'Hoja', pieceCount: 6 },
+  { name: 'Restas de dos cifras', description: 'Solo restas, sin llevadas', design: 'flash', color: '#f0b6d0', robot: 'Destello', pieceCount: 6 },
+  { name: 'Restas de tres cifras fáciles', description: 'Solo restas, sin llevadas', design: 'azure', color: '#7fb4e8', robot: 'Azur', pieceCount: 6 },
 ] as const;
 
 /**

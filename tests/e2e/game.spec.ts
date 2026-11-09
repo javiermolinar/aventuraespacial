@@ -16,7 +16,7 @@ test('distinct robot silhouettes appear above the practice levels; the game has 
       [shape.tagName, ...['d', 'x', 'y', 'rx', 'ry', 'r', 'cx', 'cy', 'width', 'height'].map(name => shape.getAttribute(name))].join(':')
     ).join('|')
   ));
-  expect(new Set(silhouettes).size).toBe(10);
+  expect(new Set(silhouettes).size).toBe(new Set(levels.map(level => level.design)).size);
   await page.getByRole('link', { name: 'Nivel 1: Primeras cuentas' }).click();
   await expect(page).toHaveURL(/games\/robot-lab.html\?level=1$/);
   await expect(page.getByRole('navigation')).toHaveCount(0);
