@@ -119,6 +119,9 @@ test('a cancelled touch over the matching outline returns the piece without plac
   await page.goto('http://127.0.0.1:4173/games/robot-lab.html?level=1');
   await solveCurrent(page);
   const piece = page.getByRole('button', { name: /^Arrastrar / });
+  // The page scrolls the factory into view on small screens; wait until both elements stop moving before measuring.
+  await piece.click({ trial: true });
+  await page.getByRole('button', { name: /^Encajar / }).click({ trial: true });
   const source = (await piece.boundingBox())!;
   const target = (await page.getByRole('button', { name: /^Encajar / }).boundingBox())!;
   const session = await context.newCDPSession(page);
