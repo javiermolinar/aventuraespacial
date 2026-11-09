@@ -7,6 +7,7 @@ import './styles/landing.css';
 import './styles/shape-game-picker.css';
 import './styles/time-chef-picker.css';
 import './styles/laser-rats-picker.css';
+import './styles/ten-lines-picker.css';
 
 /** Standalone games preserve the existing practice collection and level URLs. */
 export default function Practice() {
@@ -26,6 +27,11 @@ export default function Practice() {
           <div className="level-preview" style={{ background: `${level.color}25` }}><RobotPortrait color={level.color} design={level.design} /></div>
           <h3>{level.name}</h3><p>{level.description}</p><div className="level-card-bottom"><strong>{operationLabel(levelExamples[index])}</strong><span className="play-arrow"><ArrowRight size={20} /></span></div>
         </a>)}</div>
+      </section>
+      <section className="ten-lines-picker" aria-labelledby="ten-lines-title">
+        <div className="ten-lines-picker-art" aria-hidden="true">{[1, 5, 6, 3, 2, 3, 4, 5, 1].map((value, index) => <span key={index}>{value}</span>)}</div>
+        <div><span className="ten-lines-picker-category">SUMAS Y LÓGICA</span><h2 id="ten-lines-title">Diez líneas</h2><p>Intercambia las fichas y consigue que cada fila y cada columna sume 10.</p></div>
+        <a className="primary" href="./games/ten-lines.html">Jugar<ArrowRight size={20} aria-hidden="true" /></a>
       </section>
       <ConnectionsPicker />
       <section className="shape-game-picker" aria-labelledby="shape-game-title">
