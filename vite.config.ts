@@ -18,6 +18,8 @@ export default defineConfig({
         timeChef: resolve(import.meta.dirname, 'games/time-chef.html'),
         laserRats: resolve(import.meta.dirname, 'games/laser-rats.html'),
         connections: resolve(import.meta.dirname, 'games/connections.html'),
+        tenLines: resolve(import.meta.dirname, 'games/ten-lines.html'),
+        resistorBoard: resolve(import.meta.dirname, 'games/resistor-board.html'),
       },
     },
   },
