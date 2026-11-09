@@ -23,6 +23,7 @@
 .ten-lines-difficulty { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; padding: 4px; border-radius: 14px; background: #ececf0; }
 .ten-lines-difficulty button { min-height: 42px; padding: 7px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 800; }
 .ten-lines-difficulty button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 2px 8px #24344d1f; }
+.ten-lines-size { width: max-content; margin-inline: auto; }
 .ten-lines-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
 .ten-lines-actions .primary, .ten-lines-actions .secondary { min-height: 44px; padding: 8px 17px; border-radius: 11px; font-size: 15px; box-shadow: none; }
 .ten-lines-actions .primary { border-color: var(--ink); background: var(--ink); }
@@ -32,7 +33,7 @@
 .ten-lines-moves { color: var(--muted); font-size: 14px; }
 .ten-lines-success { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 520px; margin: 12px auto 0; padding: 12px 18px; border: 1px solid #add8c8; border-radius: 14px; background: var(--green-soft); color: #176353; font-weight: 800; text-align: center; }
 .ten-lines-board-wrap { overflow-x: auto; padding: 18px 4px 12px; }
-.ten-lines-board { display: grid; grid-template-columns: repeat(3, clamp(68px, 19vw, 106px)) 50px; grid-template-rows: repeat(3, clamp(68px, 19vw, 106px)) 50px; justify-content: center; gap: 10px; width: max-content; min-width: 100%; }
+.ten-lines-board { display: grid; grid-template-columns: repeat(var(--size, 3), clamp(68px, 19vw, 106px)) 50px; grid-template-rows: repeat(var(--size, 3), clamp(68px, 19vw, 106px)) 50px; justify-content: center; gap: 10px; width: max-content; min-width: 100%; }
 .ten-lines-cell { display: grid; aspect-ratio: 1; place-items: center; border: 2px solid #24344d21; border-radius: 20%; background: var(--paper); color: var(--ink); box-shadow: 0 5px 0 #d9d7d1, 0 8px 16px #24344d12; cursor: grab; font-size: clamp(27px, 6vw, 39px); font-weight: 850; font-variant-numeric: tabular-nums; transition: transform 120ms ease, background 120ms ease; }
 .ten-lines-cell:hover:not(:disabled) { transform: translateY(-2px); }
 .ten-lines-cell:active:not(:disabled) { cursor: grabbing; transform: translateY(2px); }
@@ -54,6 +55,6 @@
   .ten-lines-heading p { font-size: 8px; letter-spacing: 1.2px; }
   .ten-lines-panel { padding: 14px 8px; border-radius: 18px; }
   .ten-lines-difficulty button { padding: 7px 9px; font-size: 13px; }
-  .ten-lines-board { gap: 7px; grid-template-columns: repeat(3, clamp(64px, 20vw, 88px)) 42px; grid-template-rows: repeat(3, clamp(64px, 20vw, 88px)) 42px; }
+  .ten-lines-board { gap: 7px; grid-template-columns: repeat(var(--size, 3), clamp(64px, 20vw, 88px)) 42px; grid-template-rows: repeat(var(--size, 3), clamp(64px, 20vw, 88px)) 42px; }
   .ten-lines-sum, .ten-lines-target { width: 40px; height: 40px; }
 }
